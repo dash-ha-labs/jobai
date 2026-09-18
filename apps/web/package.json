@@ -1,0 +1,33 @@
+{
+  "name": "jobai-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "node .output/server/index.mjs",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.170.38",
+    "@tanstack/react-start": "^1.168.56",
+    "jobai-shared": "*",
+    "motion": "^12.4.7",
+    "nitro": "^3.0.260903-beta",
+    "pdf-lib": "^1.17.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "valibot": "^1.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^8.2.0"
+  }
+}

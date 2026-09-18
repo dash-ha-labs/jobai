@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@media print {
+  /* Hide application chrome, navigation, headers, footers, and editor controls */
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Target CV Paper */
+  .cv-print-target {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    page-break-after: auto;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm;
+  }
+
+  /* Prevent awkward page breaks inside items */
+  .cv-section {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .cv-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
