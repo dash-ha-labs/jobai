@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+*.log
+.jobai-data
+.DS_Store
+.output
+.tanstack
+legacy-root-src/
+apps/web/public/downloads/
+/edge-check.cjs
+/test-*.cjs
