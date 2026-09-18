@@ -1,0 +1,707 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#faf9f6">
+    <title>folio. — Your next chapter starts here</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+  </head>
+  <body class="bg-[#faf9f6] text-[#292a27] antialiased" style="font-family:'DM Sans',sans-serif">
+    <div class="flex min-h-screen">
+      <!-- Navigation -->
+      <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-[#e8e7e2] bg-[#f5f4f0] px-5 py-8 lg:flex">
+        <a href="#" class="ml-3 w-fit text-4xl font-semibold tracking-[-0.08em]" aria-label="Folio home" style="font-family:'Manrope',sans-serif">
+          folio
+          <span class="text-[#9782d8]">.</span>
+        </a>
+        <div class="mb-7 mt-9 flex items-center gap-3 rounded-xl border border-[#e4e3dd] bg-white/60 p-3">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e6e0f4] text-sm font-medium">
+            JD
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-medium">Jamie’s workspace</p>
+            <p class="mt-0.5 text-xs text-[#93938a]">Personal account</p>
+          </div>
+          <iconify-icon icon="solar:lock-keyhole-linear" class="text-base text-[#9b9a92]"></iconify-icon>
+        </div>
+        <p class="mb-3 pl-3 text-xs font-medium tracking-widest text-[#9a9a91]">
+          WORKSPACE
+        </p>
+        <nav class="space-y-1.5" aria-label="Main navigation">
+          <button data-nav="home" class="flex w-full items-center gap-3 rounded-lg bg-[#e8e3f1] px-3 py-3 text-sm font-medium text-[#625181]">
+            <iconify-icon icon="solar:widget-2-linear" class="text-xl"></iconify-icon>
+            Overview
+          </button>
+          <button data-nav="cvs" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-[#73736b] hover:bg-[#eeede7]">
+            <iconify-icon icon="solar:document-text-linear" class="text-xl"></iconify-icon>
+            My CVs
+            <span id="cv-count" class="ml-auto rounded-md bg-[#eae9e3] px-2 py-0.5 text-xs">
+              3
+            </span>
+          </button>
+          <button data-nav="tools" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-[#73736b] hover:bg-[#eeede7]">
+            <iconify-icon icon="solar:magic-stick-3-linear" class="text-xl"></iconify-icon>
+            Career toolkit
+            <span class="ml-auto rounded bg-[#e8eccf] px-1.5 py-0.5 text-xs text-[#727c40]">
+              New
+            </span>
+          </button>
+          <button data-nav="learn" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm text-[#73736b] hover:bg-[#eeede7]">
+            <iconify-icon icon="solar:book-2-linear" class="text-xl"></iconify-icon>
+            Tips &amp; resources
+          </button>
+        </nav>
+        <div class="mx-3 my-6 border-t border-[#e2e1db]"></div>
+        <button onclick="openExtension()" class="flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-[#73736b] hover:bg-[#eeede7]">
+          <iconify-icon icon="solar:planet-linear" class="text-xl"></iconify-icon>
+          Browser extension
+          <iconify-icon icon="solar:arrow-right-up-linear" class="ml-auto text-base"></iconify-icon>
+        </button>
+
+        <div class="mt-auto pt-12">
+          <div class="relative overflow-hidden rounded-xl border border-[#e1dccd] bg-[#eeeadd] p-4">
+            <span class="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#ded4ec]">
+              <iconify-icon icon="solar:stars-linear" class="text-lg text-[#79648f]"></iconify-icon>
+            </span>
+            <p class="text-sm font-medium">Big ambitions? We get it.</p>
+            <p class="mt-1.5 text-xs leading-relaxed text-[#858174]">
+              More possibilities, fewer limits.
+              <br>
+              Make your next move with Pro.
+            </p>
+            <button onclick="openPro()" class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-[#d6d1c3] bg-white/60 py-2 text-xs font-medium transition hover:bg-white">
+              Explore Folio Pro
+              <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon>
+            </button>
+          </div>
+          <div class="mt-5 flex items-center gap-3 px-1">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&amp;h=96&amp;fit=crop&amp;crop=faces" alt="Jamie Davis" class="h-9 w-9 rounded-full object-cover">
+            <div class="flex-1">
+              <p class="text-sm font-medium">Jamie Davis</p>
+              <p class="text-xs text-[#919187]">Free plan</p>
+            </div>
+            <button onclick="toast('You’re signed in to Jamie’s personal workspace.')" aria-label="Account details" class="p-2 text-[#7f7f76]">
+              <iconify-icon icon="solar:settings-linear" class="text-xl"></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0 flex-1 lg:ml-60">
+        <header class="flex h-20 items-center justify-between gap-4 border-b border-[#e9e8e2] px-5 sm:px-9 lg:px-10">
+          <div class="flex items-center gap-3">
+            <button id="mobile-menu" class="flex p-1 lg:hidden" aria-label="Open navigation" aria-expanded="false">
+              <iconify-icon icon="solar:hamburger-menu-linear" class="text-2xl"></iconify-icon>
+            </button>
+            <span id="breadcrumb" class="text-sm text-[#85857d]">
+              Your workspace
+              <span class="mx-3 text-[#c7c5bc]">/</span>
+              <span class="text-[#41423c]">Overview</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-4 sm:gap-6">
+            <label class="hidden items-center gap-2 text-[#92928a] sm:flex">
+              <iconify-icon icon="solar:magnifer-linear" class="text-lg"></iconify-icon>
+              <input id="search" type="search" placeholder="Find a CV..." aria-label="Search your CVs" class="w-32 bg-transparent text-sm outline-none placeholder:text-[#a2a298] focus:w-44">
+            </label>
+            <span class="hidden h-5 border-l border-[#e3e2db] sm:block"></span>
+            <button onclick="toast('You’re all caught up. Your next opportunity is waiting!')" aria-label="Notifications" class="relative flex p-1 text-[#77796f]">
+              <iconify-icon icon="solar:bell-linear" class="text-xl"></iconify-icon>
+              <span class="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#a693cd] ring-2 ring-[#faf9f6]"></span>
+            </button>
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&amp;h=96&amp;fit=crop&amp;crop=faces" alt="Your profile" class="h-8 w-8 rounded-full object-cover lg:hidden">
+          </div>
+        </header>
+
+        <main class="mx-auto max-w-[1440px] px-5 pb-10 pt-8 sm:px-9 lg:px-10">
+          <section id="welcome" class="mb-7 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-medium tracking-tight" style="font-family:'Manrope',sans-serif">
+                Let’s build your next chapter.
+              </h1>
+              <p class="mt-2 text-sm text-[#8b8c81]">
+                Your CVs, application tools, and next steps. All in one
+                workspace.
+              </p>
+            </div>
+            <button onclick="openCreate()" class="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#4a4e43]">
+              <iconify-icon icon="solar:add-circle-linear" class="text-lg"></iconify-icon>
+              Create a CV
+            </button>
+          </section>
+
+          <!-- Featured extension -->
+          <section id="hero" class="relative isolate mb-8 grid overflow-hidden rounded-2xl border border-[#ddd3e9] bg-[#e8e0f3] md:grid-cols-[1.08fr_1fr]">
+            <div class="relative z-10 px-6 py-8 sm:px-8 sm:py-9">
+              <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c9bcd9] bg-white/30 px-3 py-1.5 text-xs font-medium text-[#79628f]">
+                <iconify-icon icon="lucide:sparkles" class="text-sm"></iconify-icon>
+                YOUR NEXT OPPORTUNITY STARTS HERE
+              </div>
+              <h2 class="max-w-md text-4xl font-medium leading-[1.16] tracking-tight text-[#393040] lg:text-[2.65rem]" style="font-family:'Manrope',sans-serif">
+                Your next role.
+                <br>
+                A CV to match.
+              </h2>
+              <p class="mt-5 max-w-[340px] text-sm leading-relaxed text-[#82738e]">
+                Turn your experience into a focused application. Start with a
+                role, add your achievements, and make the draft your own.
+              </p>
+              <button onclick="openCreate()" class="mt-6 inline-flex items-center gap-2.5 rounded-lg bg-[#30332d] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#4a4e43]">
+                <iconify-icon icon="lucide:plus" class="text-lg"></iconify-icon>
+                Create a tailored CV
+                <iconify-icon icon="lucide:arrow-right" class="ml-2 text-lg"></iconify-icon>
+              </button>
+              <p class="mt-3 flex items-center gap-1.5 text-xs text-[#95839f]">
+                <iconify-icon icon="lucide:check" class="text-sm"></iconify-icon>
+                Free to start. Yours to edit and export.
+              </p>
+            </div>
+            <div class="relative hidden min-h-[354px] items-center justify-center md:flex" aria-label="A job description transformed into a tailored CV">
+              <div class="absolute right-7 top-6 h-72 w-72 rounded-full border border-white/35"></div>
+              <div class="absolute right-0 top-1 h-96 w-96 rounded-full border border-white/25"></div>
+              <div class="absolute left-1 top-14 w-48 -rotate-[6deg] rounded-xl border border-white/90 bg-[#f7f4fa] p-4 shadow-[0_8px_24px_#61467712] lg:left-2">
+                <div class="mb-4 flex items-center gap-1.5 border-b border-[#e7e1ed] pb-3">
+                  <span class="h-1.5 w-1.5 rounded-full bg-[#cfc7db]"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-[#dcd5e4]"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-[#e6dfed]"></span>
+                  <span class="ml-auto text-xs text-[#a398ae]">dream job</span>
+                </div>
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e0e7dc] text-xl font-medium tracking-tight text-[#728564]">
+                  a
+                </span>
+                <p class="mt-3 text-sm font-medium">Product Designer</p>
+                <p class="mt-1 text-xs text-[#9c92a4]">Acme · Remote</p>
+                <div class="my-4 space-y-2">
+                  <div class="h-1.5 w-full rounded bg-[#e2dce9]"></div>
+                  <div class="h-1.5 w-4/5 rounded bg-[#e2dce9]"></div>
+                  <div class="h-1.5 w-11/12 rounded bg-[#e2dce9]"></div>
+                </div>
+                <div class="rounded-md bg-[#e7dfef] py-2 text-center text-xs text-[#8b759c]">
+                  This could be the one.
+                </div>
+              </div>
+              <div class="absolute right-6 top-10 w-52 rotate-[4deg] rounded-lg border border-white bg-[#fffefb] p-5 shadow-[0_14px_35px_#70578020] lg:right-10">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e7e4db] text-xs text-[#6c7061]">
+                    JD
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold tracking-tight">
+                      Jamie Davis
+                    </p>
+                    <p class="mt-0.5 text-xs text-[#979489]">
+                      Product Designer
+                    </p>
+                  </div>
+                </div>
+                <div class="mb-3 mt-4 h-px bg-[#dbddd2]"></div>
+                <p class="text-xs font-medium text-[#74796b]">
+                  A little about me
+                </p>
+                <div class="mt-2 space-y-1.5">
+                  <div class="h-1 w-full rounded bg-[#e7e7df]"></div>
+                  <div class="h-1 w-full rounded bg-[#e7e7df]"></div>
+                  <div class="h-1 w-4/5 rounded bg-[#e7e7df]"></div>
+                </div>
+                <p class="mb-2 mt-4 text-xs font-medium text-[#74796b]">
+                  Experience
+                </p>
+                <div class="space-y-1.5">
+                  <div class="h-1.5 w-3/5 rounded bg-[#d9dece]"></div>
+                  <div class="h-1 w-full rounded bg-[#e7e7df]"></div>
+                  <div class="h-1 w-full rounded bg-[#e7e7df]"></div>
+                  <div class="h-1 w-3/4 rounded bg-[#e7e7df]"></div>
+                </div>
+                <p class="mb-2 mt-4 text-xs font-medium text-[#74796b]">
+                  The things I do best
+                </p>
+                <div class="flex gap-1">
+                  <span class="h-3 w-12 rounded bg-[#e9eddf]"></span>
+                  <span class="h-3 w-10 rounded bg-[#eee7f4]"></span>
+                  <span class="h-3 w-9 rounded bg-[#eee9df]"></span>
+                </div>
+              </div>
+              <div class="absolute bottom-5 left-5 z-10 flex items-center gap-2.5 rounded-xl border border-white bg-[#fafcf4] px-4 py-3 shadow-[0_5px_20px_#60497612] lg:left-8">
+                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#e1ebce] text-[#829b5c]">
+                  <iconify-icon icon="solar:check-read-linear" class="text-lg"></iconify-icon>
+                </span>
+                <span class="text-xs font-medium text-[#727c5c]">
+                  Made for you. Matched to the role.
+                </span>
+              </div>
+              <iconify-icon icon="solar:stars-linear" class="absolute right-5 top-12 text-4xl text-[#af92c7]"></iconify-icon>
+              <iconify-icon icon="solar:star-fall-linear" class="absolute bottom-10 right-8 -rotate-12 text-3xl text-[#a58cba]"></iconify-icon>
+            </div>
+          </section>
+
+          <!-- CV library -->
+          <section id="cvs-section" class="mb-8 scroll-mt-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <h2 class="text-lg font-medium tracking-tight">
+                  Your recent CVs
+                </h2>
+                <span id="recent-count" class="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs text-[#929285]">
+                  3
+                </span>
+              </div>
+              <button onclick="showSection('cvs')" class="flex items-center gap-1.5 text-xs font-medium text-[#8c8d81] hover:text-[#4e5646]">
+                View all CVs
+                <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon>
+              </button>
+            </div>
+            <div id="cv-grid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <button onclick="viewCV(0)" class="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-sm">
+                <div class="relative flex h-32 justify-center overflow-hidden bg-[#e9e5f0]">
+                  <span class="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs text-[#7d886c]">
+                    <span class="h-1 w-1 rounded-full bg-current"></span>
+                    Ready to go
+                  </span>
+                  <div class="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-sm transition group-hover:-translate-y-1">
+                    <p class="text-xs font-medium tracking-tight">
+                      JAMIE DAVIS
+                    </p>
+                    <p class="mt-1 truncate text-xs text-[#b0aca2]">
+                      Product Designer
+                    </p>
+                    <div class="my-2.5 h-px bg-[#aaa0bc]"></div>
+                    <div class="flex gap-3">
+                      <div class="w-2/3 space-y-1.5">
+                        <div class="h-1 w-2/3 rounded bg-[#aaa0bc]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 w-4/5 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                      <div class="flex-1 space-y-1.5">
+                        <div class="h-1 rounded bg-[#aaa0bc]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776]">
+                    <iconify-icon icon="lucide:arrow-up-right" class="text-base"></iconify-icon>
+                  </span>
+                </div>
+                <div class="p-4">
+                  <h3 class="truncate text-sm font-medium">
+                    Product Designer
+                    <span class="font-normal text-[#a2a095]">— Linear</span>
+                  </h3>
+                  <p class="mt-2 flex items-center gap-1.5 text-xs text-[#a0a094]">
+                    <iconify-icon icon="lucide:clock" class="text-sm"></iconify-icon>
+                    Edited 2 hours ago
+                  </p>
+                </div>
+              </button>
+              <button onclick="viewCV(1)" class="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-sm">
+                <div class="relative flex h-32 justify-center overflow-hidden bg-[#e9ecdf]">
+                  <span class="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs text-[#7d886c]">
+                    <span class="h-1 w-1 rounded-full bg-current"></span>
+                    Ready to go
+                  </span>
+                  <div class="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-sm transition group-hover:-translate-y-1">
+                    <p class="text-xs font-medium tracking-tight">
+                      JAMIE DAVIS
+                    </p>
+                    <p class="mt-1 truncate text-xs text-[#b0aca2]">
+                      Senior UX Designer
+                    </p>
+                    <div class="my-2.5 h-px bg-[#a7af8f]"></div>
+                    <div class="flex gap-3">
+                      <div class="w-2/3 space-y-1.5">
+                        <div class="h-1 w-2/3 rounded bg-[#a7af8f]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 w-4/5 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                      <div class="flex-1 space-y-1.5">
+                        <div class="h-1 rounded bg-[#a7af8f]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776]">
+                    <iconify-icon icon="lucide:arrow-up-right" class="text-base"></iconify-icon>
+                  </span>
+                </div>
+                <div class="p-4">
+                  <h3 class="truncate text-sm font-medium">
+                    Senior UX Designer
+                    <span class="font-normal text-[#a2a095]">— Notion</span>
+                  </h3>
+                  <p class="mt-2 flex items-center gap-1.5 text-xs text-[#a0a094]">
+                    <iconify-icon icon="lucide:clock" class="text-sm"></iconify-icon>
+                    Edited yesterday
+                  </p>
+                </div>
+              </button>
+              <button onclick="viewCV(2)" class="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-sm">
+                <div class="relative flex h-32 justify-center overflow-hidden bg-[#efe7dd]">
+                  <span class="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs text-[#9b8b76]">
+                    <span class="h-1 w-1 rounded-full bg-current"></span>
+                    Draft
+                  </span>
+                  <div class="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-sm transition group-hover:-translate-y-1">
+                    <p class="text-xs font-medium tracking-tight">
+                      JAMIE DAVIS
+                    </p>
+                    <p class="mt-1 truncate text-xs text-[#b0aca2]">
+                      Designer &amp; creative thinker
+                    </p>
+                    <div class="my-2.5 h-px bg-[#c1ad95]"></div>
+                    <div class="flex gap-3">
+                      <div class="w-2/3 space-y-1.5">
+                        <div class="h-1 w-2/3 rounded bg-[#c1ad95]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 w-4/5 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                      <div class="flex-1 space-y-1.5">
+                        <div class="h-1 rounded bg-[#c1ad95]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                        <div class="h-1 rounded bg-[#e8e7e0]"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776]">
+                    <iconify-icon icon="lucide:arrow-up-right" class="text-base"></iconify-icon>
+                  </span>
+                </div>
+                <div class="p-4">
+                  <h3 class="truncate text-sm font-medium">My master CV</h3>
+                  <p class="mt-2 flex items-center gap-1.5 text-xs text-[#a0a094]">
+                    <iconify-icon icon="lucide:clock" class="text-sm"></iconify-icon>
+                    Edited 3 days ago
+                  </p>
+                </div>
+              </button>
+            </div>
+            <p id="empty-search" class="hidden rounded-xl border border-dashed border-[#dcdcd1] py-12 text-center text-sm text-[#898d7e]">
+              No CVs found. Try another title or create a fresh one.
+            </p>
+          </section>
+
+          <!-- Career toolkit -->
+          <section id="tools-section" class="mb-7 scroll-mt-6">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-lg font-medium tracking-tight">
+                  Your application toolkit
+                </h2>
+                <p class="mt-1 text-xs text-[#99998f]">
+                  Polish your portrait, review your CV, and draft your
+                  introduction.
+                </p>
+              </div>
+              <button onclick="showSection('tools')" class="flex items-center gap-1.5 text-xs font-medium text-[#8c8d81] hover:text-[#4e5646]">
+                Explore the toolkit
+                <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon>
+              </button>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-3">
+              <button onclick="openHeadshot()" class="group overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left transition hover:-translate-y-1 hover:shadow-md motion-reduce:transform-none">
+                <div class="relative flex h-32 items-center justify-center overflow-hidden bg-[#ececdf]">
+                  <div class="absolute h-36 w-36 rounded-full border border-[#dcdcca]"></div>
+                  <div class="absolute h-24 w-24 rounded-full border border-[#dddecb]"></div>
+                  <div class="relative mr-[-12px] mt-5 h-24 w-20 -rotate-[12deg] overflow-hidden rounded-lg border-4 border-[#fffef7] shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&amp;h=240&amp;fit=crop&amp;crop=faces" alt="Portrait before" class="h-full w-full object-cover">
+                  </div>
+                  <div class="relative -mt-2 h-28 w-24 rotate-[8deg] overflow-hidden rounded-lg border-4 border-[#fffef7] shadow-sm">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=240&amp;h=280&amp;fit=crop&amp;crop=faces" alt="Example professional headshot" class="h-full w-full object-cover">
+                  </div>
+                  <span class="absolute right-5 top-5 rounded-full bg-[#fafbf1] p-1.5 leading-none text-[#93986e]">
+                    <iconify-icon icon="solar:magic-stick-3-linear" class="text-xl"></iconify-icon>
+                  </span>
+                </div>
+                <div class="p-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium">Portrait studio</h3>
+                    <iconify-icon icon="solar:arrow-right-up-linear" class="text-lg text-[#969a8c]"></iconify-icon>
+                  </div>
+                  <p class="mt-1.5 text-xs text-[#919287]">
+                    Upload and preview a professional portrait crop.
+                  </p>
+                </div>
+              </button>
+              <button onclick="openChecker()" class="group overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left transition hover:-translate-y-1 hover:shadow-md motion-reduce:transform-none">
+                <div class="relative flex h-32 items-center justify-center bg-[#f1e7de]">
+                  <div class="relative flex w-48 -rotate-3 items-center gap-3 rounded-xl border border-white/90 bg-[#fffaf4] p-4 shadow-sm">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[3px] border-[#a8b48e] text-lg font-medium tracking-tight text-[#879670]">
+                      92
+                      <span class="text-xs">%</span>
+                    </div>
+                    <div>
+                      <p class="text-xs font-medium text-[#766a5d]">
+                        Looking good!
+                      </p>
+                      <div class="mt-2 h-1.5 w-20 rounded-full bg-[#e8e1d6]">
+                        <div class="h-full w-11/12 rounded-full bg-[#bbc5a4]"></div>
+                      </div>
+                      <p class="mt-1.5 text-xs text-[#b2a697]">
+                        Ready to stand out
+                      </p>
+                    </div>
+                  </div>
+                  <iconify-icon icon="solar:verified-check-linear" class="absolute right-7 top-5 rotate-12 text-3xl text-[#c5a284]"></iconify-icon>
+                </div>
+                <div class="p-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium">CV review</h3>
+                    <iconify-icon icon="solar:arrow-right-up-linear" class="text-lg text-[#969a8c]"></iconify-icon>
+                  </div>
+                  <p class="mt-1.5 text-xs text-[#919287]">
+                    Check your writing for clarity and impact.
+                  </p>
+                </div>
+              </button>
+              <button onclick="openLetter()" class="group overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left transition hover:-translate-y-1 hover:shadow-md motion-reduce:transform-none">
+                <div class="relative flex h-32 items-center justify-center overflow-hidden bg-[#e5eaf0]">
+                  <div class="mt-8 h-32 w-40 -rotate-[8deg] rounded-t-lg bg-[#fafcfe] p-4 shadow-sm">
+                    <p class="text-xs font-medium text-[#8b98a6]">
+                      Hello, future team.
+                    </p>
+                    <div class="mt-3 space-y-2">
+                      <div class="h-1 w-full rounded bg-[#dfe5ec]"></div>
+                      <div class="h-1 w-11/12 rounded bg-[#dfe5ec]"></div>
+                      <div class="h-1 w-full rounded bg-[#dfe5ec]"></div>
+                      <div class="h-1 w-4/5 rounded bg-[#dfe5ec]"></div>
+                    </div>
+                  </div>
+                  <div class="absolute right-10 top-7 flex h-10 w-10 rotate-12 items-center justify-center rounded-xl bg-[#ccd8e6] text-[#8a9bb4] shadow-sm">
+                    <iconify-icon icon="solar:pen-new-square-linear" class="text-2xl"></iconify-icon>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-medium">Cover letter builder</h3>
+                    <iconify-icon icon="solar:arrow-right-up-linear" class="text-lg text-[#969a8c]"></iconify-icon>
+                  </div>
+                  <p class="mt-1.5 text-xs text-[#919287]">
+                    Start with an outline. Make it sound like you.
+                  </p>
+                </div>
+              </button>
+            </div>
+          </section>
+
+          <section id="learn-section" class="flex scroll-mt-6 flex-wrap items-center gap-4 rounded-xl border border-[#e6e5da] bg-[#f2f2e9] px-5 py-4">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5e7d4] text-[#93976e]">
+              <iconify-icon icon="solar:lightbulb-bolt-linear" class="text-2xl"></iconify-icon>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium">A tiny tip, a big difference.</p>
+              <p class="mt-1 text-xs leading-relaxed text-[#8d907d]">
+                Don’t just list what you did. Show the difference you made.
+                Numbers tell a great story.
+              </p>
+            </div>
+            <button onclick="openTips()" class="flex items-center gap-2 whitespace-nowrap text-xs font-medium text-[#747a5a]">
+              More good advice
+              <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon>
+            </button>
+          </section>
+          <footer class="mt-7 flex items-center justify-between text-xs text-[#b2b2a6]">
+            <span>Made for your next chapter.</span>
+            <span class="flex items-center gap-1.5">
+              A little confidence goes a long way
+              <iconify-icon icon="solar:heart-linear" class="text-sm"></iconify-icon>
+            </span>
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <!-- Accessible modal -->
+    <dialog id="modal" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-[#e6e3dc] bg-[#fffefa] p-0 text-[#34362f] shadow-2xl backdrop:bg-[#292732]/35" style="font-family:'DM Sans',sans-serif">
+      <div class="p-6 sm:p-8">
+        <div class="mb-5 flex items-start justify-between gap-4">
+          <h2 id="modal-title" class="text-2xl font-medium tracking-tight" style="font-family:'Manrope',sans-serif"></h2>
+          <button onclick="closeModal()" aria-label="Close dialog" class="rounded-lg p-1 text-[#919083] hover:bg-[#f0efe7]">
+            <iconify-icon icon="solar:close-circle-linear" class="text-2xl"></iconify-icon>
+          </button>
+        </div>
+        <div id="modal-body"></div>
+      </div>
+    </dialog>
+    <div id="toast" role="status" class="pointer-events-none fixed bottom-6 left-1/2 z-50 hidden w-max max-w-[90vw] -translate-x-1/2 rounded-xl bg-[#35392f] px-5 py-3 text-center text-sm text-white shadow-lg"></div>
+
+    <script>
+      const cvs = [
+        { title: 'Product Designer', company: 'Linear', date: 'Edited 2 hours ago', color: '#e9e5f0', accent: '#aaa0bc', status: 'Ready to go', subtitle: 'Product Designer · Linear' },
+        { title: 'Senior UX Designer', company: 'Notion', date: 'Edited yesterday', color: '#e9ecdf', accent: '#a7af8f', status: 'Ready to go', subtitle: 'Senior UX Designer · Notion' },
+        { title: 'My master CV', company: 'Your starting point', date: 'Edited 3 days ago', color: '#efe7dd', accent: '#c1ad95', status: 'Draft', subtitle: 'All your experience, in one place' }
+      ];
+      const escapeText = value => String(value).replace(/[&\x3c>"']/g, c => ({'&':'&amp;','\x3c':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const modal = document.getElementById('modal');
+      const field = 'mt-2 w-full rounded-lg border border-[#deded2] bg-white p-3 text-sm outline-none focus:border-[#a395bb] focus:ring-2 focus:ring-[#e8e0f3]';
+      const primary = 'mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#34382e] px-4 py-3 text-sm font-medium text-white hover:bg-[#4a5041]';
+      function renderCVs(query = '') {
+        const filtered = cvs.map((cv,index) => ({...cv,index})).filter(cv => `${cv.title} ${cv.company}`.toLowerCase().includes(query.toLowerCase()));
+        document.getElementById('cv-grid').innerHTML = filtered.map(cv => `
+          \x3cbutton onclick="viewCV(${cv.index})" class="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-sm">
+            \x3cdiv class="relative flex h-32 justify-center overflow-hidden" style="background:${cv.color}">
+              \x3cspan class="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs ${cv.status === 'Draft' ? 'text-[#9b8b76]' : 'text-[#7d886c]'}">\x3cspan class="h-1 w-1 rounded-full bg-current">\x3c/span>${cv.status}\x3c/span>
+              \x3cdiv class="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-[0_2px_10px_#31352b0c] transition group-hover:-translate-y-1">
+                \x3cp class="text-xs font-medium tracking-tight">JAMIE DAVIS\x3c/p>\x3cp class="mt-1 truncate text-xs text-[#b0aca2]">${escapeText(cv.title === 'My master CV' ? 'Designer & creative thinker' : cv.title)}\x3c/p>
+                \x3cdiv class="my-2.5 h-px" style="background:${cv.accent}">\x3c/div>
+                \x3cdiv class="flex gap-3">\x3cdiv class="w-2/3 space-y-1.5">\x3cdiv class="h-1 w-2/3 rounded" style="background:${cv.accent}">\x3c/div>\x3cdiv class="h-1 rounded bg-[#e8e7e0]">\x3c/div>\x3cdiv class="h-1 rounded bg-[#e8e7e0]">\x3c/div>\x3cdiv class="h-1 w-4/5 rounded bg-[#e8e7e0]">\x3c/div>\x3c/div>\x3cdiv class="flex-1 space-y-1.5">\x3cdiv class="h-1 rounded" style="background:${cv.accent}">\x3c/div>\x3cdiv class="h-1 rounded bg-[#e8e7e0]">\x3c/div>\x3cdiv class="h-1 rounded bg-[#e8e7e0]">\x3c/div>\x3c/div>\x3c/div>
+              \x3c/div>
+              \x3cspan class="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776]">\x3ciconify-icon icon="lucide:arrow-up-right" class="text-base">\x3c/iconify-icon>\x3c/span>
+            \x3c/div>
+            \x3cdiv class="p-4">\x3ch3 class="truncate text-sm font-medium">${escapeText(cv.title)}${cv.title !== 'My master CV' ? ' \x3cspan class="font-normal text-[#a2a095]">— '+escapeText(cv.company)+'\x3c/span>' : ''}\x3c/h3>\x3cp class="mt-2 flex items-center gap-1.5 text-xs text-[#a0a094]">\x3ciconify-icon icon="lucide:clock" class="text-sm">\x3c/iconify-icon>${cv.date}\x3c/p>\x3c/div>
+          \x3c/button>`).join('');
+        document.getElementById('empty-search').classList.toggle('hidden', !!filtered.length);
+        document.getElementById('cv-count').textContent = cvs.length;
+        document.getElementById('recent-count').textContent = cvs.length;
+      }
+      function openModal(title, content) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-body').innerHTML = content;
+        if (!modal.open) modal.showModal();
+      }
+      function closeModal() { modal.close(); }
+      modal.addEventListener('click', e => {
+        if (e.target === modal) {
+          const r = modal.getBoundingClientRect();
+          if (r.left > e.clientX || e.clientX > r.right || r.top > e.clientY || e.clientY > r.bottom) closeModal();
+        }
+      });
+      let toastTimer;
+      function toast(message) {
+        const element = document.getElementById('toast');
+        element.textContent = message;
+        element.classList.remove('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => element.classList.add('hidden'), 4200);
+      }
+      function openCreate() {
+        openModal('Let’s make your next move.', `
+          \x3cp class="mb-5 text-sm leading-relaxed text-[#8b8d7e]">Start a job-specific CV draft. Add your real experience before sending it out.\x3c/p>
+          \x3cform id="create-form">
+            \x3clabel class="block text-sm font-medium">Job title\x3cinput id="job-title" class="${field}" placeholder="e.g. Product Designer" required maxlength="70" />\x3c/label>
+            \x3clabel class="mt-4 block text-sm font-medium">Company\x3cinput id="company" class="${field}" placeholder="e.g. Acme" required maxlength="50" />\x3c/label>
+            \x3clabel class="mt-4 block text-sm font-medium">Your relevant experience\x3ctextarea id="experience" class="${field}" rows="4" placeholder="Projects, responsibilities, and achievements you want to highlight..." required>\x3c/textarea>\x3c/label>
+            \x3cbutton class="${primary}" type="submit">\x3ciconify-icon icon="solar:document-add-linear" class="text-lg">\x3c/iconify-icon>Create my draft\x3c/button>
+          \x3c/form>`);
+        document.getElementById('create-form').onsubmit = e => {
+          e.preventDefault();
+          cvs.unshift({title:document.getElementById('job-title').value.trim(), company:document.getElementById('company').value.trim(), experience:document.getElementById('experience').value.trim(), color:'#e9e5f0',accent:'#aaa0bc',status:'Draft',date:'Edited just now'});
+          renderCVs(); closeModal(); showSection('cvs'); toast('Your new CV draft is ready. Make it yours!');
+        };
+      }
+      function viewCV(index) {
+        const cv = cvs[index];
+        openModal(cv.title, `\x3cp class="mb-5 text-sm text-[#949386]">${escapeText(cv.company)} · ${cv.status}\x3c/p>
+          \x3cdiv class="rounded-xl border border-[#e4e2d9] bg-white p-6">
+            \x3ch3 class="text-xl font-medium tracking-tight">Jamie Davis\x3c/h3>\x3cp class="mt-1 text-sm text-[#8d877d]">${escapeText(cv.title)}\x3c/p>
+            \x3cdiv class="my-5 border-t border-[#e1dfd4]">\x3c/div>
+            \x3cp class="text-xs font-medium uppercase tracking-widest text-[#93987d]">Experience\x3c/p>
+            \x3cp class="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#7f8174]">${escapeText(cv.experience || 'This is an example CV. Replace this section with your work history, measurable achievements, and skills relevant to the role.')}\x3c/p>
+          \x3c/div>
+          \x3cp class="mt-4 text-xs leading-relaxed text-[#96968a]">Review your details before applying. Use your browser’s print dialog to save a PDF.\x3c/p>
+          \x3cbutton onclick="printCV(${index})" class="${primary}">\x3ciconify-icon icon="solar:printer-linear" class="text-lg">\x3c/iconify-icon>Print / Save as PDF\x3c/button>`);
+      }
+      function printCV(index) {
+        const cv = cvs[index], win = window.open('', '_blank');
+        if (!win) return toast('Please allow pop-ups to print your CV.');
+        win.document.write(`\x3c!DOCTYPE html>\x3chtml lang="en">\x3chead>\x3ctitle>${escapeText(cv.title)} — Jamie Davis\x3c/title>\x3c/head>\x3cbody style="font-family:Arial,sans-serif;padding:3rem;color:#30332d;line-height:1.6">\x3ch1 style="font-size:2rem;letter-spacing:-0.04rem;font-weight:600">Jamie Davis\x3c/h1>\x3cp>${escapeText(cv.title)} · ${escapeText(cv.company)}\x3c/p>\x3chr style="border:0;border-top:1px solid #ddd;margin:2rem 0">\x3ch2 style="font-size:1.1rem;font-weight:500">Experience\x3c/h2>\x3cp style="white-space:pre-wrap">${escapeText(cv.experience || 'Add your work history, measurable achievements, and relevant skills before submitting this CV.')}\x3c/p>\x3c/body>\x3c/html>`);
+        win.document.close(); win.focus(); setTimeout(() => win.print(), 300);
+      }
+      function openExtension() {
+        openModal('Meet your job-search sidekick.', `
+          \x3cdiv class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8e0f3] text-[#8c71a6]">\x3ciconify-icon icon="solar:planet-linear" class="text-3xl">\x3c/iconify-icon>\x3c/div>
+          \x3cp class="text-sm leading-relaxed text-[#8a897d]">The Folio extension is in the works. The idea is simple: open a job page, bring your experience, and build a CV tailored to the role without leaving the page.\x3c/p>
+          \x3cdiv class="mt-5 space-y-3 text-sm">\x3cp>01 \x3cspan class="ml-3 text-[#87887a]">Find a role that feels right.\x3c/span>\x3c/p>\x3cp>02 \x3cspan class="ml-3 text-[#87887a]">Match it with your master CV.\x3c/span>\x3c/p>\x3cp>03 \x3cspan class="ml-3 text-[#87887a]">Review, refine, and apply.\x3c/span>\x3c/p>\x3c/div>
+          \x3cp class="mt-5 rounded-lg bg-[#f4f1e8] p-3 text-xs text-[#98907b]">Preview experience — there’s no extension to install yet.\x3c/p>
+          \x3cbutton class="${primary}" onclick="openCreate()">Try the CV draft builder\x3ciconify-icon icon="solar:arrow-right-linear" class="text-lg">\x3c/iconify-icon>\x3c/button>`);
+      }
+      function openHeadshot() {
+        openModal('Put your best face forward.', `\x3cp class="text-sm leading-relaxed text-[#898b7e]">Preview your portrait in a clean, professional crop. AI lighting and background generation are coming soon.\x3c/p>
+          \x3clabel class="mt-5 flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-dashed border-[#d4ccdf] bg-[#f2eef7] p-8 text-center text-sm text-[#8c779e]">\x3ciconify-icon icon="solar:camera-add-linear" class="text-3xl">\x3c/iconify-icon>\x3cspan>Choose your portrait\x3c/span>\x3cspan class="text-xs">JPG, PNG or WebP · up to 10 MB\x3c/span>\x3cinput id="portrait-upload" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" />\x3c/label>\x3cdiv id="portrait-preview">\x3c/div>`);
+        document.getElementById('portrait-upload').onchange = e => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 10*1024*1024) return toast('Please choose a JPG, PNG or WebP smaller than 10 MB.');
+          const preview = document.getElementById('portrait-preview');
+          const image = document.createElement('img');
+          image.alt = 'Your professional portrait crop';
+          image.className = 'mx-auto mt-5 aspect-square w-48 rounded-xl object-cover shadow-sm';
+          const note = document.createElement('p');
+          note.className = 'mt-3 text-center text-xs text-[#96988a]';
+          note.textContent = 'Your photo stays in your browser. Nothing is uploaded.';
+          const url = URL.createObjectURL(file);
+          image.onload = () => URL.revokeObjectURL(url);
+          image.onerror = () => {
+            URL.revokeObjectURL(url);
+            preview.textContent = 'This image could not be opened. Please choose another portrait.';
+          };
+          preview.replaceChildren(image, note);
+          image.src = url;
+        };
+      }
+      function openChecker() {
+        openModal('A stronger CV starts here.', `\x3cp class="mb-4 text-sm leading-relaxed text-[#8b8d7f]">Paste your CV for a quick writing check. This checks text patterns, not an ATS score.\x3c/p>\x3cform id="checker-form">\x3clabel class="text-sm font-medium">CV text\x3ctextarea id="check-text" required minlength="30" rows="7" class="${field}" placeholder="Paste your summary and experience here...">\x3c/textarea>\x3c/label>\x3cbutton class="${primary}">Check my CV\x3c/button>\x3c/form>\x3cdiv id="check-result" class="mt-4 space-y-2">\x3c/div>`);
+        document.getElementById('checker-form').onsubmit = e => {
+          e.preventDefault();
+          const text = document.getElementById('check-text').value;
+          const checks = [[/\d/.test(text),'Include measurable outcomes, such as percentages or team sizes.'],[/\b(led|built|created|improved|designed|launched|managed|reduced|increased)\b/i.test(text),'Start achievements with clear action verbs.'],[/\b(experience|employment|work history)\b/i.test(text),'Use a recognizable Experience heading.'],[text.trim().split(/\s+/).length >= 150,'Add enough context: aim for a focused, complete work history.']];
+          document.getElementById('check-result').innerHTML = checks.map(([pass,label]) => `\x3cp class="flex items-start gap-2 rounded-lg bg-[#f3f3ea] p-3 text-xs leading-relaxed text-[#838875]">\x3ciconify-icon icon="${pass?'solar:check-circle-linear':'solar:info-circle-linear'}" class="mt-0.5 shrink-0 text-base">\x3c/iconify-icon>${pass?'Looking good: ':''}${label}\x3c/p>`).join('');
+        };
+      }
+      function openLetter() {
+        openModal('A warm introduction.', `\x3cp class="mb-4 text-sm leading-relaxed text-[#909183]">Start with a simple cover letter outline. Replace the prompts with a story that’s genuinely yours.\x3c/p>\x3cform id="letter-form">\x3clabel class="text-sm font-medium">Role & company\x3cinput required id="letter-role" class="${field}" placeholder="Product Designer at Acme" maxlength="100" />\x3c/label>\x3cbutton class="${primary}">Create my outline\x3c/button>\x3c/form>\x3cdiv id="letter-result">\x3c/div>`);
+        document.getElementById('letter-form').onsubmit = e => {
+          e.preventDefault();
+          document.getElementById('letter-result').innerHTML = `\x3clabel class="mt-5 block text-xs text-[#929582]">YOUR EDITABLE OUTLINE\x3ctextarea class="${field}" rows="10">Hello, hiring team,\n\nI’m excited to apply for ${escapeText(document.getElementById('letter-role').value)}.\n\n[Explain what genuinely interests you about the team and its work.]\n\nIn my role at [company], I [specific achievement with a measurable result]. This experience helped me develop [skills relevant to this role].\n\n[Connect that experience to a challenge you could help this team solve.]\n\nI’d love to discuss how I could contribute. Thank you for your time and consideration.\n\nBest,\nJamie Davis\x3c/textarea>\x3c/label>`;
+        };
+      }
+      function openTips() {
+        openModal('Good advice. Real momentum.', `\x3cdiv class="space-y-5">${[
+          ['Lead with impact.','“Increased onboarding completion by 24%” says more than “Responsible for onboarding.” Use real numbers where you can.'],
+          ['Make it easy to scan.','Use familiar section headings, a readable font, and a simple layout. For most early-career applicants, one focused page is a good start.'],
+          ['Match the role, not every keyword.','Highlight relevant experience and use the employer’s terminology when it accurately describes your skills.'],
+          ['Consider your industry and location.','Photo expectations and CV length vary. In the US and UK, most non-creative roles do not require a headshot. Check local conventions.']
+        ].map(([title,text],i) => `\x3cdiv class="flex gap-3">\x3cspan class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e9e4f1] text-xs text-[#8d77a5]">${i+1}\x3c/span>\x3cdiv>\x3ch3 class="text-sm font-medium">${title}\x3c/h3>\x3cp class="mt-1 text-sm leading-relaxed text-[#8a8c7d]">${text}\x3c/p>\x3c/div>\x3c/div>`).join('')}\x3c/div>`);
+      }
+      function openPro() {
+        openModal('More room for big ambitions.', `\x3cspan class="inline-block rounded-full bg-[#eae3f4] px-3 py-1 text-xs text-[#957fa9]">COMING SOON\x3c/span>\x3cp class="mt-5 text-sm leading-relaxed text-[#8a8d7d]">We’re building more ways to make your job search feel less like work: unlimited tailored CVs, deeper feedback, and AI-powered portraits.\x3c/p>\x3cp class="mt-4 text-sm leading-relaxed text-[#8a8d7d]">For now, explore the free draft builder and career tools. No payment details needed.\x3c/p>\x3cbutton onclick="openCreate()" class="${primary}">Create a free CV draft\x3c/button>`);
+      }
+      function showSection(section) {
+        document.querySelectorAll('[data-nav]').forEach(button => {
+          const active = button.dataset.nav === section;
+          button.style.background = active ? '#e8e3f1' : 'transparent';
+          button.style.color = active ? '#625181' : '#73736b';
+        });
+        document.getElementById('hero').classList.toggle('hidden', section !== 'home');
+        const names = {home:'Overview',cvs:'My CVs',tools:'Career toolkit',learn:'Tips & resources'};
+        document.getElementById('breadcrumb').innerHTML = `Your workspace \x3cspan class="mx-3 text-[#c7c5bc]">/\x3c/span> \x3cspan class="text-[#41423c]">${names[section]}\x3c/span>`;
+        if (section === 'home') window.scrollTo({top:0,behavior:'smooth'});
+        else document.getElementById({cvs:'cvs-section',tools:'tools-section',learn:'learn-section'}[section]).scrollIntoView({behavior:'smooth',block:'start'});
+        if (1024 > window.innerWidth) {
+          document.getElementById('sidebar').classList.add('hidden');
+          document.getElementById('mobile-menu').setAttribute('aria-expanded','false');
+        }
+      }
+      document.querySelectorAll('[data-nav]').forEach(button => button.onclick = () => showSection(button.dataset.nav));
+      document.getElementById('search').addEventListener('input', e => renderCVs(e.target.value));
+      document.getElementById('mobile-menu').onclick = () => {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+        sidebar.classList.add('flex');
+        document.getElementById('mobile-menu').setAttribute('aria-expanded', String(!sidebar.classList.contains('hidden')));
+      };
+      document.addEventListener('click', e => {
+        if (1024 > window.innerWidth && !e.target.closest('#sidebar') && !e.target.closest('#mobile-menu')) {
+          document.getElementById('sidebar').classList.add('hidden');
+          document.getElementById('mobile-menu').setAttribute('aria-expanded','false');
+        }
+      });
+      renderCVs();
+    </script>
+  
+</body></html>
