@@ -21,16 +21,43 @@ async function ensureDir(dirPath: string): Promise<void> {
  * Atomically writes content to filePath by writing to a temporary file
  * on the same filesystem and renaming it into place.
  */
-async function atomicWriteFile(filePath: string, content: string): Promise<void> {
+async function atomicWriteFile(filePath: string, content: string, mode?: number): Promise<void> {
   const dir = path.dirname(filePath);
   await ensureDir(dir);
   const tmpPath = path.join(dir, `.tmp-${Date.now()}-${crypto.randomBytes(6).toString("hex")}`);
-  await fs.writeFile(tmpPath, content, "utf8");
+  await fs.writeFile(tmpPath, content, { encoding: "utf8", mode });
   await fs.rename(tmpPath, filePath);
+  if (mode !== undefined) {
+    try {
+      await fs.chmod(filePath, mode);
+    } catch {
+      // Ignore chmod error if filesystem does not support POSIX modes
+    }
+  }
 }
 
 const PROFILE_FILE_NAME = "profile.json";
 const PAIRING_FILE_NAME = "pairing.json";
+const CREDENTIALS_FILE_NAME = "credentials.json";
+
+export type AIProvider = "openai" | "anthropic" | "glm";
+
+export interface StoredAICredentials {
+  provider: AIProvider;
+  apiKey: string;
+  model: string;
+  updatedAt: string;
+}
+
+export interface ClientAIConfigStatus {
+  configured: boolean;
+  provider: AIProvider | null;
+  model: string | null;
+  maskedKey: string | null;
+  storageType: "local-file-mode-0600";
+  disclosure: string;
+  updatedAt: string | null;
+}
 
 export interface StoredPairingState {
   token: string | null;
@@ -207,4 +234,111 @@ export async function loadJobRecord(id: string): Promise<StoredJobRecord | null>
   } catch {
     return null;
   }
+}
+
+export async function loadAICredentials(): Promise<StoredAICredentials | null> {
+  const dataDir = getDataDir();
+  const credsPath = path.join(dataDir, CREDENTIALS_FILE_NAME);
+  try {
+    const raw = await fs.readFile(credsPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.apiKey === "string" &&
+      parsed.apiKey.trim().length > 0 &&
+      ["openai", "anthropic", "glm"].includes(parsed.provider) &&
+      typeof parsed.model === "string" &&
+      parsed.model.trim().length > 0
+    ) {
+      return parsed as StoredAICredentials;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveAICredentials(creds: {
+  provider: AIProvider;
+  apiKey: string;
+  model: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!["openai", "anthropic", "glm"].includes(creds.provider)) {
+    return { success: false, error: "Invalid provider. Supported: openai, anthropic, glm" };
+  }
+  if (!creds.apiKey || typeof creds.apiKey !== "string" || !creds.apiKey.trim()) {
+    return { success: false, error: "API key is required" };
+  }
+  if (!creds.model || typeof creds.model !== "string" || !creds.model.trim()) {
+    return { success: false, error: "Model ID is required" };
+  }
+
+  const dataDir = getDataDir();
+  await ensureDir(dataDir);
+  try {
+    await fs.chmod(dataDir, 0o700);
+  } catch {
+    // Ignore chmod error
+  }
+
+  const payload: StoredAICredentials = {
+    provider: creds.provider,
+    apiKey: creds.apiKey.trim(),
+    model: creds.model.trim(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const credsPath = path.join(dataDir, CREDENTIALS_FILE_NAME);
+  try {
+    await atomicWriteFile(credsPath, JSON.stringify(payload, null, 2), 0o600);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: `Failed to store credentials: ${err?.message || String(err)}` };
+  }
+}
+
+export async function deleteAICredentials(): Promise<{ success: boolean; error?: string }> {
+  const dataDir = getDataDir();
+  const credsPath = path.join(dataDir, CREDENTIALS_FILE_NAME);
+  try {
+    await fs.unlink(credsPath);
+    return { success: true };
+  } catch (err: any) {
+    if (err?.code === "ENOENT") {
+      return { success: true };
+    }
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+
+export async function getAICredentialsStatus(): Promise<ClientAIConfigStatus> {
+  const creds = await loadAICredentials();
+  if (!creds) {
+    return {
+      configured: false,
+      provider: null,
+      model: null,
+      maskedKey: null,
+      storageType: "local-file-mode-0600",
+      disclosure:
+        "Stored in restricted local credential file (.jobai-data/credentials.json, mode 0600, parent 0700). Unencrypted at rest (OS keychain not configured for local dev).",
+      updatedAt: null,
+    };
+  }
+
+  const keyLen = creds.apiKey.length;
+  const suffix = keyLen > 4 ? creds.apiKey.slice(-4) : creds.apiKey;
+  const maskedKey = `••••••••${suffix}`;
+
+  return {
+    configured: true,
+    provider: creds.provider,
+    model: creds.model,
+    maskedKey,
+    storageType: "local-file-mode-0600",
+    disclosure:
+      "Stored in restricted local credential file (.jobai-data/credentials.json, mode 0600, parent 0700). Unencrypted at rest (OS keychain not configured for local dev).",
+    updatedAt: creds.updatedAt,
+  };
 }

@@ -93,7 +93,13 @@ export interface DurableJobResponse {
 
 export type ExtensionJobState =
   | { status: "awaiting_setup"; reason: "not_paired" | "no_profile" | "no_ai"; message: string }
-  | { status: "idle"; hasProfile: boolean; aiConfigured: boolean }
+  | {
+      status: "idle";
+      hasProfile: boolean;
+      aiConfigured: boolean;
+      aiProvider?: string | null;
+      aiModel?: string | null;
+    }
   | { status: "extracting" }
   | { status: "tailoring"; job: import("./types.js").JobHandoffPayload; jobId?: string }
   | { status: "generating_pdf"; draftId: string; job: import("./types.js").JobHandoffPayload; jobId?: string }

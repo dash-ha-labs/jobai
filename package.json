@@ -12,7 +12,7 @@
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=apps/web && npm run build --workspace=apps/extension",
     "start": "npm run start --workspace=apps/web",
     "check": "npm run check --workspace=packages/shared && npm run check --workspace=apps/web && npm run typecheck --workspace=apps/extension",
-    "test": "node test/contract-check.js && node test/self-check.js && npx tsx test/automation-check.ts && npm run test --workspace=apps/extension",
+    "test": "node test/contract-check.js && node test/self-check.js && npx tsx test/automation-check.ts && npx tsx test/byok-ai.test.ts && npm run test --workspace=apps/extension",
     "test:ssr": "node test/ssr-check.js",
     "test:contracts": "node test/contract-check.js",
     "test:automation": "npx tsx test/automation-check.ts"

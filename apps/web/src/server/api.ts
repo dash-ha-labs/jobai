@@ -8,8 +8,13 @@ import {
   listDraftVersions,
   saveJobRecord,
   loadJobRecord,
+  loadAICredentials,
+  saveAICredentials,
+  deleteAICredentials,
+  getAICredentialsStatus,
   type StoredDraft,
   type StoredJobRecord,
+  type AIProvider,
 } from "./storage.js";
 import {
   createPairingCode,
@@ -18,7 +23,22 @@ import {
   isExtensionPaired,
   getBoundOrigin,
 } from "./pairing.js";
-import { isAIConfigured, tailorCV } from "./ai.js";
+import {
+  isAIConfigured,
+  isAIConfiguredAsync,
+  tailorCV,
+  testProviderConnection,
+  structureCVFromText,
+  updateCachedAIStatus,
+  DEFAULT_PROVIDER_MODELS,
+} from "./ai.js";
+import {
+  parseDocumentBuffer,
+  FileTooLargeError,
+  InvalidFileFormatError,
+  ScannedPdfError,
+  EmptyDocumentError,
+} from "./cv-parser.js";
 import { generateCVPdf } from "./pdf.js";
 
 // Concurrency lock & rate limiting state
@@ -33,6 +53,10 @@ async function isAllowedOrigin(origin: string | null, pathname?: string): Promis
     return true;
   }
   if (origin.startsWith("chrome-extension://")) {
+    // Extension is NEVER allowed to access credential management endpoints
+    if (pathname?.startsWith("/api/ai/")) {
+      return false;
+    }
     // Pairing endpoints allow any chrome-extension origin to exchange or confirm pairing codes
     if (pathname === "/api/pair" || pathname === "/api/pair/confirm") {
       return true;
@@ -53,7 +77,7 @@ async function isAllowedOrigin(origin: string | null, pathname?: string): Promis
 
 function getCorsHeaders(origin: string | null, isAllowed = false): Record<string, string> {
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, x-jobai-csrf",
   };
   if (origin && isAllowed) {
@@ -194,6 +218,9 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       const boundOrigin = await getBoundOrigin();
       const hasToken = await isExtensionPaired();
       const profile = await loadServerProfile();
+      const creds = await loadAICredentials();
+      const aiReady = await isAIConfiguredAsync();
+
       return jsonResponse(
         {
           ok: true,
@@ -201,7 +228,11 @@ export async function handleApiRequest(request: Request): Promise<Response> {
           serverTokenActive: hasToken,
           boundOrigin: boundOrigin || null,
           hasProfile: Boolean(profile),
-          aiConfigured: isAIConfigured(),
+          aiConfigured: aiReady,
+          aiProvider: creds?.provider || null,
+          aiModel:
+            creds?.model ||
+            (process.env.OPENAI_API_KEY ? process.env.OPENAI_MODEL || "gpt-4o-mini" : null),
           version: "1.0.0",
         },
         200,
@@ -336,9 +367,10 @@ export async function handleApiRequest(request: Request): Promise<Response> {
         );
       }
 
-      if (!isAIConfigured()) {
+      const aiReady = await isAIConfiguredAsync();
+      if (!aiReady) {
         return errorResponse(
-          "OPENAI_API_KEY is not configured on the server. Set OPENAI_API_KEY in your environment to enable AI tailoring.",
+          "OPENAI_API_KEY (or configured BYOK provider) is not set on the JobAI server. Configure your key in AI settings (/settings/ai).",
           503,
           "AI_CREDENTIALS_REQUIRED",
           origin
@@ -545,6 +577,218 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       await saveDraftVersion(draft);
 
       return jsonResponse({ success: true, draft }, 200, origin);
+    }
+
+    // 11. GET /api/ai/config (Retrieve masked status, never raw keys)
+    if (pathname === "/api/ai/config" && request.method === "GET") {
+      const isAuth = await authenticateRequest(request, true);
+      if (!isAuth) {
+        return errorResponse("Unauthorized: CSRF validation failed", 403, "UNAUTHORIZED", origin);
+      }
+      const status = await getAICredentialsStatus();
+      return jsonResponse({ ok: true, status }, 200, origin);
+    }
+
+    // 12. POST /api/ai/config (Save BYOK credentials with mode 0600)
+    if (pathname === "/api/ai/config" && request.method === "POST") {
+      const isAuth = await authenticateRequest(request, true);
+      if (!isAuth) {
+        return errorResponse("Unauthorized: CSRF validation failed", 403, "UNAUTHORIZED", origin);
+      }
+      let body: any = {};
+      try {
+        body = await request.json();
+      } catch {
+        return errorResponse("Invalid JSON body", 400, "BAD_REQUEST", origin);
+      }
+
+      const { provider, apiKey, model, test: shouldTest } = body;
+      if (!provider || !["openai", "anthropic", "glm"].includes(provider)) {
+        return errorResponse("Invalid provider. Must be openai, anthropic, or glm", 400, "INVALID_PROVIDER", origin);
+      }
+      if (!apiKey || typeof apiKey !== "string" || !apiKey.trim()) {
+        return errorResponse("API key is required", 400, "INVALID_API_KEY", origin);
+      }
+      const modelId =
+        typeof model === "string" && model.trim()
+          ? model.trim()
+          : DEFAULT_PROVIDER_MODELS[provider as AIProvider];
+
+      if (shouldTest) {
+        try {
+          await testProviderConnection(provider as AIProvider, apiKey.trim(), modelId);
+        } catch (testErr: any) {
+          return errorResponse(testErr?.message || "Connection test failed", 400, "CONNECTION_TEST_FAILED", origin);
+        }
+      }
+
+      const saveRes = await saveAICredentials({
+        provider: provider as AIProvider,
+        apiKey: apiKey.trim(),
+        model: modelId,
+      });
+
+      if (!saveRes.success) {
+        return errorResponse(saveRes.error || "Failed to save AI credentials", 500, "STORAGE_ERROR", origin);
+      }
+
+      updateCachedAIStatus(true);
+      const status = await getAICredentialsStatus();
+      return jsonResponse({ ok: true, status }, 200, origin);
+    }
+
+    // 13. POST /api/ai/test (Test provider connection)
+    if (pathname === "/api/ai/test" && request.method === "POST") {
+      const isAuth = await authenticateRequest(request, true);
+      if (!isAuth) {
+        return errorResponse("Unauthorized: CSRF validation failed", 403, "UNAUTHORIZED", origin);
+      }
+      let body: any = {};
+      try {
+        body = await request.json();
+      } catch {
+        body = {};
+      }
+
+      let provider: AIProvider;
+      let apiKey: string;
+      let model: string;
+
+      if (body.provider && body.apiKey) {
+        provider = body.provider;
+        apiKey = body.apiKey;
+        model = body.model || DEFAULT_PROVIDER_MODELS[provider] || "gpt-4o-mini";
+      } else {
+        const stored = await loadAICredentials();
+        if (!stored) {
+          return errorResponse("No AI credentials configured to test", 400, "NOT_CONFIGURED", origin);
+        }
+        provider = stored.provider;
+        apiKey = stored.apiKey;
+        model = stored.model;
+      }
+
+      try {
+        const result = await testProviderConnection(provider, apiKey, model);
+        return jsonResponse({ ok: true, message: result.message }, 200, origin);
+      } catch (err: any) {
+        return errorResponse(err?.message || "Connection test failed", 400, "CONNECTION_TEST_FAILED", origin);
+      }
+    }
+
+    // 14. DELETE /api/ai/config (Remove credentials)
+    if (pathname === "/api/ai/config" && request.method === "DELETE") {
+      const isAuth = await authenticateRequest(request, true);
+      if (!isAuth) {
+        return errorResponse("Unauthorized: CSRF validation failed", 403, "UNAUTHORIZED", origin);
+      }
+      const delRes = await deleteAICredentials();
+      if (!delRes.success) {
+        return errorResponse(delRes.error || "Failed to remove credentials", 500, "STORAGE_ERROR", origin);
+      }
+      updateCachedAIStatus(false);
+      return jsonResponse({ ok: true, message: "AI credentials removed" }, 200, origin);
+    }
+
+    // 15. POST /api/cv/extract (CV text & document parsing + AI structuring)
+    if (pathname === "/api/cv/extract" && request.method === "POST") {
+      const isAuth = await authenticateRequest(request, true);
+      if (!isAuth) {
+        return errorResponse("Unauthorized: CSRF validation failed", 403, "UNAUTHORIZED", origin);
+      }
+
+      let rawText = "";
+      const contentType = request.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        let body: any = {};
+        try {
+          body = await request.json();
+        } catch {
+          return errorResponse("Invalid JSON body", 400, "BAD_REQUEST", origin);
+        }
+
+        if (body.fileBase64 && typeof body.fileBase64 === "string") {
+          try {
+            const buffer = Buffer.from(body.fileBase64, "base64");
+            const parsed = await parseDocumentBuffer(buffer, body.filename || "document.pdf");
+            rawText = parsed.text;
+          } catch (err: any) {
+            if (
+              err instanceof FileTooLargeError ||
+              err instanceof InvalidFileFormatError ||
+              err instanceof ScannedPdfError ||
+              err instanceof EmptyDocumentError
+            ) {
+              return errorResponse(err.message, 400, err.code, origin);
+            }
+            return errorResponse(err?.message || "Failed to parse document", 400, "PARSE_ERROR", origin);
+          }
+        } else if (body.text && typeof body.text === "string") {
+          rawText = body.text.slice(0, 60000).trim();
+          if (!rawText) {
+            return errorResponse("Document text is empty", 400, "EMPTY_DOCUMENT", origin);
+          }
+        } else {
+          return errorResponse("Either text or fileBase64 is required", 400, "BAD_REQUEST", origin);
+        }
+      } else {
+        try {
+          const arrayBuffer = await request.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const parsed = await parseDocumentBuffer(buffer, "upload.pdf");
+          rawText = parsed.text;
+        } catch (err: any) {
+          if (
+            err instanceof FileTooLargeError ||
+            err instanceof InvalidFileFormatError ||
+            err instanceof ScannedPdfError ||
+            err instanceof EmptyDocumentError
+          ) {
+            return errorResponse(err.message, 400, err.code, origin);
+          }
+          return errorResponse(err?.message || "Failed to parse document", 400, "PARSE_ERROR", origin);
+        }
+      }
+
+      const isAiReady = await isAIConfiguredAsync();
+      if (!isAiReady) {
+        return errorResponse(
+          "AI provider is not configured. Please configure your API key in AI settings (/settings/ai) first.",
+          503,
+          "AI_CREDENTIALS_REQUIRED",
+          origin
+        );
+      }
+
+      try {
+        const { structuredCV, notes } = await structureCVFromText(rawText);
+        const validation = validateCV(structuredCV);
+        if (!validation.valid) {
+          return jsonResponse(
+            {
+              ok: false,
+              error: "VALIDATION_ERROR",
+              message: "Structured CV failed schema validation",
+              details: validation.errors,
+            },
+            422,
+            origin
+          );
+        }
+        return jsonResponse(
+          {
+            ok: true,
+            cv: structuredCV,
+            charCount: rawText.length,
+            notes,
+          },
+          200,
+          origin
+        );
+      } catch (aiErr: any) {
+        return errorResponse(aiErr?.message || "AI CV structuring failed", 500, "AI_ERROR", origin);
+      }
     }
 
     return errorResponse(`Endpoint ${pathname} not found`, 404, "NOT_FOUND", origin);

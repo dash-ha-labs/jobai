@@ -1,17 +1,53 @@
-import { type CV, type JobHandoffPayload } from "jobai-shared";
+import { chat } from "@tanstack/ai";
+import { createOpenaiChatCompletions } from "@tanstack/ai-openai";
+import { openaiCompatibleText } from "@tanstack/ai-openai/compatible";
+import { createAnthropicChat } from "@tanstack/ai-anthropic";
+import { type CV, type JobHandoffPayload, validateCV } from "jobai-shared";
+import {
+  loadAICredentials,
+  type AIProvider,
+} from "./storage.js";
 
 export class MissingAICredentialsError extends Error {
   code = "AI_CREDENTIALS_REQUIRED";
   constructor(
-    message = "OPENAI_API_KEY is not configured in the server environment. Set OPENAI_API_KEY to enable AI tailoring."
+    message = "AI credentials not configured. Set OPENAI_API_KEY in environment or configure OpenAI, Anthropic, or GLM in AI settings (/settings/ai) to enable tailoring."
   ) {
     super(message);
     this.name = "MissingAICredentialsError";
   }
 }
 
+export const OFFICIAL_PROVIDER_ENDPOINTS: Record<AIProvider, string> = {
+  openai: "https://api.openai.com/v1",
+  anthropic: "https://api.anthropic.com",
+  glm: "https://open.bigmodel.cn/api/paas/v4",
+};
+
+export const DEFAULT_PROVIDER_MODELS: Record<AIProvider, string> = {
+  openai: "gpt-4o-mini",
+  anthropic: "claude-3-5-haiku-20241022",
+  glm: "glm-4-flash",
+};
+
+let cachedCredentialsConfigured: boolean | null = null;
+
+export function updateCachedAIStatus(configured: boolean | null): void {
+  cachedCredentialsConfigured = configured;
+}
+
 export function isAIConfigured(): boolean {
   if (customEngine) return true;
+  if (cachedCredentialsConfigured !== null) return cachedCredentialsConfigured;
+  const key = process.env.OPENAI_API_KEY;
+  return typeof key === "string" && key.trim().length > 0;
+}
+
+export async function isAIConfiguredAsync(): Promise<boolean> {
+  if (customEngine) return true;
+  const creds = await loadAICredentials();
+  cachedCredentialsConfigured = Boolean(creds);
+  if (cachedCredentialsConfigured) return true;
   const key = process.env.OPENAI_API_KEY;
   return typeof key === "string" && key.trim().length > 0;
 }
@@ -50,6 +86,14 @@ export function resetAIEngine(): void {
   customEngine = null;
 }
 
+let testFixtureOverride: ((provider: string, prompt: string) => Promise<string>) | null = null;
+
+export function setTestFixtureOverride(
+  fn: ((provider: string, prompt: string) => Promise<string>) | null
+): void {
+  testFixtureOverride = fn;
+}
+
 export interface ModelOutput {
   suggestedSummary?: string;
   selectedSections?: Array<{
@@ -57,6 +101,90 @@ export interface ModelOutput {
     itemIds: string[];
   }>;
   changes?: string[];
+}
+
+/**
+ * Redacts any sensitive keys from error messages before returning or logging.
+ */
+export function sanitizeErrorMessage(errorText: string, apiKey?: string): string {
+  let sanitized = errorText;
+  if (apiKey && apiKey.length > 4) {
+    sanitized = sanitized.split(apiKey).join("[REDACTED_KEY]");
+  }
+  sanitized = sanitized.replace(/sk-[a-zA-Z0-9_-]{20,}/g, "[REDACTED_KEY]");
+  sanitized = sanitized.replace(/Bearer\s+[^\s"']+/gi, "Bearer [REDACTED]");
+  return sanitized.slice(0, 300);
+}
+
+/**
+ * Creates TanStack AI adapter for the configured provider.
+ * Uses official fixed endpoints unless overridden by server environment.
+ */
+export function createProviderAdapter(
+  provider: AIProvider,
+  apiKey: string,
+  model: string
+) {
+  if (provider === "openai") {
+    const baseURL = (process.env.OPENAI_BASE_URL || OFFICIAL_PROVIDER_ENDPOINTS.openai).replace(/\/+$/, "");
+    return createOpenaiChatCompletions(model as any, apiKey, { baseURL });
+  }
+
+  if (provider === "anthropic") {
+    const baseURL = (process.env.ANTHROPIC_BASE_URL || OFFICIAL_PROVIDER_ENDPOINTS.anthropic).replace(/\/+$/, "");
+    return createAnthropicChat(model as any, apiKey, { baseURL });
+  }
+
+  if (provider === "glm") {
+    const baseURL = (process.env.GLM_BASE_URL || OFFICIAL_PROVIDER_ENDPOINTS.glm).replace(/\/+$/, "");
+    return openaiCompatibleText(model, {
+      apiKey,
+      baseURL,
+      name: "glm",
+    });
+  }
+
+  throw new Error(`Unsupported AI provider: ${provider}`);
+}
+
+/**
+ * Executes a minimal test call to verify provider credentials.
+ */
+export async function testProviderConnection(
+  provider: AIProvider,
+  apiKey: string,
+  model: string
+): Promise<{ ok: boolean; message: string }> {
+  if (testFixtureOverride) {
+    const fixtureRes = await testFixtureOverride(provider, "test-connection");
+    return { ok: true, message: `Connection to ${provider} (${model}) verified via fixture: ${fixtureRes}` };
+  }
+
+  try {
+    const adapter = createProviderAdapter(provider, apiKey, model);
+    const result = await chat({
+      adapter: adapter as any,
+      messages: [{ role: "user", content: "Reply with the single word OK." }] as any,
+      stream: false,
+    });
+
+    if (typeof result === "string" && result.length > 0) {
+      return { ok: true, message: `Connection to ${provider} (${model}) verified successfully.` };
+    }
+    return { ok: true, message: `Connection to ${provider} (${model}) verified.` };
+  } catch (err: any) {
+    const safeErr = sanitizeErrorMessage(err?.message || String(err), apiKey);
+    if (safeErr.includes("401") || safeErr.toLowerCase().includes("invalid api key") || safeErr.toLowerCase().includes("unauthorized")) {
+      throw new Error(`Authentication failed: Invalid API key for ${provider}. Please verify your key.`);
+    }
+    if (safeErr.includes("429") || safeErr.toLowerCase().includes("quota")) {
+      throw new Error(`Quota exceeded or rate limit reached on ${provider}.`);
+    }
+    if (safeErr.includes("404") || safeErr.toLowerCase().includes("model_not_found")) {
+      throw new Error(`Model "${model}" not found or unsupported on ${provider}.`);
+    }
+    throw new Error(`Connection test failed: ${safeErr}`);
+  }
 }
 
 /**
@@ -241,7 +369,37 @@ export function reconstructFactSafeCV(
 }
 
 /**
- * Tailors a CV for a job posting using OpenAI-compatible chat completions.
+ * Resolves active provider credentials.
+ * Checks local BYOK credentials file first, then environment fallback.
+ */
+export async function getActiveAICredentials(): Promise<{
+  provider: AIProvider;
+  apiKey: string;
+  model: string;
+}> {
+  const stored = await loadAICredentials();
+  if (stored) {
+    return {
+      provider: stored.provider,
+      apiKey: stored.apiKey,
+      model: stored.model,
+    };
+  }
+
+  const envKey = process.env.OPENAI_API_KEY;
+  if (envKey && envKey.trim()) {
+    return {
+      provider: "openai",
+      apiKey: envKey.trim(),
+      model: process.env.OPENAI_MODEL || DEFAULT_PROVIDER_MODELS.openai,
+    };
+  }
+
+  throw new MissingAICredentialsError();
+}
+
+/**
+ * Tailors a CV for a job posting using TanStack AI server-side common interface.
  * Strictly verifies credentials; rejects unknown IDs; preserves master CV facts.
  */
 export async function tailorCV(
@@ -255,13 +413,8 @@ export async function tailorCV(
     return customEngine(masterCV, job, templateId);
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || !apiKey.trim()) {
-    throw new MissingAICredentialsError();
-  }
-
-  const baseUrl = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const creds = await getActiveAICredentials();
+  const adapter = createProviderAdapter(creds.provider, creds.apiKey, creds.model);
 
   // Build structured overview of master CV with IDs
   const profileOverview = {
@@ -303,41 +456,183 @@ ${job.text}
 CANDIDATE CV PROFILE:
 ${JSON.stringify(profileOverview, null, 2)}`;
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey.trim()}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.2,
-    }),
-    signal: AbortSignal.timeout(30000), // 30s timeout
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(`AI API returned status ${response.status}: ${errorText.slice(0, 300)}`);
+  let rawContent: string;
+  try {
+    if (testFixtureOverride) {
+      rawContent = await testFixtureOverride(creds.provider, userPrompt);
+    } else {
+      rawContent = await chat({
+        adapter: adapter as any,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ] as any,
+        stream: false,
+      });
+    }
+  } catch (err: any) {
+    const safeMsg = sanitizeErrorMessage(err?.message || String(err), creds.apiKey);
+    throw new Error(`AI API call failed: ${safeMsg}`);
   }
 
-  const completion = await response.json();
-  const rawContent = completion?.choices?.[0]?.message?.content;
-  if (!rawContent) {
+  if (!rawContent || typeof rawContent !== "string") {
     throw new Error("AI API returned empty response.");
   }
 
+  const cleanJson = rawContent
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+
   let modelOutput: ModelOutput;
   try {
-    modelOutput = JSON.parse(rawContent);
+    modelOutput = JSON.parse(cleanJson);
   } catch (err: any) {
     throw new Error(`Failed to parse AI JSON response: ${err?.message || String(err)}`);
   }
 
   return reconstructFactSafeCV(masterCV, draftId, modelOutput, templateId);
+}
+
+/**
+ * Extracts and structures raw text into canonical CV schema using configured AI provider.
+ * Validates output schema strictly; does not fabricate facts.
+ */
+export async function structureCVFromText(
+  extractedText: string,
+  templateId = "modern"
+): Promise<{ structuredCV: CV; notes: string[] }> {
+  const creds = await getActiveAICredentials();
+
+  if (testFixtureOverride) {
+    const rawContent = await testFixtureOverride(creds.provider, extractedText);
+    const parsed = JSON.parse(
+      rawContent.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim()
+    );
+    const structuredCV = buildCanonicalCV(parsed, templateId);
+    return { structuredCV, notes: parsed.unsupportedFacts || ["Extracted via test fixture"] };
+  }
+
+  const adapter = createProviderAdapter(creds.provider, creds.apiKey, creds.model);
+
+  const systemPrompt = `You are an expert CV structuring assistant.
+Your task is to parse raw text extracted from a resume/CV and convert it into a structured JSON document.
+FACT-SAFETY CONSTRAINTS:
+1. Extract only facts, work experience, education, and skills present in the text.
+2. DO NOT invent employers, dates, metrics, degrees, or contact details.
+3. If an email or phone is missing, leave as empty string.
+4. Return ONLY a valid JSON object matching:
+{
+  "contact": {
+    "name": string,
+    "email": string,
+    "phone": string,
+    "website": string,
+    "location": string
+  },
+  "summary": string,
+  "sections": [
+    {
+      "id": string,
+      "type": "experience" | "education" | "skills" | "projects" | "custom",
+      "title": string,
+      "items": [
+        {
+          "id": string,
+          "title": string,
+          "subtitle": string,
+          "date": string,
+          "description": string,
+          "bullets": string[]
+        }
+      ]
+    }
+  ],
+  "unsupportedFacts": string[]
+}`;
+
+  const userPrompt = `RAW EXTRACTED CV TEXT (UP TO 50K CHARS):
+${extractedText.slice(0, 50000)}`;
+
+  let rawContent: string;
+  try {
+    rawContent = await chat({
+      adapter: adapter as any,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ] as any,
+      stream: false,
+    });
+  } catch (err: any) {
+    const safeMsg = sanitizeErrorMessage(err?.message || String(err), creds.apiKey);
+    throw new Error(`AI CV extraction failed: ${safeMsg}`);
+  }
+
+  if (!rawContent || typeof rawContent !== "string") {
+    throw new Error("AI returned empty extraction response.");
+  }
+
+  const cleanJson = rawContent
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleanJson);
+  } catch (err: any) {
+    throw new Error(`Failed to parse AI structured CV JSON: ${err?.message || String(err)}`);
+  }
+
+  const structuredCV = buildCanonicalCV(parsed, templateId);
+  const notes: string[] = Array.isArray(parsed.unsupportedFacts) ? parsed.unsupportedFacts : [];
+
+  const valRes = validateCV(structuredCV);
+  if (!valRes.valid) {
+    throw new Error(`Extracted CV failed schema validation: ${valRes.errors.join(", ")}`);
+  }
+
+  return { structuredCV, notes };
+}
+
+function buildCanonicalCV(parsed: any, templateId: string): CV {
+  const baseId = Date.now();
+  return {
+    id: `master-cv-${baseId}`,
+    version: "1.0.0",
+    contact: {
+      name: parsed.contact?.name || "Candidate",
+      email: parsed.contact?.email || "candidate@example.com",
+      phone: parsed.contact?.phone || "",
+      website: parsed.contact?.website || "",
+      location: parsed.contact?.location || "",
+    },
+    summary: typeof parsed.summary === "string" ? parsed.summary.slice(0, 1000) : "",
+    sections: Array.isArray(parsed.sections)
+      ? parsed.sections.map((s: any, sIdx: number) => ({
+          id: s.id || `sec-${baseId}-${sIdx}`,
+          type: ["experience", "education", "skills", "projects", "custom"].includes(s.type) ? s.type : "custom",
+          title: s.title || (s.type === "experience" ? "Work Experience" : s.type === "education" ? "Education" : "Skills"),
+          items: Array.isArray(s.items)
+            ? s.items.map((it: any, itIdx: number) => ({
+                id: it.id || `item-${baseId}-${sIdx}-${itIdx}`,
+                title: it.title || "Untitled Role",
+                subtitle: it.subtitle || "",
+                date: it.date || "",
+                description: it.description || "",
+                bullets: Array.isArray(it.bullets) ? it.bullets.filter((b: any) => typeof b === "string") : [],
+              }))
+            : [],
+        }))
+      : [],
+    stylePrefs: {
+      templateId: templateId || "modern",
+      fontSize: "normal",
+      margin: "normal",
+      primaryColor: "#4f46e5",
+    },
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
 }
