@@ -114,6 +114,60 @@ runTest("CV validation rejects invalid section type", () => {
   assert.strictEqual(validateCV(invalidCV).valid, false);
 });
 
+runTest("CV validation accepts legacy CV with omitted paperSize (backward compatible)", () => {
+  const legacyCV = {
+    id: "cv-legacy-1",
+    version: CV_VERSION,
+    contact: { name: "Legacy User", email: "legacy@example.com" },
+    sections: [],
+    stylePrefs: {
+      templateId: "modern",
+      primaryColor: "#2563eb",
+      // paperSize intentionally omitted
+    },
+  };
+  const result = validateCV(legacyCV);
+  assert.strictEqual(result.valid, true, `Legacy CV must validate, errors: ${result.errors.join(", ")}`);
+});
+
+runTest("CV validation accepts valid paperSize (A4 and Letter)", () => {
+  for (const paperSize of ["A4", "Letter"]) {
+    const cv = {
+      id: `cv-${paperSize}`,
+      version: CV_VERSION,
+      contact: { name: "User", email: "user@example.com" },
+      sections: [],
+      stylePrefs: {
+        templateId: "modern",
+        paperSize,
+      },
+    };
+    const result = validateCV(cv);
+    assert.strictEqual(result.valid, true, `paperSize ${paperSize} must validate`);
+  }
+});
+
+runTest("CV validation rejects invalid paperSize", () => {
+  for (const invalidSize of ["Legal", "Tabloid", "a4", "letter", 123, true]) {
+    const cv = {
+      id: "cv-invalid-size",
+      version: CV_VERSION,
+      contact: { name: "User", email: "user@example.com" },
+      sections: [],
+      stylePrefs: {
+        templateId: "modern",
+        paperSize: invalidSize,
+      },
+    };
+    const result = validateCV(cv);
+    assert.strictEqual(result.valid, false, `Invalid paperSize ${invalidSize} must be rejected`);
+    assert.ok(
+      result.errors.some((e) => e.includes("Invalid paperSize")),
+      `Error must mention Invalid paperSize, got: ${result.errors.join(", ")}`
+    );
+  }
+});
+
 // 2. Extension Handoff Contract Tests
 runTest("validateJobHandoff accepts valid payload within bounds", () => {
   const validHandoff = {

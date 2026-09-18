@@ -89,7 +89,7 @@ function RootComponent() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold text-[#292a27] truncate">Local workspace</p>
-                <p className="text-[11px] text-[#93938a] truncate">Private &amp; on-device</p>
+                <p className="text-[11px] text-[#93938a]">Private &amp; on-device</p>
               </div>
               <svg className="w-4 h-4 text-[#9b9a92] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -343,10 +343,10 @@ function RootComponent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
-                <div id="breadcrumb" className="text-sm text-[#85857d] flex items-center">
-                  <span>Your workspace</span>
-                  <span className="mx-2.5 sm:mx-3 text-[#c7c5bc]">/</span>
-                  <span className="text-[#41423c] font-medium">{activeSectionName}</span>
+                <div id="breadcrumb" className="text-sm text-[#85857d] flex items-center min-w-0">
+                  <span className="hidden sm:inline">Your workspace</span>
+                  <span className="hidden sm:inline mx-2.5 sm:mx-3 text-[#c7c5bc]">/</span>
+                  <span className="text-[#41423c] font-medium truncate">{activeSectionName}</span>
                 </div>
               </div>
 

@@ -283,14 +283,14 @@ export function ApplicationsComponent() {
     >
       <div className="border-b border-[#e8e7e2] pb-5">
         <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl font-bold tracking-tight text-[#292a27] font-heading">
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
             Job Applications
           </h1>
-          <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
-            {drafts.length} Saved
+          <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs text-[#929285] font-medium">
+            {drafts.length}
           </span>
         </div>
-        <p className="mt-1 text-xs text-[#73736b]">
+        <p className="mt-1.5 text-sm text-[#73736b]">
           Targeted resume versions tailored for specific roles and captured from job listings.
         </p>
       </div>
@@ -327,18 +327,26 @@ export function ApplicationsComponent() {
             <motion.div
               key={draft.id}
               whileHover={shouldReduceMotion ? undefined : { y: -2 }}
-              className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-5 flex flex-col justify-between shadow-2xs hover:border-[#c9bcd9] transition"
+              className="rounded-xl border border-[#e6e5dd] bg-[#fffefa] p-5 flex flex-col justify-between transition hover:border-[#c3bab0] shadow-2xs"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h2 className="font-bold text-[#292a27] text-base leading-snug font-heading">{draft.jobTitle}</h2>
-                    <p className="text-xs font-semibold text-[#625181] mt-0.5">{draft.company}</p>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-medium text-[#292a27] text-base leading-snug font-heading truncate">
+                        {draft.jobTitle}
+                      </h2>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-medium text-emerald-700 shrink-0">
+                        <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                        Ready
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#625181] font-medium mt-0.5 truncate">{draft.company}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleDelete(draft.id)}
-                    className="text-xs text-[#92928a] hover:text-rose-600 font-medium px-2 py-1 rounded hover:bg-rose-50 transition cursor-pointer"
+                    className="text-xs text-[#92928a] hover:text-rose-600 font-medium px-2 py-1 rounded-md hover:bg-rose-50 transition cursor-pointer shrink-0"
                   >
                     Delete
                   </button>
@@ -350,7 +358,7 @@ export function ApplicationsComponent() {
                       href={draft.sourceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#73736b] hover:text-[#625181] truncate block text-[11px]"
+                      className="text-[#85857d] hover:text-[#292a27] truncate block text-[11px]"
                     >
                       {draft.sourceUrl}
                     </a>
@@ -358,9 +366,9 @@ export function ApplicationsComponent() {
                 )}
 
                 {draft.changes && draft.changes.length > 0 && (
-                  <div className="mt-3 p-2.5 bg-[#e8e0f3]/30 rounded-xl border border-[#ddd3e9]/60 text-xs text-[#292a27] space-y-1">
-                    <span className="font-semibold text-[#625181] text-[11px] block">Tailoring Adjustments:</span>
-                    <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-[#4a4e43]">
+                  <div className="mt-3 p-2.5 bg-[#fcfbf9] rounded-lg border border-[#e8e7e2] text-xs text-[#292a27] space-y-1">
+                    <span className="font-medium text-[#625181] text-[11px] block">Tailoring Adjustments:</span>
+                    <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-[#73736b]">
                       {draft.changes.slice(0, 3).map((c, i) => (
                         <li key={i}>{c}</li>
                       ))}
@@ -368,15 +376,14 @@ export function ApplicationsComponent() {
                   </div>
                 )}
 
-                <p className="text-xs text-[#4a4e43] mt-3 line-clamp-3 bg-[#faf9f6] p-3 rounded-xl border border-[#eeeadd] leading-relaxed font-sans">
+                <p className="text-xs text-[#73736b] mt-3 line-clamp-3 bg-[#faf9f6] p-3 rounded-lg border border-[#eeeadd] leading-relaxed font-sans">
                   {draft.jobText}
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#e8e7e2] flex items-center justify-between text-[11px]">
-                <span className="text-[#92928a]">
-                  Saved {new Date(draft.createdAt).toLocaleDateString(undefined, {
-                    year: "numeric",
+              <div className="mt-4 pt-3 border-t border-[#e8e7e2] flex items-center justify-between text-xs">
+                <span className="text-[#a0a094]">
+                  Edited {new Date(draft.createdAt).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",
                   })}
@@ -393,7 +400,7 @@ export function ApplicationsComponent() {
                   <button
                     type="button"
                     onClick={() => navigate({ to: "/drafts", search: { id: draft.id } })}
-                    className="text-[#625181] hover:text-[#4a396b] font-semibold bg-[#e8e0f3] hover:bg-[#ddd3e9] px-2.5 py-1 rounded-lg transition cursor-pointer"
+                    className="text-[#625181] hover:text-[#4a396b] font-medium bg-[#e8e0f3] hover:bg-[#ddd3e9] px-2.5 py-1 rounded-lg transition cursor-pointer"
                   >
                     Review &amp; Edit
                   </button>

@@ -14,11 +14,13 @@ export const TEMPLATES = [
   { id: "compact", name: "Compact", desc: "High density layout maximizing page efficiency" },
 ];
 
-export function Preview({ cv, onPrint, onTemplateChange }: PreviewProps) {
+export function Preview({ cv, onPrint: _onPrint, onTemplateChange: _onTemplateChange }: PreviewProps) {
   const currentTemplate = cv.stylePrefs?.templateId || "modern";
   const fontSize = cv.stylePrefs?.fontSize || "normal";
   const marginPref = cv.stylePrefs?.margin || "normal";
   const primaryColor = cv.stylePrefs?.primaryColor || "#4f46e5";
+  const isLetter = cv.stylePrefs?.paperSize === "Letter";
+  const paperLabel = isLetter ? "Letter (8.5 × 11 in)" : "A4 (210 × 297 mm)";
 
   // Spacing / margin mapping
   const marginClasses = {
@@ -36,54 +38,28 @@ export function Preview({ cv, onPrint, onTemplateChange }: PreviewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top Preview Action Bar */}
-      <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 bg-[#fffefa] p-3.5 rounded-2xl border border-[#e8e7e2] shadow-2xs">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-semibold text-[#92928a] uppercase tracking-wider">Template:</span>
-          <div className="flex items-center gap-1 bg-[#f5f4f0] p-1 rounded-xl border border-[#e4e3dd]">
-            {TEMPLATES.map((tmpl) => (
-              <button
-                key={tmpl.id}
-                type="button"
-                onClick={() => onTemplateChange?.(tmpl.id)}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition cursor-pointer ${
-                  currentTemplate === tmpl.id
-                    ? "bg-[#30332d] text-white shadow-xs font-semibold"
-                    : "text-[#73736b] hover:text-[#292a27] hover:bg-[#eeede7]"
-                }`}
-                aria-pressed={currentTemplate === tmpl.id}
-              >
-                {tmpl.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onPrint || (() => window.print())}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#30332d] hover:bg-[#4a4e43] text-white rounded-lg text-xs font-semibold transition shadow-xs cursor-pointer"
-            title="Opens browser print dialog. Select 'Save as PDF' to export."
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            <span>Print / Save as PDF</span>
-          </button>
-        </div>
-      </div>
-
       <div className="no-print text-xs text-[#92928a] mb-2 px-1 flex items-center justify-between">
-        <span>Live A4 Printable Preview</span>
+        <span>Live {paperLabel} Printable Preview</span>
         <span className="hidden sm:inline">Choose &ldquo;Save as PDF&rdquo; in print dialog</span>
       </div>
+
+      {/* Dynamic @page CSS rule for native browser print */}
+      <style>{`
+        @media print {
+          @page {
+            size: ${isLetter ? "8.5in 11in" : "210mm 297mm"} portrait;
+            margin: ${isLetter ? "0.5in" : "12mm 15mm"};
+          }
+        }
+      `}</style>
 
       {/* CV Paper Canvas */}
       <div className="flex-1 overflow-y-auto bg-[#eeeadd] p-3 sm:p-6 rounded-2xl flex justify-center items-start shadow-inner border border-[#e1dccd]">
         <div
           id="cv-paper"
-          className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#e4e1d8] w-full max-w-[210mm] min-h-[297mm] mx-auto transition-all ${marginClasses} ${fontSizeClasses}`}
+          className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#e4e1d8] w-full ${
+            isLetter ? "max-w-[8.5in] min-h-[11in]" : "max-w-[210mm] min-h-[297mm]"
+          } mx-auto transition-all ${marginClasses} ${fontSizeClasses}`}
           style={{ "--accent-color": primaryColor } as React.CSSProperties}
         >
           {currentTemplate === "modern" && <ModernTemplate cv={cv} primaryColor={primaryColor} />}

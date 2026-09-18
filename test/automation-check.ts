@@ -589,30 +589,54 @@ async function runTests() {
     resetAIEngine();
 
     // -------------------------------------------------------------
-    // Test 11: Four-Template PDF Fidelity & Authentic Summary in PDF
+    // Test 11: Four-Template PDF Generation & Paper Size Dimensions
     // -------------------------------------------------------------
-    console.log("\n11. Testing Four-Template PDF Generation...");
+    console.log("\n11. Testing Four-Template PDF Generation & Paper Size Dimensions...");
+    const { PDFDocument } = await import("pdf-lib");
     const templates = ["modern", "executive", "tech", "compact"] as const;
 
     for (const tmpl of templates) {
-      const cvWithTemplate: CV = {
+      // 11a: Legacy CV with omitted paperSize -> must default to A4 dimensions (595.28 x 841.89 pt)
+      const legacyCv: CV = {
         ...tailorData.tailoredCV,
-        stylePrefs: { ...tailorData.tailoredCV.stylePrefs, templateId: tmpl },
+        stylePrefs: { ...tailorData.tailoredCV.stylePrefs, templateId: tmpl, paperSize: undefined },
       };
-      const pdfBuffer = await generateCVPdf(cvWithTemplate);
-      assert.ok(pdfBuffer.length > 1000, `PDF for template "${tmpl}" must have substantial size`);
-      const magic = Buffer.from(pdfBuffer).subarray(0, 5).toString("latin1");
-      assert.equal(magic, "%PDF-", `PDF for template "${tmpl}" must start with %PDF-`);
+      const legacyPdf = await generateCVPdf(legacyCv);
+      const loadedLegacy = await PDFDocument.load(legacyPdf);
+      const legacySize = loadedLegacy.getPages()[0].getSize();
+      assert.ok(Math.abs(legacySize.width - 595.28) < 0.1, `Legacy CV must default to A4 width (595.28), got ${legacySize.width}`);
+      assert.ok(Math.abs(legacySize.height - 841.89) < 0.1, `Legacy CV must default to A4 height (841.89), got ${legacySize.height}`);
 
-      const pdfString = Buffer.from(pdfBuffer).toString("latin1");
-      console.log(`PDF size for ${tmpl}:`, pdfBuffer.length);
-      assert.ok(pdfBuffer.length > 500, `Template "${tmpl}" PDF generated successfully`);
-      // Ensure unapproved AI summary was NOT inserted into PDF
+      // 11b: Explicit A4
+      const a4Cv: CV = {
+        ...tailorData.tailoredCV,
+        stylePrefs: { ...tailorData.tailoredCV.stylePrefs, templateId: tmpl, paperSize: "A4" },
+      };
+      const a4Pdf = await generateCVPdf(a4Cv);
+      const loadedA4 = await PDFDocument.load(a4Pdf);
+      const a4Size = loadedA4.getPages()[0].getSize();
+      assert.ok(Math.abs(a4Size.width - 595.28) < 0.1, `A4 template ${tmpl} width must be 595.28, got ${a4Size.width}`);
+      assert.ok(Math.abs(a4Size.height - 841.89) < 0.1, `A4 template ${tmpl} height must be 841.89, got ${a4Size.height}`);
+
+      // 11c: Explicit Letter (8.5 x 11 in -> 612 x 792 pt)
+      const letterCv: CV = {
+        ...tailorData.tailoredCV,
+        stylePrefs: { ...tailorData.tailoredCV.stylePrefs, templateId: tmpl, paperSize: "Letter" },
+      };
+      const letterPdf = await generateCVPdf(letterCv);
+      const loadedLetter = await PDFDocument.load(letterPdf);
+      const letterSize = loadedLetter.getPages()[0].getSize();
+      assert.ok(Math.abs(letterSize.width - 612) < 0.1, `Letter template ${tmpl} width must be 612, got ${letterSize.width}`);
+      assert.ok(Math.abs(letterSize.height - 792) < 0.1, `Letter template ${tmpl} height must be 792, got ${letterSize.height}`);
+
+      const magic = Buffer.from(letterPdf).subarray(0, 5).toString("latin1");
+      assert.equal(magic, "%PDF-", `PDF for template "${tmpl}" must start with %PDF-`);
+      const pdfString = Buffer.from(letterPdf).toString("latin1");
       assert.ok(
         !pdfString.includes("Proposed summary for Apex Cloud Services"),
         `Unapproved suggested summary must NOT be present in template "${tmpl}" PDF`
       );
-      console.log(`✓ Template "${tmpl}" PDF verified (${pdfBuffer.length} bytes, authentic summary preserved)`);
+      console.log(`✓ Template "${tmpl}" PDF verified: Legacy/A4 (${legacySize.width.toFixed(1)}x${legacySize.height.toFixed(1)}pt), Letter (${letterSize.width}x${letterSize.height}pt)`);
     }
 
     // -------------------------------------------------------------

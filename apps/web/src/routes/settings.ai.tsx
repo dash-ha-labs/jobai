@@ -202,15 +202,15 @@ function AISettingsComponent() {
     <div className="max-w-3xl mx-auto py-2 space-y-6">
       <div className="border-b border-[#e8e7e2] pb-5">
         <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl font-bold tracking-tight text-[#292a27] font-heading">
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
             AI Provider Settings
           </h1>
-          <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
-            BYOK Architecture
+          <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs font-medium text-[#73736b]">
+            BYOK
           </span>
         </div>
-        <p className="text-xs text-[#73736b] mt-1 leading-relaxed">
-          Bring your own API key (BYOK) for OpenAI, Anthropic (Claude), or GLM (Zhipu AI).
+        <p className="text-sm text-[#73736b] mt-1.5 leading-relaxed">
+          Bring your own API key for OpenAI, Anthropic (Claude), or GLM (Zhipu AI).
         </p>
       </div>
 

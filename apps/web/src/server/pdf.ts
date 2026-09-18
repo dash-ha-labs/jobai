@@ -13,15 +13,21 @@ function parseHexColor(hex?: string): RGBColor {
   return rgb(r, g, b);
 }
 
-// A4 dimensions in points
-const PAGE_WIDTH = 595.28;
-const PAGE_HEIGHT = 841.89;
+// Standard paper dimensions in points (72 points / inch)
+// A4: 210mm x 297mm (595.28 x 841.89 pt)
+// Letter: 8.5in x 11in (612 x 792 pt)
+const PAPER_DIMENSIONS = {
+  A4: { width: 595.28, height: 841.89 },
+  Letter: { width: 612, height: 792 },
+} as const;
 
 interface DrawCursor {
   page: PDFPage;
   y: number;
   margin: number;
   maxWidth: number;
+  pageWidth: number;
+  pageHeight: number;
 }
 
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
@@ -50,8 +56,8 @@ function ensureSpace(
   pdfDoc: PDFDocument
 ): void {
   if (cursor.y - requiredHeight < cursor.margin) {
-    cursor.page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
-    cursor.y = PAGE_HEIGHT - cursor.margin;
+    cursor.page = pdfDoc.addPage([cursor.pageWidth, cursor.pageHeight]);
+    cursor.y = cursor.pageHeight - cursor.margin;
   }
 }
 
@@ -61,6 +67,8 @@ function ensureSpace(
  */
 export async function generateCVPdf(cv: CV, templateIdOverride?: string): Promise<Uint8Array> {
   const templateId = templateIdOverride || cv.stylePrefs?.templateId || "modern";
+  const paperSize = cv.stylePrefs?.paperSize === "Letter" ? "Letter" : "A4";
+  const { width: pageWidth, height: pageHeight } = PAPER_DIMENSIONS[paperSize];
   const primaryColor = parseHexColor(cv.stylePrefs?.primaryColor);
   const darkGray = rgb(0.12, 0.14, 0.18);
   const mutedGray = rgb(0.38, 0.42, 0.48);
@@ -81,14 +89,16 @@ export async function generateCVPdf(cv: CV, templateIdOverride?: string): Promis
   const courierBold = await pdfDoc.embedFont(StandardFonts.CourierBold);
 
   const margin = templateId === "compact" ? 36 : 46;
-  const maxWidth = PAGE_WIDTH - margin * 2;
+  const maxWidth = pageWidth - margin * 2;
 
-  const initialPage = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  const initialPage = pdfDoc.addPage([pageWidth, pageHeight]);
   const cursor: DrawCursor = {
     page: initialPage,
-    y: PAGE_HEIGHT - margin,
+    y: pageHeight - margin,
     margin,
     maxWidth,
+    pageWidth,
+    pageHeight,
   };
 
   if (templateId === "executive") {

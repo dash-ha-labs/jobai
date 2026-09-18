@@ -36,6 +36,7 @@ export interface CVStylePrefs {
   fontSize?: string;
   fontFamily?: string;
   margin?: string;
+  paperSize?: "A4" | "Letter";
 }
 
 export interface CV {
@@ -145,6 +146,12 @@ export function validateCV(candidate: unknown): { valid: boolean; errors: string
   if (cv.stylePrefs !== undefined) {
     if (typeof cv.stylePrefs !== "object" || cv.stylePrefs === null) {
       errors.push("Style preferences must be an object");
+    } else if (
+      cv.stylePrefs.paperSize !== undefined &&
+      cv.stylePrefs.paperSize !== "A4" &&
+      cv.stylePrefs.paperSize !== "Letter"
+    ) {
+      errors.push(`Invalid paperSize: must be "A4" or "Letter" (got "${cv.stylePrefs.paperSize}")`);
     }
   }
 

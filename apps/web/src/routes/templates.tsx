@@ -73,97 +73,128 @@ export function TemplatesComponent() {
               animate={{ opacity: 1, y: 0 }}
               transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25, delay: idx * 0.05 }}
               whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-              className={`rounded-2xl border bg-[#fffefa] p-5 flex flex-col justify-between transition shadow-2xs ${
+              className={`rounded-2xl border bg-[#fffefa] p-5 flex flex-col justify-between transition ${
                 isSelected
-                  ? "border-[#9782d8] ring-2 ring-[#9782d8]/20"
+                  ? "border-[#9782d8] ring-1 ring-[#9782d8]/40 shadow-xs"
                   : "border-[#e8e7e2] hover:border-[#c9bcd9]"
               }`}
             >
               <div>
-                {/* Visual Layout Thumbnail */}
-                <div className="h-36 bg-[#fcfbf9] rounded-xl border border-[#e8e7e2] p-3.5 mb-4 flex flex-col justify-between overflow-hidden select-none shadow-2xs">
+                {/* Big Truthful Paper Preview */}
+                <div className="h-48 bg-[#faf9f6] rounded-xl border border-[#e8e7e2] p-4 mb-4 flex flex-col justify-between overflow-hidden select-none shadow-2xs">
                   {tmpl.id === "modern" && (
-                    <div className="space-y-2">
-                      <div className="h-3 w-20 bg-[#30332d] rounded-xs" />
-                      <div className="h-1.5 w-28 bg-[#92928a] rounded-xs" />
-                      <div className="border-b border-[#e8e7e2] pt-1" />
-                      <div className="space-y-1.5 pt-1">
-                        <div className="h-2 w-14 bg-[#9782d8] rounded-xs" />
-                        <div className="h-1.5 w-full bg-[#e8e7e2] rounded-xs" />
-                        <div className="h-1.5 w-4/5 bg-[#e8e7e2] rounded-xs" />
+                    <div className="space-y-2.5">
+                      <div className="space-y-1">
+                        <div className="h-2.5 w-24 bg-[#292a27] rounded-xs" />
+                        <div className="h-1.5 w-32 bg-[#92928a] rounded-xs" />
+                      </div>
+                      <div className="border-b border-[#9782d8]/60 pt-0.5" />
+                      <div className="space-y-2 pt-1">
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-16 bg-[#625181] rounded-xs" />
+                          <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                          <div className="h-1 w-5/6 bg-[#e8e7e0] rounded-xs" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-14 bg-[#625181] rounded-xs" />
+                          <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                          <div className="h-1 w-3/4 bg-[#e8e7e0] rounded-xs" />
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {tmpl.id === "executive" && (
-                    <div className="space-y-2 text-center flex flex-col items-center">
-                      <div className="h-3 w-24 bg-[#30332d] rounded-xs mx-auto" />
-                      <div className="h-1.5 w-32 bg-[#92928a] rounded-xs mx-auto" />
-                      <div className="w-full border-b border-[#30332d]/40 pt-1" />
-                      <div className="w-full space-y-1.5 pt-1">
-                        <div className="h-2 w-16 bg-[#73736b] rounded-xs mx-auto" />
-                        <div className="h-1.5 w-full bg-[#e8e7e2] rounded-xs" />
-                        <div className="h-1.5 w-3/4 bg-[#e8e7e2] rounded-xs mx-auto" />
+                    <div className="space-y-2.5 text-center flex flex-col items-center">
+                      <div className="space-y-1">
+                        <div className="h-2.5 w-28 bg-[#292a27] rounded-xs mx-auto" />
+                        <div className="h-1.5 w-36 bg-[#92928a] rounded-xs mx-auto" />
+                      </div>
+                      <div className="w-full border-b border-[#292a27]/30 pt-0.5" />
+                      <div className="w-full space-y-2 pt-1">
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-20 bg-[#73736b] rounded-xs mx-auto" />
+                          <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                          <div className="h-1 w-4/5 bg-[#e8e7e0] rounded-xs mx-auto" />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-16 bg-[#73736b] rounded-xs mx-auto" />
+                          <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                          <div className="h-1 w-2/3 bg-[#e8e7e0] rounded-xs mx-auto" />
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {tmpl.id === "tech" && (
-                    <div className="space-y-2">
-                      <div className="bg-[#292a27] p-2 rounded-md flex items-center justify-between">
-                        <div className="h-2 w-16 bg-[#9782d8] rounded-xs" />
-                        <div className="h-1.5 w-8 bg-[#858174] rounded-xs" />
+                    <div className="space-y-2.5">
+                      <div className="bg-[#292a27] px-2.5 py-2 rounded-md flex items-center justify-between">
+                        <div className="h-2 w-20 bg-[#9782d8] rounded-xs" />
+                        <div className="h-1.5 w-10 bg-[#858174] rounded-xs" />
                       </div>
-                      <div className="space-y-1.5 pt-1">
-                        <div className="h-2 w-14 bg-[#625181] rounded-xs" />
-                        <div className="flex gap-1.5">
-                          <div className="h-2 w-10 bg-[#e8e7e2] rounded-xs" />
-                          <div className="h-2 w-10 bg-[#e8e7e2] rounded-xs" />
+                      <div className="space-y-2 pt-0.5">
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-16 bg-[#625181] rounded-xs" />
+                          <div className="flex gap-1.5">
+                            <div className="h-2 w-12 bg-[#e8e0f3] rounded-xs" />
+                            <div className="h-2 w-10 bg-[#e8e0f3] rounded-xs" />
+                            <div className="h-2 w-8 bg-[#e8e0f3] rounded-xs" />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="h-1.5 w-14 bg-[#625181] rounded-xs" />
+                          <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                          <div className="h-1 w-4/5 bg-[#e8e7e0] rounded-xs" />
                         </div>
                       </div>
                     </div>
                   )}
 
                   {tmpl.id === "compact" && (
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center border-b border-[#e8e7e2] pb-1">
-                        <div className="h-2.5 w-18 bg-[#30332d] rounded-xs" />
-                        <div className="h-1.5 w-12 bg-[#92928a] rounded-xs" />
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center border-b border-[#e8e7e2] pb-1.5">
+                        <div className="h-2.5 w-20 bg-[#292a27] rounded-xs" />
+                        <div className="h-1.5 w-16 bg-[#92928a] rounded-xs" />
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
+                        <div className="h-1.5 w-14 bg-[#73736b] rounded-xs" />
+                        <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                        <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                        <div className="h-1 w-5/6 bg-[#e8e7e0] rounded-xs" />
+                      </div>
+                      <div className="space-y-1.5 pt-0.5">
                         <div className="h-1.5 w-12 bg-[#73736b] rounded-xs" />
-                        <div className="h-1.5 w-full bg-[#e8e7e2] rounded-xs" />
-                        <div className="h-1.5 w-full bg-[#e8e7e2] rounded-xs" />
-                        <div className="h-1.5 w-4/5 bg-[#e8e7e2] rounded-xs" />
+                        <div className="h-1 w-full bg-[#e8e7e0] rounded-xs" />
+                        <div className="h-1 w-4/5 bg-[#e8e7e0] rounded-xs" />
                       </div>
                     </div>
                   )}
 
-                  <div className="text-[10px] text-[#92928a] font-mono self-end">A4 Standard</div>
+                  <div className="text-[10px] text-[#a2a096] font-mono self-end">A4 Standard</div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-[#292a27] text-base font-heading">{tmpl.name}</h3>
+                  <h3 className="font-medium text-[#292a27] text-base font-heading">{tmpl.name}</h3>
                   {isSelected && (
-                    <span className="text-[11px] font-semibold text-[#625181] bg-[#e8e0f3] border border-[#ddd3e9] px-2 py-0.5 rounded-full">
-                      Active
+                    <span className="text-xs font-medium text-[#79628f]">
+                      Selected
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#73736b] mt-2 leading-relaxed">{tmpl.description}</p>
+                <p className="text-xs text-[#73736b] mt-1.5 leading-relaxed">{tmpl.description}</p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#e8e7e2]">
+              <div className="mt-5 pt-3.5 border-t border-[#e8e7e2]">
                 <button
                   type="button"
                   onClick={() => handleSelectTemplate(tmpl.id)}
-                  className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  className={`w-full py-2 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
                     isSelected
                       ? "bg-[#30332d] hover:bg-[#4a4e43] text-white shadow-xs"
                       : "border border-[#e4e3dd] bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27]"
                   }`}
                 >
-                  {isSelected ? "Edit with this template" : "Select template"}
+                  {isSelected ? "Open in Document Studio" : "Apply template"}
                 </button>
               </div>
             </motion.div>

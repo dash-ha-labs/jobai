@@ -832,6 +832,36 @@ function StyleControls({
 
       <div>
         <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+          Paper Size
+        </h2>
+        <div className="flex gap-2">
+          {[
+            { id: "A4", label: "A4", desc: "210 × 297 mm" },
+            { id: "Letter", label: "Letter", desc: "8.5 × 11 in" },
+          ].map((paper) => {
+            const isSelected = (stylePrefs.paperSize || "A4") === paper.id;
+            return (
+              <button
+                key={paper.id}
+                type="button"
+                onClick={() => onChange("paperSize", paper.id)}
+                className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg border text-left transition-all cursor-pointer ${
+                  isSelected
+                    ? "border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold ring-1 ring-indigo-500"
+                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+                aria-pressed={isSelected}
+              >
+                <div className="font-semibold">{paper.label}</div>
+                <div className="text-[11px] text-slate-500 mt-0.5">{paper.desc}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
           Accent Color
         </h2>
         <div className="flex items-center gap-3">
