@@ -112,25 +112,32 @@ function ImportJobComponent() {
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
       className="space-y-6 max-w-2xl mx-auto"
     >
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Job Import Migration</h1>
-        <p className="text-slate-600 text-sm mt-1 leading-relaxed">
+      <div className="border-b border-[#e8e7e2] pb-5">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-[#292a27] font-heading">
+            Job Import Migration
+          </h1>
+          <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
+            Direct Extension Integration
+          </span>
+        </div>
+        <p className="text-xs text-[#73736b] mt-1 leading-relaxed">
           Job import is now handled directly by the JobAI browser extension.
         </p>
       </div>
 
       {errors.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700 space-y-2">
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-rose-800 space-y-2">
           <div className="font-bold flex items-center gap-2">
             <span>⚠️</span> Import Could Not Be Completed
           </div>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
+          <ul className="list-disc pl-5 space-y-1 text-xs">
             {errors.map((err, i) => (
               <li key={i}>{err}</li>
             ))}
           </ul>
           <div className="pt-2">
-            <Link to="/extension" className="text-xs text-red-800 underline font-semibold">
+            <Link to="/extension" className="text-xs text-rose-900 underline font-semibold">
               Go to Extension Setup &rarr;
             </Link>
           </div>
@@ -138,7 +145,7 @@ function ImportJobComponent() {
       )}
 
       {savedDraftId && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-800 text-sm flex items-center justify-between">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-800 text-xs flex items-center justify-between">
           <span>Draft saved successfully to your local browser storage.</span>
           <Link to="/drafts" className="font-semibold underline hover:text-emerald-900">
             View in Applications &rarr;
@@ -148,24 +155,24 @@ function ImportJobComponent() {
 
       {/* Migration screen when no fragment was passed */}
       {!hasFragment && (
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200 p-8 text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600 text-xl font-bold">
+        <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-8 text-center space-y-4 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[#e8e0f3] border border-[#ddd3e9] flex items-center justify-center mx-auto text-[#625181] text-xl font-bold">
             🔗
           </div>
-          <h2 className="text-lg font-semibold text-slate-900">Direct Browser Extension Integration</h2>
-          <p className="text-slate-600 text-sm max-w-md mx-auto leading-relaxed">
+          <h2 className="text-base font-bold text-[#292a27] font-heading">Direct Browser Extension Integration</h2>
+          <p className="text-[#73736b] text-xs max-w-md mx-auto leading-relaxed">
             The standalone fragment handoff page has been retired. The JobAI Chrome extension now extracts job postings and tailors your CV directly using your paired local server.
           </p>
           <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="/extension"
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-xs"
+            <Link
+              to="/extension"
+              className="px-5 py-2.5 bg-[#30332d] hover:bg-[#4a4e43] text-white rounded-lg text-xs font-semibold transition shadow-xs"
             >
               Go to Extension Setup &rarr;
-            </a>
+            </Link>
             <Link
               to="/drafts"
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] border border-[#e4e3dd] rounded-lg text-xs font-medium transition"
             >
               View Saved Applications
             </Link>
@@ -175,26 +182,26 @@ function ImportJobComponent() {
 
       {/* Legacy fragment preview if job payload was present */}
       {job && (
-        <div className="bg-white rounded-xl shadow-xs border border-slate-200 divide-y divide-slate-100">
+        <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] shadow-xs divide-y divide-[#e8e7e2]">
           <div className="p-6 space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#625181] bg-[#e8e0f3] px-2 py-0.5 rounded-full border border-[#ddd3e9]">
               Transferred Job
             </span>
-            <h2 className="text-xl font-bold text-slate-900">{job.title}</h2>
-            <p className="text-sm font-medium text-slate-700">{job.company}</p>
-            <div className="text-xs text-slate-500">
-              Source: <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{job.sourceUrl}</a>
+            <h2 className="text-lg font-bold text-[#292a27] font-heading">{job.title}</h2>
+            <p className="text-xs font-medium text-[#625181]">{job.company}</p>
+            <div className="text-xs text-[#73736b]">
+              Source: <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-[#625181] hover:underline">{job.sourceUrl}</a>
             </div>
           </div>
 
-          <div className="p-6 bg-slate-50/50 flex items-center justify-between gap-4 rounded-b-xl">
-            <Link to="/extension" className="text-xs text-slate-500 hover:text-slate-700 underline">
+          <div className="p-5 bg-[#faf9f6] flex items-center justify-between gap-4 rounded-b-2xl">
+            <Link to="/extension" className="text-xs text-[#73736b] hover:text-[#292a27] underline">
               Use extension directly &rarr;
             </Link>
             <button
               type="button"
               onClick={handleSaveAsDraft}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer"
+              className="px-4 py-2 bg-[#30332d] hover:bg-[#4a4e43] text-white rounded-lg text-xs font-semibold transition shadow-xs cursor-pointer"
             >
               Save as Draft
             </button>

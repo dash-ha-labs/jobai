@@ -8,11 +8,11 @@ body {
   width: 380px;
   max-width: 380px;
   min-height: 480px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 13px;
-  line-height: 1.4;
-  color: #1f2937;
-  background-color: #f9fafb;
+  line-height: 1.45;
+  color: #292a27;
+  background-color: #faf9f6;
 }
 
 .popup-container {
@@ -22,7 +22,7 @@ body {
 }
 
 .popup-header {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e8e7e2;
   padding-bottom: 8px;
 }
 
@@ -34,44 +34,47 @@ body {
 }
 
 .brand-title {
+  font-family: 'Manrope', sans-serif;
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: #292a27;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 6px;
+  letter-spacing: -0.02em;
 }
 
 .server-status {
   font-size: 11px;
-  font-weight: 500;
-  color: #16a34a;
+  font-weight: 600;
+  color: #15803d;
   background-color: #f0fdf4;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
   border: 1px solid #bbf7d0;
 }
 
 .badge {
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: #dbeafe;
-  color: #1e40af;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #e8e0f3;
+  color: #625181;
+  border: 1px solid #ddd3e9;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .honest-notice {
   font-size: 11px;
-  color: #4b5563;
+  color: #73736b;
   margin: 4px 0 0 0;
-  background-color: #f3f4f6;
-  padding: 6px 8px;
-  border-radius: 4px;
-  border-left: 3px solid #6b7280;
+  background-color: #f5f4f0;
+  padding: 6px 9px;
+  border-radius: 6px;
+  border-left: 3px solid #9782d8;
 }
 
 .btn {
@@ -82,7 +85,7 @@ body {
   font-size: 13px;
   font-weight: 600;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid transparent;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease;
@@ -90,47 +93,47 @@ body {
 }
 
 .btn:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #9782d8;
   outline-offset: 2px;
 }
 
 .btn-primary {
-  background-color: #4f46e5;
+  background-color: #30332d;
   color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4338ca;
+  background-color: #4a4e43;
 }
 
 .btn-primary:active:not(:disabled) {
-  background-color: #3730a3;
+  background-color: #242722;
 }
 
 .btn-primary:disabled {
-  background-color: #a5b4fc;
+  background-color: #a8a7a1;
   cursor: not-allowed;
 }
 
 .btn-secondary {
-  background-color: #ffffff;
-  color: #374151;
-  border-color: #d1d5db;
+  background-color: #fffefa;
+  color: #292a27;
+  border-color: #e8e7e2;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #f3f4f6;
-  border-color: #9ca3af;
+  background-color: #f5f4f0;
+  border-color: #d6d4cb;
 }
 
 .btn-outline {
-  background-color: #ffffff;
-  color: #4f46e5;
-  border-color: #c7d2fe;
+  background-color: #fffefa;
+  color: #625181;
+  border-color: #ddd3e9;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: #eef2ff;
+  background-color: #e8e0f3;
 }
 
 .btn-large {

@@ -199,44 +199,51 @@ function AISettingsComponent() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-4 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">AI Provider Settings</h1>
-        <p className="text-sm text-slate-600 mt-1">
+    <div className="max-w-3xl mx-auto py-2 space-y-6">
+      <div className="border-b border-[#e8e7e2] pb-5">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-[#292a27] font-heading">
+            AI Provider Settings
+          </h1>
+          <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
+            BYOK Architecture
+          </span>
+        </div>
+        <p className="text-xs text-[#73736b] mt-1 leading-relaxed">
           Bring your own API key (BYOK) for OpenAI, Anthropic (Claude), or GLM (Zhipu AI).
         </p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-2">
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
           <span className="font-semibold">Error:</span>
           <span className="flex-1">{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="p-4 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-start gap-2">
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
           <span className="font-semibold">Success:</span>
           <span className="flex-1">{success}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="p-8 text-center text-slate-500 text-sm">Loading AI settings...</div>
+        <div className="p-12 text-center text-[#73736b] text-sm bg-[#fffefa] rounded-2xl border border-[#e8e7e2]">Loading AI settings...</div>
       ) : (
         <>
           {/* Active Configuration View */}
           {config?.configured && !isEditing && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] shadow-xs p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-slate-900">Configured Provider</h2>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                    <h2 className="text-base font-bold text-[#292a27] font-heading">Configured Provider</h2>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                       Active
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#73736b] mt-0.5">
                     Ready for CV tailoring and extraction
                   </p>
                 </div>
@@ -245,7 +252,7 @@ function AISettingsComponent() {
                     type="button"
                     onClick={handleTestExisting}
                     disabled={testing}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] text-[#292a27] hover:bg-[#eeede7] transition cursor-pointer disabled:opacity-50"
                   >
                     {testing ? "Testing..." : "Test Connection"}
                   </button>
@@ -256,7 +263,7 @@ function AISettingsComponent() {
                       setProvider(config.provider || "openai");
                       setModel(config.model || DEFAULT_MODELS[config.provider || "openai"]);
                     }}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#e8e0f3] text-[#625181] hover:bg-[#ddd3e9] transition cursor-pointer"
                   >
                     Replace Key
                   </button>
@@ -264,44 +271,44 @@ function AISettingsComponent() {
                     type="button"
                     onClick={handleRemoveKey}
                     disabled={saving}
-                    className="px-3 py-1.5 text-xs font-medium rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors disabled:opacity-50 cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg text-rose-700 hover:bg-rose-50 transition cursor-pointer disabled:opacity-50"
                   >
                     Remove Key
                   </button>
                 </div>
               </div>
 
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <dt className="text-xs font-medium text-slate-500">Provider</dt>
-                  <dd className="mt-1 font-semibold text-slate-800">
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
+                  <dt className="text-[#92928a] font-medium">Provider</dt>
+                  <dd className="mt-1 font-bold text-[#292a27] text-sm">
                     {PROVIDER_NAMES[config.provider || "openai"]}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium text-slate-500">Model</dt>
-                  <dd className="mt-1 font-mono text-xs bg-slate-50 px-2 py-1 rounded inline-block text-slate-700 border border-slate-200">
+                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
+                  <dt className="text-[#92928a] font-medium">Model</dt>
+                  <dd className="mt-1 font-mono text-xs font-semibold text-[#292a27]">
                     {config.model}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium text-slate-500">API Key</dt>
-                  <dd className="mt-1 font-mono text-xs text-slate-600">
+                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
+                  <dt className="text-[#92928a] font-medium">API Key</dt>
+                  <dd className="mt-1 font-mono text-xs text-[#73736b]">
                     {config.maskedKey || "••••••••"}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium text-slate-500">Endpoint</dt>
-                  <dd className="mt-1 text-xs text-slate-500 font-mono">
+                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
+                  <dt className="text-[#92928a] font-medium">Endpoint</dt>
+                  <dd className="mt-1 text-xs text-[#73736b] font-mono truncate">
                     {PROVIDER_ENDPOINTS[config.provider || "openai"]}
                   </dd>
                 </div>
               </dl>
 
-              <div className="rounded-lg bg-slate-50 p-3.5 border border-slate-200 text-xs text-slate-600 space-y-1">
-                <div className="font-semibold text-slate-700">Storage & Privacy Details</div>
+              <div className="rounded-xl bg-[#faf9f6] p-4 border border-[#eeeadd] text-xs text-[#73736b] space-y-1">
+                <div className="font-semibold text-[#292a27]">Storage & Privacy Details</div>
                 <p>{config.disclosure}</p>
-                <p className="text-slate-500">
+                <p className="text-[#92928a]">
                   Raw keys are never logged, never returned to the browser, and never exposed to the Chrome extension.
                 </p>
               </div>
@@ -310,13 +317,13 @@ function AISettingsComponent() {
 
           {/* Configuration / Replace Form */}
           {isEditing && (
-            <form onSubmit={handleSaveAndTest} className="bg-white rounded-xl border border-slate-200 shadow-xs p-6 space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <form onSubmit={handleSaveAndTest} className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] shadow-xs p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h2 className="text-base font-bold text-[#292a27] font-heading">
                     {config?.configured ? "Replace AI Provider Key" : "Configure AI Provider"}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#73736b] mt-0.5">
                     Select your provider and enter your API credentials
                   </p>
                 </div>
@@ -324,7 +331,7 @@ function AISettingsComponent() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="text-xs text-slate-500 hover:text-slate-700"
+                    className="text-xs text-[#73736b] hover:text-[#292a27] cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -333,7 +340,7 @@ function AISettingsComponent() {
 
               {/* Provider Selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
                   Select Provider
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -342,14 +349,14 @@ function AISettingsComponent() {
                       key={p}
                       type="button"
                       onClick={() => handleProviderChange(p)}
-                      className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${
+                      className={`p-3.5 rounded-xl border text-left cursor-pointer transition ${
                         provider === p
-                          ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600"
-                          : "border-slate-200 hover:border-slate-300 bg-white"
+                          ? "border-[#9782d8] bg-[#e8e0f3]/30 ring-2 ring-[#9782d8]/20"
+                          : "border-[#e8e7e2] hover:border-[#c9bcd9] bg-white"
                       }`}
                     >
-                      <div className="font-semibold text-xs text-slate-900">{PROVIDER_NAMES[p]}</div>
-                      <div className="text-[11px] text-slate-500 mt-1">Default: {DEFAULT_MODELS[p]}</div>
+                      <div className="font-bold text-xs text-[#292a27]">{PROVIDER_NAMES[p]}</div>
+                      <div className="text-[11px] text-[#73736b] mt-1 font-mono">Default: {DEFAULT_MODELS[p]}</div>
                     </button>
                   ))}
                 </div>
@@ -358,13 +365,13 @@ function AISettingsComponent() {
               {/* API Key Input */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="apiKey" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="apiKey" className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
                     API Key
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowKey(!showKey)}
-                    className="text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                    className="text-xs text-[#625181] hover:underline cursor-pointer font-medium"
                   >
                     {showKey ? "Hide key" : "Show key"}
                   </button>
@@ -385,16 +392,16 @@ function AISettingsComponent() {
                   autoComplete="off"
                   spellCheck="false"
                   required
-                  className="w-full px-3 py-2 text-sm font-mono border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e8e7e2] rounded-xl focus:outline-hidden focus:border-[#9782d8] bg-white text-[#292a27]"
                 />
-                <p className="text-[11px] text-slate-500">
-                  Key is sent directly to the local JobAI server and saved with mode 0600. It is never logged or exposed.
+                <p className="text-[11px] text-[#92928a]">
+                  Key is sent directly to the local JobAI server and saved with file mode 0600. It is never logged or exposed.
                 </p>
               </div>
 
               {/* Model Input */}
               <div className="space-y-2">
-                <label htmlFor="model" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                <label htmlFor="model" className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
                   Model ID
                 </label>
                 <input
@@ -404,21 +411,21 @@ function AISettingsComponent() {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                   placeholder={DEFAULT_MODELS[provider]}
-                  className="w-full px-3 py-2 text-sm font-mono border border-slate-300 rounded-md focus:outline-hidden focus:ring-2 focus:ring-indigo-500 bg-white"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e8e7e2] rounded-xl focus:outline-hidden focus:border-[#9782d8] bg-white text-[#292a27]"
                 />
-                <p className="text-[11px] text-slate-500">
-                  Default: <span className="font-mono">{DEFAULT_MODELS[provider]}</span>. You may enter any supported model ID for your account.
+                <p className="text-[11px] text-[#92928a]">
+                  Default: <span className="font-mono">{DEFAULT_MODELS[provider]}</span>. You may enter any model supported by your provider account.
                 </p>
               </div>
 
               {/* Security & Data Transfer Disclosure */}
-              <div className="rounded-lg bg-amber-50/70 border border-amber-200/80 p-4 space-y-2 text-xs text-amber-900">
-                <div className="font-bold flex items-center gap-1.5 text-amber-950">
-                  <span>Data Transfer & Storage Disclosure</span>
+              <div className="rounded-xl bg-[#faf9f6] border border-[#eeeadd] p-4 space-y-2 text-xs text-[#4a4e43]">
+                <div className="font-bold flex items-center gap-1.5 text-[#292a27]">
+                  <span>Data Transfer &amp; Storage Disclosure</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 text-[11.5px] text-amber-800 leading-relaxed">
+                <ul className="list-disc list-inside space-y-1 text-[11px] text-[#73736b] leading-relaxed">
                   <li>
-                    <strong>Network:</strong> AI requests send your CV content and target job posting text directly to the chosen provider endpoint ({PROVIDER_ENDPOINTS[provider]}).
+                    <strong>Network:</strong> AI requests send your CV text and target job posting directly to {PROVIDER_ENDPOINTS[provider]}.
                   </li>
                   <li>
                     <strong>Local Storage:</strong> Stored on this local server in <span className="font-mono">.jobai-data/credentials.json</span> with restrictive permissions (file mode 0600, parent mode 0700).
@@ -427,7 +434,7 @@ function AISettingsComponent() {
                     <strong>Honest Disclosure:</strong> Unencrypted at rest on disk (OS keychain not configured in this local development environment).
                   </li>
                   <li>
-                    <strong>Small Charged Request Warning:</strong> Testing your key sends a minimal prompt (&ldquo;Reply with OK&rdquo;) to verify provider connectivity, incurring a tiny charge on your account.
+                    <strong>Small Charged Request Warning:</strong> Testing your key sends a minimal prompt (&ldquo;Reply with OK&rdquo;) to verify provider connectivity, incurring a tiny token charge.
                   </li>
                 </ul>
 
@@ -436,9 +443,9 @@ function AISettingsComponent() {
                     type="checkbox"
                     checked={consentGiven}
                     onChange={(e) => setConsentGiven(e.target.checked)}
-                    className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500"
+                    className="mt-0.5 rounded text-[#625181] focus:ring-[#9782d8]"
                   />
-                  <span className="text-xs font-medium text-amber-950 select-none">
+                  <span className="text-xs font-medium text-[#292a27] select-none">
                     I understand that requests send CV/job text to {PROVIDER_NAMES[provider]} and consent to the minimal verification test call.
                   </span>
                 </label>
@@ -450,7 +457,7 @@ function AISettingsComponent() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="px-4 py-2 text-xs font-medium rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] text-[#292a27] hover:bg-[#eeede7] transition cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -458,9 +465,9 @@ function AISettingsComponent() {
                 <button
                   type="submit"
                   disabled={saving || !consentGiven || !apiKey.trim()}
-                  className="px-4 py-2 text-xs font-semibold rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+                  className="px-5 py-2.5 text-xs font-semibold rounded-lg bg-[#30332d] text-white hover:bg-[#4a4e43] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
                 >
-                  {saving ? "Verifying & Saving..." : "Save & Test"}
+                  {saving ? "Verifying & Saving..." : "Save & Test Connection"}
                 </button>
               </div>
             </form>
