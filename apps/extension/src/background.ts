@@ -186,7 +186,7 @@ async function checkServerStatus(): Promise<ExtensionJobState> {
       const s: ExtensionJobState = {
         status: "awaiting_setup",
         reason: "no_ai",
-        message: "OPENAI_API_KEY is not configured on the local server. Configure it in your server environment to enable AI tailoring.",
+        message: "AI provider is not configured. Configure your API key (OpenAI, Anthropic, or GLM) in AI settings.",
       };
       await setState(s);
       return s;
@@ -245,6 +245,8 @@ async function checkServerStatus(): Promise<ExtensionJobState> {
         status: "idle",
         hasProfile: true,
         aiConfigured: true,
+        aiProvider: data.aiProvider || null,
+        aiModel: data.aiModel || null,
       };
       await setState(s);
       return s;

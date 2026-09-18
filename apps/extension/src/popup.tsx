@@ -343,11 +343,18 @@ export function Popup() {
           {state.reason === "no_ai" && (
             <div className="space-y-2">
               <div className="alert-notice">
-                Add <code>OPENAI_API_KEY=sk-...</code> to your server environment and restart <code>npm run dev</code>.
+                AI provider is not configured. Configure your API key (OpenAI, Anthropic, or GLM) in AI settings.
               </div>
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-primary w-full"
+                onClick={() => openTab("http://127.0.0.1:3000/settings/ai")}
+              >
+                Open AI Settings
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary w-full"
                 onClick={() =>
                   sendRuntimeMessage({ type: "CHECK_STATUS" }, (res) => {
                     if (res?.state) setState(res.state);
@@ -364,6 +371,24 @@ export function Popup() {
       {/* 2. IDLE STATE */}
       {state.status === "idle" && (
         <div className="idle-card">
+          <div className="p-2.5 mb-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-semibold text-slate-800">
+                {state.aiProvider
+                  ? `AI: ${state.aiProvider.toUpperCase()} (${state.aiModel || "active"})`
+                  : "AI Ready"}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+              onClick={() => openTab("http://127.0.0.1:3000/settings/ai")}
+            >
+              AI settings &rarr;
+            </button>
+          </div>
+
           <div className="action-highlight">
             <h2 className="action-title">Ready to Tailor</h2>
             <p className="action-desc">
