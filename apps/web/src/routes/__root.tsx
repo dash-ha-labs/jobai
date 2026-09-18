@@ -55,6 +55,13 @@ function RootComponent() {
               >
                 Applications
               </Link>
+              <Link
+                to="/settings/ai"
+                activeProps={{ className: "bg-slate-800 text-white" }}
+                className="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              >
+                AI settings
+              </Link>
               <a
                 href="/extension"
                 className="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
@@ -80,6 +87,10 @@ function RootComponent() {
               <span>•</span>
               <Link to="/drafts" className="hover:text-slate-200 transition-colors">
                 Applications
+              </Link>
+              <span>•</span>
+              <Link to="/settings/ai" className="hover:text-slate-200 transition-colors">
+                AI settings
               </Link>
               <span>•</span>
               <Link to="/extension" className="hover:text-slate-200 transition-colors">

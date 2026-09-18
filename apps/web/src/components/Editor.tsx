@@ -7,6 +7,7 @@ interface EditorProps {
   onSave: () => void;
   onReset: () => void;
   onConnectExtension?: () => void;
+  onUploadCV?: () => void;
   saveStatus: "idle" | "saving" | "saved" | "unsaved";
   storageError: string | null;
   validationErrors: string[];
@@ -18,6 +19,7 @@ export function Editor({
   onSave,
   onReset,
   onConnectExtension,
+  onUploadCV,
   saveStatus,
   storageError,
   validationErrors,
@@ -260,6 +262,21 @@ export function Editor({
               </>
             )}
           </button>
+
+          {/* Import / Upload CV Button */}
+          {onUploadCV && (
+            <button
+              type="button"
+              onClick={onUploadCV}
+              className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md text-xs font-semibold transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              title="Import or replace CV from document or text"
+            >
+              <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <span>Import CV</span>
+            </button>
+          )}
 
           {/* Connect to extension Button */}
           {onConnectExtension && (

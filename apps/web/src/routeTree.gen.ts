@@ -14,6 +14,7 @@ import { Route as DraftsRouteImport } from './routes/drafts'
 import { Route as ExtensionRouteImport } from './routes/extension'
 import { Route as ImportJobRouteImport } from './routes/import-job'
 import { Route as TemplatesRouteImport } from './routes/templates'
+import { Route as SettingsAiRouteImport } from './routes/settings.ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const TemplatesRoute = TemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsAiRoute = SettingsAiRouteImport.update({
+  id: '/settings/ai',
+  path: '/settings/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/settings/ai': typeof SettingsAiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/settings/ai': typeof SettingsAiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/settings/ai': typeof SettingsAiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/drafts' | '/extension' | '/import-job' | '/templates'
+  fullPaths:
+    | '/'
+    | '/drafts'
+    | '/extension'
+    | '/import-job'
+    | '/templates'
+    | '/settings/ai'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/drafts' | '/extension' | '/import-job' | '/templates'
-  id: '__root__' | '/' | '/drafts' | '/extension' | '/import-job' | '/templates'
+  to:
+    | '/'
+    | '/drafts'
+    | '/extension'
+    | '/import-job'
+    | '/templates'
+    | '/settings/ai'
+  id:
+    | '__root__'
+    | '/'
+    | '/drafts'
+    | '/extension'
+    | '/import-job'
+    | '/templates'
+    | '/settings/ai'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   ExtensionRoute: typeof ExtensionRoute
   ImportJobRoute: typeof ImportJobRoute
   TemplatesRoute: typeof TemplatesRoute
+  SettingsAiRoute: typeof SettingsAiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/ai': {
+      id: '/settings/ai'
+      path: '/settings/ai'
+      fullPath: '/settings/ai'
+      preLoaderRoute: typeof SettingsAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExtensionRoute: ExtensionRoute,
   ImportJobRoute: ImportJobRoute,
   TemplatesRoute: TemplatesRoute,
+  SettingsAiRoute: SettingsAiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
