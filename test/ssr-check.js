@@ -38,7 +38,7 @@ async function main() {
     // 1. Check Root Route SSR (loader metadata present in initial HTML)
     await checkRoute("Root Page SSR", "/", (html) => {
       assert.ok(html.includes("JobAI — Local CV Manager"), "Document title must be in SSR HTML");
-      assert.ok(html.includes("Canonical Master CV"), "H1 header must be in SSR HTML");
+      assert.ok(html.includes("One click.") || html.includes("Canonical Master CV"), "H1 header must be in SSR HTML");
       assert.ok(html.includes("href=\"/templates\""), "Templates navigation link must be in SSR HTML");
       assert.ok(html.includes("href=\"/extension\""), "Extension setup navigation link must be in SSR HTML");
       assert.ok(html.includes("Modern Clean"), "SSR loader data (templates) must be present in HTML before JS runs");
@@ -53,11 +53,21 @@ async function main() {
       assert.ok(html.includes("Compact"), "Template 'Compact' must be rendered in SSR HTML");
     });
 
-    // 3. Check Extension Route SSR
-    await checkRoute("Extension Page SSR", "/extension", (html) => {
-      assert.ok(html.includes("Extension Setup &amp; Pairing") || html.includes("Extension Setup"), "Extension page heading must be in SSR HTML");
+    // 3. Check Extension Route SSR (Public Marketing)
+    await checkRoute("Extension Page SSR (Public Marketing)", "/extension", (html) => {
+      assert.ok(html.includes("Browser Extension Companion"), "Extension page title must be in SSR HTML");
+      assert.ok(html.includes("Clip listings with zero cloud leak"), "Value proposition heading must be in SSR HTML");
+      assert.ok(html.includes("Strict localhost loopback"), "Localhost loopback architecture claim must be in SSR HTML");
+      assert.ok(html.includes("Open App to Pair"), "CTA to /app/extension must be in SSR HTML");
+      assert.ok(html.includes("href=\"/app/extension\""), "Link to workspace pairing must be in SSR HTML");
+    });
+
+    // 3b. Check Workspace Extension Route SSR (Authenticated Workspace Pairing)
+    await checkRoute("Workspace Extension Page SSR", "/app/extension", (html) => {
+      assert.ok(html.includes("Extension Setup &amp; Pairing") || html.includes("Extension Setup"), "Extension pairing page heading must be in SSR HTML");
       assert.ok(html.includes("Generate connection code"), "Code generation CTA must be in SSR HTML");
       assert.ok(html.includes("apps/extension/dist"), "Unpacked extension instructions must be in SSR HTML");
+      assert.ok(html.includes("id=\"sidebar\""), "Workspace sidebar must be rendered in SSR HTML");
     });
 
     // 4. Check Import Job Route SSR (Retired migration screen)

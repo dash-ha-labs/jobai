@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { CV, CVSection, CVSectionItem, CVSectionType, CVStylePrefs } from "jobai-shared";
+import { CV_TEMPLATES } from "jobai-shared";
+import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
 
 interface EditorProps {
   cv: CV;
@@ -663,32 +665,7 @@ function StyleControls({
   const margin = stylePrefs.margin || "normal";
   const primaryColor = stylePrefs.primaryColor || "#4f46e5";
 
-  const templates = [
-    {
-      id: "modern",
-      name: "Modern Clean",
-      desc: "Contemporary sans-serif with color highlights",
-      skeleton: "modern",
-    },
-    {
-      id: "executive",
-      name: "Executive",
-      desc: "Formal serif structure for leadership roles",
-      skeleton: "executive",
-    },
-    {
-      id: "tech",
-      name: "Technical",
-      desc: "Monospace accents and engineering focus",
-      skeleton: "tech",
-    },
-    {
-      id: "compact",
-      name: "Compact",
-      desc: "High density layout maximizing page space",
-      skeleton: "compact",
-    },
-  ];
+  const templates = CV_TEMPLATES;
 
   const colorSwatches = [
     { name: "Indigo", value: "#4f46e5" },
@@ -706,9 +683,9 @@ function StyleControls({
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[#73736b]">
             Template Layout
           </h2>
-          <span className="text-[11px] text-[#9b9a92]">4 available</span>
+          <span className="text-[11px] text-[#9b9a92]">{templates.length} available</span>
         </div>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1">
           {templates.map((tmpl) => {
             const isSelected = currentTemplate === tmpl.id;
             return (
@@ -723,48 +700,11 @@ function StyleControls({
                 }`}
                 aria-pressed={isSelected}
               >
-                {/* Mini thumbnail illustration */}
                 <div
-                  className="mb-2 h-10 w-full rounded-md border border-[#ecebe5] bg-[#faf9f6] p-1.5 flex flex-col justify-between overflow-hidden"
+                  className="mb-2 h-10 w-full rounded-md border border-[#ecebe5] bg-[#faf9f6] p-1.5 flex flex-col justify-center overflow-hidden"
                   aria-hidden="true"
                 >
-                  {tmpl.skeleton === "modern" && (
-                    <>
-                      <div className="h-1.5 w-1/3 rounded-xs bg-[#4f46e5]" />
-                      <div className="space-y-0.5">
-                        <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
-                        <div className="h-1 w-2/3 rounded-xs bg-[#e4e3dd]" />
-                      </div>
-                    </>
-                  )}
-                  {tmpl.skeleton === "executive" && (
-                    <>
-                      <div className="mx-auto h-1.5 w-1/2 rounded-xs bg-[#334155]" />
-                      <div className="space-y-0.5">
-                        <div className="mx-auto h-1 w-3/4 rounded-xs bg-[#e4e3dd]" />
-                        <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
-                      </div>
-                    </>
-                  )}
-                  {tmpl.skeleton === "tech" && (
-                    <>
-                      <div className="h-1.5 w-full rounded-xs bg-[#1e293b]" />
-                      <div className="space-y-0.5">
-                        <div className="h-1 w-4/5 rounded-xs bg-[#10b981]" />
-                        <div className="h-1 w-1/2 rounded-xs bg-[#e4e3dd]" />
-                      </div>
-                    </>
-                  )}
-                  {tmpl.skeleton === "compact" && (
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <div className="h-1 w-1/3 rounded-xs bg-[#334155]" />
-                        <div className="h-1 w-1/4 rounded-xs bg-[#9b9a92]" />
-                      </div>
-                      <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
-                      <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
-                    </div>
-                  )}
+                  <TemplateThumbnail layout={tmpl.layout} templateId={tmpl.id} accent={primaryColor} />
                 </div>
 
                 <div className="flex items-center justify-between gap-1">
@@ -778,7 +718,7 @@ function StyleControls({
                   )}
                 </div>
                 <div className="mt-0.5 text-[10px] text-[#8c8c83] line-clamp-1 leading-snug">
-                  {tmpl.desc}
+                  {tmpl.description}
                 </div>
               </button>
             );

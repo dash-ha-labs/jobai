@@ -5,3 +5,4 @@
 export * from "./src/types.js";
 export * from "./src/persistence.js";
 export * from "./src/contracts.js";
+export * from "./src/cv-template-registry.js";

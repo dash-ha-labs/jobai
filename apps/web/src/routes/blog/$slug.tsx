@@ -1,201 +1,413 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "motion/react";
-import { useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
-import { articles } from "./content";
-
-const articleContent: Record<string, string> = {
-  "tailor-your-cv-without-inventing-experience": `# Tailor Your CV Without Inventing Experience
-
-**Published:** January 15, 2024  
-**Reading time:** 4 min
-
-JobAI editorial — practical guidance for job seekers.
-
-When you tailor your CV, focus on highlighting relevant experience rather than expanding it. Recruiters spot invented responsibilities quickly.
-
-## The Right Approach
-
-1. **Identify matching requirements** — read the job description and note required skills and experience levels
-2. **Reorder your sections** — place your most relevant roles and achievements first
-3. **Rephrase bullet points** — use keywords from the job description while keeping facts accurate
-4. **Remove outdated info** — cut early-career roles that don't support your current target
-
-## What Not to Do
-
-- Don't claim responsibilities you didn't have
-- Don't inflate your title or company impact
-- Don't add skills you've only used briefly
-
-## Fictional Example
-
-Target role: Senior Product Manager
-
-**Before (generic):**
-- Managed cross-functional teams
-- Delivered features on time
-- Worked with engineering and design
-
-**After (tailored, factual):**
-- Led 5-person product team delivering B2B SaaS MVP, 30% faster than projected
-- Collaborated with engineering (7 devs) and design (2 UX) to ship quarterly roadmap
-- Defined KPIs adopted company-wide for feature success measurement
-
-Notice how each bullet remains factual while matching the target role's expectations.`,
-  "write-experience-bullets-that-show-contribution": `# Write Experience Bullets That Show Your Contribution
-
-**Published:** January 22, 2024  
-**Reading time:** 5 min
-
-JobAI editorial — practical guidance for job seekers.
-
-Generic bullets describe duties. Strong bullets show impact. The difference determines whether recruiters save your CV for review.
-
-## The STAR Method, Simplified
-
-Situation-Task-Action-Result works, but focus on the Result component:
-
-- **What changed** — quantify the outcome
-- **Your role** — specify what YOU did (not the team)
-- **Scope** — mention team size, budget, or user count when relevant
-
-## Weak vs. Strong Bullets
-
-**Weak:**
-- Responsible for user interface design
-- Helped improve application performance
-
-**Strong:**
-- Redesigned checkout flow resulting in 22% higher conversion
-- Optimized database queries reducing API latency from 450ms to 85ms
-
-## Fictional Example
-
-Target role: Backend Engineer
-
-**Before:**
-- Improved system reliability
-- Collaborated on architecture decisions
-
-**After:**
-- Implemented circuit breaker pattern across 12 microservices, reducing cascading failures by 78%
-- Architected event-driven order processing replacing legacy batch jobs, cutting daily reconciliation time from 4 hours to 12 minutes
-
-Notice how each bullet remains factual while demonstrating scale and personal contribution.`,
-  "check-your-cv-before-exporting-to-pdf": `# Check Your CV Before Exporting to PDF
-
-**Published:** February 5, 2024  
-**Reading time:** 3 min
-
-JobAI editorial — practical guidance for job seekers.
-
-Exporting to PDF too early hides formatting issues that disappear once printed. Run these final checks before finalizing.
-
-## Critical Checks
-
-1. **Link verification** — ensure all URLs and email addresses remain clickable
-2. **Font embedding** — confirm custom fonts embed properly or use standard fonts
-3. **Page breaks** — check section headings don't appear at bottom of page alone
-4. **Metadata** — remove personal file paths from document properties
-
-## Quick Visual Inspection
-
-Print to PDF and open in a fresh viewer:
-- Read at 150% zoom — small typos and spacing issues appear
-- Read aloud — sentences that sound awkward in speech stand out
-- Check contrast — light gray text may disappear on some printers
-
-## What Gets Fixed Later
-
-| Issue | Visible in PDF? | Fix required |
-|-------|-----------------|--------------|
-| Broken links | No | Edit source file |
-| Font substitution | Yes | Embed fonts or change |
-| Column overflow | Yes | Adjust widths |
-| Page headers/footers | Sometimes | Re-check page setup |
-
-## Fictional Example
-
-**Problem found during final check:**
-- LinkedIn URL truncated to 2 lines in footer
-- Custom branding font missing on client machine
-- Two-page CV with 1-inch margin wasting 25% space
-
-**Fixed before export:**
-- Shortened URL with link shortener (disclosed)
-- Switched to system fonts with fallback
-- Reduced margins to 0.75 inch, kept to one page
-
-These fixes won't show in the source file until rendered as PDF.`,
-};
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { getArticleBySlug } from "./content/articles";
 
 export const Route = createFileRoute("/blog/$slug")({
-  component: BlogSlug,
-  notFoundComponent: BlogNotFound,
+  head: ({ params }) => {
+    const article = getArticleBySlug(params.slug);
+    return {
+      meta: [
+        {
+          title: article
+            ? `${article.title} — JobAI Blog`
+            : "Article Not Found — JobAI Blog",
+        },
+        {
+          name: "description",
+          content: article?.excerpt ?? "Practical career guidance for job seekers.",
+        },
+      ],
+    };
+  },
+  loader: ({ params }) => {
+    return {
+      article: getArticleBySlug(params.slug),
+    };
+  },
+  component: BlogSlugPage,
+  notFoundComponent: () => <BlogNotFound isApp={false} />,
 });
 
-function BlogSlug() {
+function BlogSlugPage() {
   const { slug } = Route.useParams();
-  const [loaded, setLoaded] = useState(false);
+  return <BlogSlugPageComponent slug={slug} isApp={false} />;
+}
 
-  useEffect(() => {
-    setLoaded(true);
-  }, []);
+export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; isApp?: boolean }) {
+  const article = getArticleBySlug(slug);
 
-  const article = articles.find((a) => a.slug === slug);
-  const content = article ? articleContent[slug] : null;
-
-  if (!article || !content) {
-    return null;
+  if (!article) {
+    return <BlogNotFound isApp={isApp} />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: loaded ? 1 : 0, y: loaded ? 0 : 20 }}
-          transition={{ duration: 0.3 }}
-        >
+    <div className="w-full pb-8">
+      {/* Breadcrumb back to Blog */}
+      <nav aria-label="Breadcrumb" className="mb-6">
+        {isApp ? (
+          <Link
+            to="/app/blog"
+            className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
+          >
+            <svg
+              className="w-4 h-4 text-[#9b9a92]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            <span>Back to all articles</span>
+          </Link>
+        ) : (
           <Link
             to="/blog"
-            className="inline-flex items-center text-sm text-gray-600 hover:text-blue-600 mb-6"
+            className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
           >
-            <span className="mr-2">←</span> Back to blog
+            <svg
+              className="w-4 h-4 text-[#9b9a92]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            <span>Back to all articles</span>
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        )}
+      </nav>
+
+      {/* Semantic Article Landmark with Narrow Reading Column (~65-72ch) */}
+      <article className="mx-auto max-w-[65ch]" aria-labelledby="article-header-title">
+        {/* Article Header */}
+        <header className="mb-8">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#8c8d81] mb-3">
+            <span className="font-medium text-[#625181] bg-[#e8e3f1] px-2.5 py-0.5 rounded-full">
+              {article.category}
+            </span>
+            <span aria-hidden="true">•</span>
+            <span>{article.readTime}</span>
+            <span aria-hidden="true">•</span>
+            <span>{article.date}</span>
+          </div>
+          <h1
+            id="article-header-title"
+            className="text-3xl sm:text-4xl font-medium tracking-tight text-[#292a27] leading-[1.2] mb-4"
+          >
             {article.title}
           </h1>
-          <div className="flex items-center text-sm text-gray-500 mb-8 space-x-4">
-            <time>{article.date}</time>
-            <span>•</span>
-            <span>{article.readTime}</span>
+          <p className="text-lg text-[#5a5b54] leading-relaxed">
+            {article.lead}
+          </p>
+        </header>
+
+        {/* Subtle Practical Tip Callout */}
+        <aside
+          aria-label={article.tip.title}
+          className="my-8 rounded-xl border border-[#e6e5da] bg-[#f2f2e9] p-5 sm:p-6 flex items-start gap-4"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e5e7d4] text-[#728564]">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
           </div>
-          <article className="prose max-w-none">
-            <div className="prose-lg prose-gray">{content}</div>
-          </article>
-        </motion.div>
-      </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#728564]">
+              {article.tip.title}
+            </h2>
+            <p className="mt-1 text-sm text-[#5a5b54] leading-relaxed">
+              {article.tip.content}
+            </p>
+          </div>
+        </aside>
+
+        {/* Article Sections: Clear h2 / list / table / example rhythm */}
+        <div className="space-y-8">
+          {article.sections.map((section, idx) => (
+            <section key={idx} aria-labelledby={`section-heading-${idx}`}>
+              <h2
+                id={`section-heading-${idx}`}
+                className="text-xl sm:text-2xl font-medium text-[#292a27] tracking-tight mt-8 mb-4"
+              >
+                {section.heading}
+              </h2>
+
+              {section.paragraphs?.map((p, pIdx) => (
+                <p
+                  key={pIdx}
+                  className="text-[15px] sm:text-base text-[#41423c] leading-relaxed mb-4"
+                >
+                  {p}
+                </p>
+              ))}
+
+              {section.orderedItems && (
+                <ol className="my-4 space-y-3 pl-1">
+                  {section.orderedItems.map((item, oIdx) => (
+                    <li key={oIdx} className="flex items-start gap-3 text-sm sm:text-[15px] text-[#41423c] leading-relaxed">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e8e3f1] text-xs font-semibold text-[#625181]">
+                        {oIdx + 1}
+                      </span>
+                      <div>
+                        <strong className="font-medium text-[#292a27]">{item.label}</strong>
+                        <span className="text-[#73736b]"> — </span>
+                        <span>{item.text}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+
+              {section.unorderedItems && (
+                <ul className="my-4 space-y-2.5 pl-2">
+                  {section.unorderedItems.map((item, uIdx) => (
+                    <li key={uIdx} className="flex items-start gap-2.5 text-sm sm:text-[15px] text-[#41423c] leading-relaxed">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#9782d8]" aria-hidden="true" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Labeled Fictional Example */}
+              {section.fictionalExample && (
+                <div className="my-6 rounded-xl border border-[#e8e6dd] bg-white p-5 sm:p-6 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f0efe7] pb-3 mb-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8c8d81]">
+                      Fictional Example
+                    </span>
+                    <span className="text-xs text-[#73736b] bg-[#f5f4f0] px-2.5 py-0.5 rounded-md">
+                      {section.fictionalExample.targetRole}
+                    </span>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="rounded-lg border border-[#ecebe6] bg-[#faf9f6] p-4">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-[#8c8d81] mb-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#c7c5bc]" />
+                        <span>{section.fictionalExample.before.label}</span>
+                      </div>
+                      <ul className="space-y-2 text-xs sm:text-[13px] text-[#73736b]">
+                        {section.fictionalExample.before.items.map((bItem, bIdx) => (
+                          <li key={bIdx} className="flex items-start gap-2">
+                            <span className="text-[#c7c5bc]">•</span>
+                            <span>{bItem}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-lg border border-[#ddd3e9] bg-[#f8f6fb] p-4">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-[#625181] mb-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#9782d8]" />
+                        <span>{section.fictionalExample.after.label}</span>
+                      </div>
+                      <ul className="space-y-2 text-xs sm:text-[13px] text-[#41394d]">
+                        {section.fictionalExample.after.items.map((aItem, aIdx) => (
+                          <li key={aIdx} className="flex items-start gap-2">
+                            <span className="text-[#9782d8]">•</span>
+                            <span>{aItem}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {section.fictionalExample.note && (
+                    <p className="mt-4 text-xs text-[#8c8d81] italic">
+                      {section.fictionalExample.note}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Inspection Checklist Table */}
+              {section.table && (
+                <div className="my-6 overflow-x-auto rounded-xl border border-[#e8e6dd] bg-white shadow-2xs">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead>
+                      <tr className="border-b border-[#e8e6dd] bg-[#f5f4f0] text-[#73736b]">
+                        {section.table.headers.map((th, thIdx) => (
+                          <th key={thIdx} className="px-4 py-3 font-medium">
+                            {th}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#f0ede6]">
+                      {section.table.rows.map((row, rIdx) => (
+                        <tr key={rIdx} className="hover:bg-[#faf9f6]/50">
+                          {row.map((cell, cIdx) => (
+                            <td
+                              key={cIdx}
+                              className={`px-4 py-3 text-[#41423c] ${
+                                cIdx === 0 ? "font-medium text-[#292a27]" : ""
+                              }`}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          ))}
+        </div>
+
+        {/* Quiet Ending Link to Existing CV Editor */}
+        <footer className="mt-12 pt-8 border-t border-[#e8e7e2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-medium text-[#292a27]">
+              Ready to apply these principles?
+            </h2>
+            <p className="text-xs text-[#8c8d81] mt-0.5">
+              Return to your local CV editor to refine your active draft.
+            </p>
+          </div>
+          {isApp ? (
+            <Link
+              to="/app/editor"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+            >
+              <span>Open CV Editor</span>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </Link>
+          ) : (
+            <Link
+              to="/"
+              search={{ view: "editor" }}
+              className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+            >
+              <span>Open CV Editor</span>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </Link>
+          )}
+        </footer>
+      </article>
     </div>
   );
 }
 
-function BlogNotFound() {
+function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+    <div className="w-full py-16 px-4">
+      <div className="mx-auto max-w-md text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f2f0ea] text-[#73736b] mb-4">
+          <svg
+            className="w-6 h-6 text-[#9b9a92]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.75}
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-medium tracking-tight text-[#292a27] mb-2">
           Article not found
         </h1>
-        <p className="text-gray-600 mb-6">
-          The article you're looking for doesn't exist or has been moved.
+        <p className="text-sm text-[#73736b] mb-6 leading-relaxed">
+          The career guidance article you are looking for does not exist or has been moved.
         </p>
-        <Link
-          to="/blog"
-          className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
-          Back to blog
-        </Link>
+        {isApp ? (
+          <Link
+            to="/app/blog"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            <span>Return to all articles</span>
+          </Link>
+        ) : (
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            <span>Return to all articles</span>
+          </Link>
+        )}
       </div>
     </div>
   );

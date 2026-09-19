@@ -593,7 +593,8 @@ async function runTests() {
     // -------------------------------------------------------------
     console.log("\n11. Testing Four-Template PDF Generation & Paper Size Dimensions...");
     const { PDFDocument } = await import("pdf-lib");
-    const templates = ["modern", "executive", "tech", "compact"] as const;
+    const { CV_TEMPLATE_IDS } = await import("jobai-shared");
+    const templates = CV_TEMPLATE_IDS;
 
     for (const tmpl of templates) {
       // 11a: Legacy CV with omitted paperSize -> must default to A4 dimensions (595.28 x 841.89 pt)

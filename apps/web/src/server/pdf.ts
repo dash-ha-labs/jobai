@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
-import { type CV, type CVSectionItem } from "jobai-shared";
+import { type CV, type CVSectionItem, resolvePdfFamily } from "jobai-shared";
 
 type RGBColor = ReturnType<typeof rgb>;
 
@@ -66,7 +66,8 @@ function ensureSpace(
  * adhering to the selected template style.
  */
 export async function generateCVPdf(cv: CV, templateIdOverride?: string): Promise<Uint8Array> {
-  const templateId = templateIdOverride || cv.stylePrefs?.templateId || "modern";
+  const rawTemplateId = templateIdOverride || cv.stylePrefs?.templateId || "modern";
+  const templateId = resolvePdfFamily(rawTemplateId);
   const paperSize = cv.stylePrefs?.paperSize === "Letter" ? "Letter" : "A4";
   const { width: pageWidth, height: pageHeight } = PAPER_DIMENSIONS[paperSize];
   const primaryColor = parseHexColor(cv.stylePrefs?.primaryColor);

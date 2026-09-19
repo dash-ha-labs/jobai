@@ -1,0 +1,35 @@
+# Spec: PDF Export Fidelity Across 20 Templates
+
+**Initiative:** jobai-public-site
+**Revision:** r1
+**Owner:** hydra-glm
+**Workspace:** /Users/d/Code/jobai-public-slice
+
+## Product Anchor
+JobAI: truthful CV import/edit/save. Templates are real functional layouts; exported PDFs are the user's final artifact, so they must be complete, correctly sized, and unclipped.
+
+## Task Role
+Make the PDF export trustworthy for every one of the 20 templates — proper page breaks, A4/Letter sizing, no clipped sections on long CVs. This continues the export work after the renderer repair; it must not redesign templates or the editor.
+
+## Current State
+- Export path: `apps/web/src/lib/cv-pdf-export.ts` (html2pdf.js, captures `#cv-paper`, scale 2, JPEG 0.95, A4/Letter portrait).
+- Triggered from `apps/web/src/routes/app/editor.tsx` `handleExportPdf`.
+- Renderer binding for all 20 layouts is being repaired by atlas-cur (t_bc00d5ea); template preview personas land after that (orion-ag t_a4d779bd, owns `sample-cvs.ts`, `templates.tsx`, StyleEditor in `components/Editor.tsx`).
+
+## Scope
+1. **Page-break correctness** — long CVs must split cleanly between sections/items: configure html2pdf `pagebreak` (css+legacy modes, avoid breaking section headers, experience items, skill groups). Add print/page-break CSS only where needed (`styles.css` or template-scoped classes).
+2. **Paper sizing** — A4 (210×297) and Letter (8.5×11) exports match the paper size the user selected in the editor; margins consistent with on-screen paper; no content bleeding past edges.
+3. **Robust capture** — export binds to the print target (`#cv-paper` / `cv-print-target`); ensure background colors, borders, and dark-mode-agnostic white paper background survive export; filename `{FullName}-CV.pdf` falling back to `My-CV.pdf`.
+4. **Multi-page verification** — build one deliberately long sample CV (persona data or synthetic) and export all 20 template IDs; record per-template PDF file size + page count; no clipped/blank second pages.
+5. **Keep the client-side only** contract: no upload, no server round-trip.
+
+## Constraints
+- Edit ONLY `apps/web/src/lib/cv-pdf-export.ts`, `apps/web/src/styles.css` print rules, and new test files. DO NOT edit `renderer.tsx`, `cv-template-registry.ts`, `sample-cvs.ts`, `templates.tsx`, `components/Editor.tsx`, or `routes/app/editor.tsx` — owned by atlas/orion in flight. Keep the export function's public signature unchanged so no caller edits are needed.
+- Start after t_bc00d5ea completes (renderer repair) so all 20 layouts render before you verify exports.
+- `npm run check` and `npm run build` pass; add a small test (e.g., `test/pdf-export-check.js` asserting export config + page-break CSS presence — headless DOM assertions, no fake success claims).
+- Work artifact + diff hash. No commits. Stop for review.
+
+## Acceptance
+- All 20 template IDs export a valid multi-page-safe PDF from a long CV (evidence: per-template size/page table in artifact).
+- A4 vs Letter honored; filename uses full name.
+- No edits outside allowed files; checks/tests green.

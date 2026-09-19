@@ -10,11 +10,18 @@ console.log("==================================================");
 console.log("Running JobAI Editor Calm Composition Contract Checks");
 console.log("==================================================");
 
-// 1. Verify index.tsx editor composition
-const indexPath = path.join(rootDir, "apps/web/src/routes/index.tsx");
-const indexContent = fs.readFileSync(indexPath, "utf-8");
+// 1. Verify editor composition
+const appEditorPath = path.join(rootDir, "apps/web/src/routes/app/editor.tsx");
+const appIndexPath = path.join(rootDir, "apps/web/src/routes/app/index.tsx");
+const legacyIndexPath = path.join(rootDir, "apps/web/src/routes/index.tsx");
+const targetEditorPath = fs.existsSync(appEditorPath)
+  ? appEditorPath
+  : fs.existsSync(appIndexPath)
+  ? appIndexPath
+  : legacyIndexPath;
+const indexContent = fs.readFileSync(targetEditorPath, "utf-8");
 
-console.log("1. Checking index.tsx editor layout & header...");
+console.log("1. Checking editor composition layout & header...");
 assert(indexContent.includes("My CV"), "Header must include My CV document title");
 assert(indexContent.includes("Save CV"), "Header must include Save CV action");
 assert(indexContent.includes("Export PDF"), "Header must include Export PDF action");
@@ -46,10 +53,30 @@ for (const type of ["experience", "education", "skills", "projects", "custom"]) 
   assert(editorContent.includes(type), `Section adder must support ${type}`);
 }
 
-// Check 4 template previews with names
+assert(editorContent.includes("CV_TEMPLATES"), "Editor must load templates from shared registry");
+assert(editorContent.includes("TemplateThumbnail"), "Template selector must render layout thumbnails");
+assert(editorContent.includes('onChange("templateId"'), "Template selection must update templateId");
+
+const registryPath = path.join(rootDir, "packages/shared/src/cv-template-registry.ts");
+const registryContent = fs.readFileSync(registryPath, "utf-8");
 for (const tmpl of ["Modern Clean", "Executive", "Technical", "Compact"]) {
-  assert(editorContent.includes(tmpl), `Templates must include ${tmpl}`);
+  assert(registryContent.includes(tmpl), `Registry must include ${tmpl}`);
 }
+
+const rendererPath = path.join(rootDir, "apps/web/src/lib/cv-templates/renderer.tsx");
+const rendererContent = fs.readFileSync(rendererPath, "utf-8");
+const layoutMatches = [...registryContent.matchAll(/layout:\s*"([^"]+)"/g)].map((m) => m[1]);
+const uniqueLayouts = [...new Set(layoutMatches)];
+for (const layout of uniqueLayouts) {
+  assert(
+    rendererContent.includes(`case "${layout}"`) || layout === "modern",
+    `Renderer switch must handle layout "${layout}"`,
+  );
+}
+assert(
+  rendererContent.includes('templateId === "matrix"'),
+  "Matrix template must route TechTemplate with matrix variant",
+);
 
 // Check paper size with dimensions
 assert(editorContent.includes("210 × 297 mm"), "Paper size must show A4 dimensions");
