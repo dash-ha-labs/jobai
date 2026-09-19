@@ -1,0 +1,100 @@
+# Ticket t_f082d44f assigned surfaces (excerpt of submitted files, not mixed HEAD rewrite)
+# Full file sha256 in files.sha256
+
+----- apps/web/src/routes/index.tsx imports -----
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { CV_TEMPLATES } from "jobai-shared";
+import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
+import { BulletAnalyzer } from "../components/tools/BulletAnalyzer";
+
+const FEATURED_TEMPLATES = CV_TEMPLATES.slice(0, 8);
+
+----- apps/web/src/routes/index.tsx section 4 -----
+      {/* ================= 4. FEATURED TEMPLATES SHOWCASE ================= */}
+      <section id="templates" aria-labelledby="gallery-heading" className="space-y-6 scroll-mt-24 min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e8e7e2] pb-5">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 id="gallery-heading" className="text-2xl font-semibold tracking-tight text-[#292a27] font-heading">
+                Print-Ready CV Templates
+              </h2>
+              <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
+                20 Professional Layouts
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-[#73736b]">
+              Engineered with native CSS @page rules for crisp PDF generation and structured readability.
+            </p>
+          </div>
+
+          <Link
+            to="/templates"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#625181] hover:text-[#292a27] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2 rounded-sm"
+          >
+            <span>View all in template catalog</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <div
+          className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-1 min-w-0 md:grid md:grid-cols-4 md:overflow-visible md:pb-0"
+          role="list"
+          aria-label="Featured CV templates"
+        >
+          {FEATURED_TEMPLATES.map((tmpl) => (
+            <div
+              key={tmpl.id}
+              role="listitem"
+              className="snap-start shrink-0 w-[72%] max-w-[16.5rem] min-w-0 md:w-auto md:max-w-none"
+            >
+              <Link
+                to="/templates"
+                data-featured-template={tmpl.id}
+                className="group flex h-full flex-col rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-4 transition hover:border-[#c9bcd9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2"
+              >
+                <div className="mb-3 flex h-36 flex-col justify-between overflow-hidden rounded-xl border border-[#e8e7e2] bg-[#faf9f6] p-3 shadow-2xs">
+                  <TemplateThumbnail layout={tmpl.layout} templateId={tmpl.id} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="truncate text-sm font-medium font-heading text-[#292a27]">{tmpl.name}</h3>
+                  <span className="shrink-0 rounded bg-black/5 px-1.5 py-0.5 font-mono text-[10px] text-[#63645b]">
+                    {tmpl.category}
+                  </span>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end">
+          <Link
+            to="/templates"
+            className="text-sm font-medium text-[#625181] hover:text-[#9782d8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2 rounded-sm"
+          >
+            Browse all templates →
+          </Link>
+        </div>
+      </section>
+
+
+----- test/public-slice-check.js gallery assertions -----
+        // Featured templates showcase (full document preview lives on /templates)
+        assert.ok(html.includes("Print-Ready CV Templates"), "Gallery title");
+        assert.ok(html.includes("20 Professional Layouts"), "Gallery layout counter");
+        assert.ok(html.includes("Browse all templates"), "Section CTA to catalog");
+        assert.ok(html.includes("data-featured-template=\"modern\""), "Featured template card present");
+        assert.ok(html.includes("Modern Clean"), "Featured card shows template name");
+        assert.ok(
+          /<a[^>]*data-featured-template="modern"[^>]*href="\/templates"/.test(html) ||
+            /<a[^>]*href="\/templates"[^>]*data-featured-template="modern"/.test(html),
+          "Featured card name links to /templates"
+        );
+        assert.ok(!html.includes("tab-modern"), "Homepage must not render modern tab");
+        assert.ok(!html.includes("tab-executive"), "Homepage must not render executive tab");
+        assert.ok(!html.includes("tab-tech"), "Homepage must not render tech tab");
+        assert.ok(!html.includes("tab-compact"), "Homepage must not render compact tab");
+        assert.ok(!html.includes("Sample profile:"), "Homepage must not render sample profile bar");
+        assert.ok(!html.includes("cv-paper"), "Homepage must not inline-render CV paper");
+

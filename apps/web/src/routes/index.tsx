@@ -1,10 +1,9 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
-import { useState, useEffect, useCallback } from "react";
-import { loadMasterCV, saveMasterCV, deleteMasterCV, loadDrafts } from "jobai-shared";
-import type { CV, JobMetadata } from "jobai-shared";
-import { Editor } from "../components/Editor";
-import { Preview } from "../components/Preview";
+import { createFileRoute, redirect, Link } from "@tanstack/react-router";
+import { CV_TEMPLATES } from "jobai-shared";
+import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
+import { BulletAnalyzer } from "../components/tools/BulletAnalyzer";
+
+const FEATURED_TEMPLATES = CV_TEMPLATES.slice(0, 8);
 
 interface SearchParams {
   template?: string;
@@ -18,1433 +17,698 @@ export const Route = createFileRoute("/")({
       view: typeof search.view === "string" ? search.view : undefined,
     };
   },
-  component: HomeComponent,
+  beforeLoad: ({ search }) => {
+    // Legacy deep links compatibility: redirect ?view=editor or ?view=overview to canonical /app routes
+    if (search.view === "editor") {
+      throw redirect({
+        to: "/app/editor",
+        search: { template: search.template },
+        statusCode: 307,
+      });
+    }
+    if (search.view === "overview") {
+      throw redirect({
+        to: "/app",
+        statusCode: 307,
+      });
+    }
+  },
+  component: PublicLandingComponent,
 });
 
-function createBlankCV(templateId = "modern"): CV {
-  return {
-    id: `master-cv-${Date.now()}`,
-    version: "1.0.0",
-    contact: {
-      name: "",
-      email: "",
-      phone: "",
-      website: "",
-      location: "",
+export function PublicLandingComponent() {
+  const blogArticles = [
+    {
+      slug: "tailor-your-cv-without-inventing-experience",
+      title: "Tailor Your CV Without Inventing Experience",
+      readingTime: "5 min read",
+      summary: "How to emphasize authentic achievements matching a job specification without exaggerating or inventing skills.",
     },
-    summary: "",
-    sections: [
-      {
-        id: `sec-${Date.now()}-1`,
-        type: "experience",
-        title: "Work Experience",
-        items: [],
-      },
-      {
-        id: `sec-${Date.now()}-2`,
-        type: "education",
-        title: "Education",
-        items: [],
-      },
-      {
-        id: `sec-${Date.now()}-3`,
-        type: "skills",
-        title: "Skills & Proficiencies",
-        items: [],
-      },
-    ],
-    stylePrefs: {
-      templateId,
-      fontSize: "normal",
-      margin: "normal",
-      primaryColor: "#4f46e5",
+    {
+      slug: "write-experience-bullets-that-show-contribution",
+      title: "Write Experience Bullets That Show Contribution",
+      readingTime: "4 min read",
+      summary: "Action-driven formulas to structure CV bullet points with verifiable outcomes and context.",
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-
-function formatRelativeTime(isoString?: string): string {
-  if (!isoString) return "recently";
-  try {
-    const diffMs = Date.now() - new Date(isoString).getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    if (diffHours < 1) return "just now";
-    if (diffHours === 1) return "1 hour ago";
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return "yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return new Date(isoString).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  } catch {
-    return "recently";
-  }
-}
-
-function HomeComponent() {
-  const shouldReduceMotion = useReducedMotion();
-  const search = Route.useSearch();
-  const navigate = useNavigate();
-
-  const [cv, setCv] = useState<CV | null>(null);
-  const [drafts, setDrafts] = useState<JobMetadata[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "unsaved">("idle");
-  const [storageError, setStorageError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
-
-  // Upload CV Modal state
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadMode, setUploadMode] = useState<"file" | "text">("file");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pastedText, setPastedText] = useState("");
-  const [consentChecked, setConsentChecked] = useState(false);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [extractError, setExtractError] = useState<string | null>(null);
-  const [extractProgress, setExtractProgress] = useState("");
-  const [aiStatus, setAiStatus] = useState<{
-    configured: boolean;
-    provider: string | null;
-    model: string | null;
-  } | null>(null);
-  const [overwriteCandidate, setOverwriteCandidate] = useState<CV | null>(null);
-
-  // Connect to Extension state
-  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
-  const [pairingCode, setPairingCode] = useState<string | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [syncSuccess, setSyncSuccess] = useState(false);
-
-  const [workspaceStatus, setWorkspaceStatus] = useState<{
-    aiConfigured: boolean;
-    aiProvider: string | null;
-    aiModel: string | null;
-    extensionPaired: boolean;
-    hasProfile: boolean;
-  } | null>(null);
-
-  const fetchWorkspaceStatus = async () => {
-    try {
-      const res = await fetch("/api/status");
-      if (res.ok) {
-        const data = await res.json();
-        setWorkspaceStatus({
-          aiConfigured: Boolean(data.aiConfigured),
-          aiProvider: data.aiProvider || null,
-          aiModel: data.aiModel || null,
-          extensionPaired: Boolean(data.paired || data.boundOrigin || data.serverTokenActive),
-          hasProfile: Boolean(data.hasProfile),
-        });
-        setAiStatus({
-          configured: Boolean(data.aiConfigured),
-          provider: data.aiProvider || null,
-          model: data.aiModel || null,
-        });
-      }
-    } catch {
-      // ignore
-    }
-  };
-  const fetchAIStatus = fetchWorkspaceStatus;
-
-  const refreshDrafts = () => {
-    const res = loadDrafts();
-    if (res.success && res.data) {
-      setDrafts(res.data);
-    }
-  };
-
-  // Load existing CV & Drafts from browser localStorage
-  useEffect(() => {
-    fetchAIStatus();
-    refreshDrafts();
-
-    const res = loadMasterCV();
-    if (res.success && res.data) {
-      if (search.template && search.template !== res.data.stylePrefs?.templateId) {
-        const updated = {
-          ...res.data,
-          stylePrefs: {
-            ...res.data.stylePrefs,
-            templateId: search.template,
-          },
-        };
-        setCv(updated);
-        saveMasterCV(updated);
-      } else {
-        setCv(res.data);
-      }
-    } else {
-      if (res.error && !res.error.includes("unavailable")) {
-        setStorageError(res.error);
-      }
-      if (search.template) {
-        setCv(createBlankCV(search.template));
-      }
-    }
-    setLoading(false);
-  }, [search.template]);
-
-  const handleOpenUploadModal = () => {
-    setExtractError(null);
-    setSelectedFile(null);
-    setPastedText("");
-    setConsentChecked(false);
-    setExtractProgress("");
-    setIsUploadModalOpen(true);
-    fetchAIStatus();
-  };
-
-  const handleExtractCV = async () => {
-    if (!consentChecked) {
-      setExtractError("Please consent to data transfer to your configured AI provider.");
-      return;
-    }
-    setExtractError(null);
-    setIsExtracting(true);
-
-    try {
-      let payload: any = {};
-      if (uploadMode === "file") {
-        if (!selectedFile) {
-          throw new Error("Please choose a file to upload (PDF, DOCX, or TXT).");
-        }
-        if (selectedFile.size > 5 * 1024 * 1024) {
-          throw new Error("File size exceeds 5MB limit. Please upload a smaller document.");
-        }
-        setExtractProgress("Reading and encoding document...");
-        const arrayBuffer = await selectedFile.arrayBuffer();
-        let binary = "";
-        const bytes = new Uint8Array(arrayBuffer);
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-        const base64 = btoa(binary);
-
-        payload = {
-          fileBase64: base64,
-          filename: selectedFile.name,
-          templateId: search.template || "modern",
-        };
-      } else {
-        if (!pastedText.trim()) {
-          throw new Error("Please paste your CV text.");
-        }
-        payload = {
-          text: pastedText.trim().slice(0, 60000),
-          templateId: search.template || "modern",
-        };
-      }
-
-      setExtractProgress(
-        `Extracting and structuring CV with ${aiStatus?.provider || "AI"} (${aiStatus?.model || "configured model"})...`
-      );
-
-      const res = await fetch("/api/cv/extract", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-jobai-csrf": "1",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || data.error || "Failed to extract CV");
-      }
-
-      const structuredCV: CV = data.cv;
-
-      if (cv && (cv.contact.name || cv.sections.some((s) => s.items.length > 0))) {
-        setOverwriteCandidate(structuredCV);
-      } else {
-        setCv(structuredCV);
-        setSaveStatus("unsaved");
-        setIsUploadModalOpen(false);
-      }
-    } catch (err: any) {
-      setExtractError(err?.message || "Failed to extract CV");
-    } finally {
-      setIsExtracting(false);
-      setExtractProgress("");
-    }
-  };
-
-  const handleConfirmOverwrite = () => {
-    if (overwriteCandidate) {
-      setCv(overwriteCandidate);
-      setSaveStatus("unsaved");
-      setOverwriteCandidate(null);
-      setIsUploadModalOpen(false);
-    }
-  };
-
-  const handleCvChange = useCallback((updatedCv: CV) => {
-    setCv(updatedCv);
-    setSaveStatus("unsaved");
-    setValidationErrors([]);
-    setStorageError(null);
-  }, []);
-
-  const handleStartFromScratch = () => {
-    const fresh = createBlankCV(search.template || "modern");
-    setCv(fresh);
-    setSaveStatus("unsaved");
-    navigate({ to: "/", search: { view: "editor" } });
-  };
-
-  const validateBeforeSave = (targetCv: CV): string[] => {
-    const errors: string[] = [];
-    if (!targetCv.contact.name || !targetCv.contact.name.trim()) {
-      errors.push("Full Name is required");
-    }
-    if (!targetCv.contact.email || !targetCv.contact.email.trim()) {
-      errors.push("Email Address is required");
-    }
-    for (const sec of targetCv.sections) {
-      for (const item of sec.items) {
-        if (!item.title || !item.title.trim()) {
-          errors.push(`An item in "${sec.title || sec.type}" is missing a title`);
-        }
-      }
-    }
-    return errors;
-  };
-
-  const handleSave = () => {
-    if (!cv) return;
-    const errors = validateBeforeSave(cv);
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
-    setSaveStatus("saving");
-    const res = saveMasterCV(cv);
-
-    if (res.success) {
-      setSaveStatus("saved");
-      setStorageError(null);
-      setValidationErrors([]);
-    } else {
-      setSaveStatus("unsaved");
-      setStorageError(res.error ?? "Failed to save CV to local storage");
-    }
-  };
-
-  const handleReset = () => {
-    deleteMasterCV();
-    setCv(null);
-    setSaveStatus("idle");
-    setStorageError(null);
-    setValidationErrors([]);
-    navigate({ to: "/", search: { view: "overview" } });
-  };
-
-  const handleOpenConnect = () => {
-    setSyncError(null);
-    setPairingCode(null);
-    setSyncSuccess(false);
-    setIsConnectModalOpen(true);
-  };
-
-  const handleGeneratePairingCode = async (syncCv = true) => {
-    setIsSyncing(true);
-    setSyncError(null);
-
-    try {
-      if (syncCv && cv) {
-        const errors = validateBeforeSave(cv);
-        if (errors.length === 0) {
-          saveMasterCV(cv);
-          const profileRes = await fetch("/api/profile", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-jobai-csrf": "1",
-            },
-            body: JSON.stringify({ cv }),
-          });
-
-          if (!profileRes.ok) {
-            const err = await profileRes.json().catch(() => ({}));
-            throw new Error(err.message || `Server returned status ${profileRes.status}`);
-          }
-          setSyncSuccess(true);
-        }
-      }
-
-      const codeRes = await fetch("/api/pair/code", {
-        method: "POST",
-        headers: {
-          "x-jobai-csrf": "1",
-        },
-      });
-
-      if (!codeRes.ok) {
-        const err = await codeRes.json().catch(() => ({}));
-        throw new Error(err.message || `Server returned status ${codeRes.status}`);
-      }
-
-      const codeData = await codeRes.json();
-      setPairingCode(codeData.code);
-    } catch (err: any) {
-      setSyncError(err?.message || String(err));
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleTemplateChange = (templateId: string) => {
-    if (!cv) return;
-    handleCvChange({
-      ...cv,
-      stylePrefs: {
-        ...cv.stylePrefs,
-        templateId,
-      },
-    });
-  };
-
-  const isEditorView = search.view === "editor";
-  const isCvSaved = Boolean(cv) || Boolean(workspaceStatus?.hasProfile);
-  const isExtensionConnected = Boolean(workspaceStatus?.extensionPaired);
-  const isAiConfigured = Boolean(workspaceStatus?.aiConfigured || aiStatus?.configured);
-  const isAllReady = isCvSaved && isExtensionConnected && isAiConfigured;
+    {
+      slug: "check-your-cv-before-exporting-to-pdf",
+      title: "Check Your CV Before Exporting to PDF",
+      readingTime: "4 min read",
+      summary: "A practical pre-flight checklist for typography, page-break margins, and ATS text extraction safety.",
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Hidden SEO / SSR marker for contract compatibility */}
-      <div className="sr-only">
-        <h1>JobAI Document Editor — Canonical Master CV</h1>
-        <span>Modern Clean</span>
-      </div>
-
-      {loading ? (
-        <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-12 text-center text-sm text-[#73736b]">
-          Loading document workspace...
-        </div>
-      ) : !isEditorView ? (
-        /* ==================== ASTRA EXACT FOLIO OVERVIEW ==================== */
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-          className="space-y-8"
-        >
-          {/* Welcome Header: compact 28-32px Manrope heading, 14-16px description, actions opposite with natural wrap */}
-          <section id="welcome" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-                {cv?.contact?.name
-                  ? `Welcome back, ${cv.contact.name.split(" ")[0]}.`
-                  : "Let’s build your next chapter."}
-              </h1>
-              <p className="mt-1.5 text-sm text-[#73736b]">
-                Your CVs, application tools, and next steps. All in one local workspace.
-              </p>
+    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12 space-y-16 sm:space-y-24">
+      {/* ================= 1. OUTCOME HERO SECTION ================= */}
+      <section
+        id="hero"
+        aria-labelledby="hero-heading"
+        className="relative isolate overflow-hidden rounded-3xl border border-[#ddd3e9] bg-[#e8e0f3] grid lg:grid-cols-[1.12fr_1fr] shadow-sm"
+      >
+        {/* Left Column: Confident Outcome-led Copy & High-Contrast CTAs */}
+        <div className="relative z-10 px-6 py-10 sm:px-10 sm:py-14 flex flex-col justify-between">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#c9bcd9] bg-white/50 px-3.5 py-1.5 text-xs font-medium text-[#625181]">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span>ONE-CLICK APPLICATION TAILORING</span>
             </div>
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={cv ? () => navigate({ to: "/", search: { view: "editor" } }) : handleStartFromScratch}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-[#4a4e43] cursor-pointer w-full sm:w-auto"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Create a CV</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleOpenUploadModal}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#e4e3dd] bg-white px-4 py-2.5 text-sm font-medium text-[#292a27] shadow-2xs transition hover:bg-[#f5f4f0] cursor-pointer w-full sm:w-auto"
-              >
-                <svg className="w-4 h-4 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span>Upload document</span>
-              </button>
-              {cv && (
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/", search: { view: "editor" } })}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#c9bcd9] bg-white px-3.5 py-2.5 text-sm font-medium text-[#625181] transition hover:bg-[#faf8fd] cursor-pointer w-full sm:w-auto"
-                >
-                  <span>Open in editor &rarr;</span>
-                </button>
-              )}
-            </div>
-          </section>
 
-          {/* Featured Lavender Panel: 300-350px height, headline 36-42px, one charcoal CTA, overlapping job sheet + actual CV miniature */}
-          <section id="hero" className="relative isolate overflow-hidden rounded-2xl border border-[#ddd3e9] bg-[#e8e0f3] grid grid-cols-1 md:grid-cols-[1.08fr_1fr]">
-            <div className="relative z-10 px-6 py-8 sm:px-8 sm:py-9">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#c9bcd9] bg-white/40 px-3 py-1.5 text-xs font-medium text-[#79628f]">
-                <svg className="w-3.5 h-3.5 text-[#9782d8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-                <span>YOUR NEXT OPPORTUNITY STARTS HERE</span>
-              </div>
-              <h2 className="max-w-md text-2xl sm:text-4xl lg:text-[2.65rem] font-medium leading-[1.16] tracking-tight text-[#393040] font-heading">
-                Your next role.
-                <br />
-                A CV to match.
-              </h2>
-              <p className="mt-4 max-w-[340px] text-sm leading-relaxed text-[#82738e]">
-                Turn your experience into a focused application. Start with a role, add your achievements, and make the draft your own.
-              </p>
-              <button
-                type="button"
-                onClick={cv ? () => setIsConnectModalOpen(true) : handleStartFromScratch}
-                className="mt-6 inline-flex items-center justify-center gap-2.5 rounded-lg bg-[#30332d] px-4 py-3 text-sm font-medium text-white shadow-xs transition hover:bg-[#4a4e43] cursor-pointer w-full sm:w-auto"
+            <h1
+              id="hero-heading"
+              className="text-4xl sm:text-5xl lg:text-[3.25rem] font-semibold tracking-[-0.04em] leading-[1.12] text-[#292a27] font-heading max-w-xl"
+            >
+              One click.
+              <br />
+              <span className="text-[#625181]">A CV made for this job.</span>
+            </h1>
+
+            <p className="mt-6 text-base sm:text-lg leading-relaxed text-[#5c4d68] max-w-lg">
+              Import your master CV facts and pair the browser extension once. When you find a target role, JobAI tailors relevant achievements in a single click. Always review your customized CV before sending.
+            </p>
+
+            {/* High-Contrast Conversion CTAs */}
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link
+                to="/app"
+                search={{ view: "editor" }}
+                className="inline-flex items-center gap-2.5 rounded-xl bg-[#292a27] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#41423c] focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:outline-none"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Create a tailored CV</span>
-                <svg className="w-4 h-4 ml-1 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>Create your CV</span>
+                <svg className="w-4 h-4 text-[#c7bcd9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-              </button>
-              <p className="mt-3 flex items-center gap-1.5 text-xs text-[#95839f]">
-                <svg className="w-3.5 h-3.5 text-[#79628f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>Free to start. Yours to edit and export.</span>
-              </p>
-            </div>
-
-            {/* Overlapping job sheet and real CV miniature with gentle 4-6deg rotations */}
-            <div className="relative hidden min-h-[350px] items-center justify-center md:flex select-none" aria-label="A job description transformed into a tailored CV">
-              <div className="absolute right-7 top-6 h-72 w-72 rounded-full border border-white/35 pointer-events-none" />
-              <div className="absolute right-0 top-1 h-96 w-96 rounded-full border border-white/25 pointer-events-none" />
-
-              {/* Left Job Sheet Thumbnail */}
-              <div className="absolute left-1 top-12 w-48 -rotate-[6deg] rounded-xl border border-white/90 bg-[#f7f4fa] p-4 shadow-[0_8px_24px_rgba(97,70,119,0.08)] lg:left-2">
-                <div className="mb-3.5 flex items-center gap-1.5 border-b border-[#e7e1ed] pb-2.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#cfc7db]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#dcd5e4]" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#e6dfed]" />
-                  <span className="ml-auto text-[10px] text-[#a398ae] font-medium">target role</span>
-                </div>
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e0e7dc] text-xs font-semibold text-[#728564]">
-                  🎯
-                </span>
-                <p className="mt-2.5 text-xs font-semibold text-[#292a27] truncate">
-                  {drafts[0]?.jobTitle || "Product Designer"}
-                </p>
-                <p className="mt-0.5 text-[10px] text-[#9c92a4] truncate">
-                  {drafts[0]?.company || "Acme · Remote"}
-                </p>
-                <div className="my-3 space-y-1.5">
-                  <div className="h-1.5 w-full rounded-xs bg-[#e2dce9]" />
-                  <div className="h-1.5 w-4/5 rounded-xs bg-[#e2dce9]" />
-                  <div className="h-1.5 w-11/12 rounded-xs bg-[#e2dce9]" />
-                </div>
-                <div className="rounded-md bg-[#e7dfef] py-1.5 text-center text-[10px] font-medium text-[#8b759c]">
-                  This could be the one.
-                </div>
-              </div>
-
-              {/* Right CV Paper Miniature */}
-              <div className="absolute right-6 top-8 w-52 rotate-[4deg] rounded-xl border border-white bg-[#fffefb] p-4 shadow-[0_14px_35px_rgba(112,87,128,0.12)] lg:right-10">
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e7e4db] text-xs font-medium text-[#6c7061]">
-                    {cv?.contact?.name ? cv.contact.name.split(" ").map((n) => n[0]).join("").slice(0, 2) : "JA"}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold tracking-tight text-[#292a27] truncate">
-                      {cv?.contact?.name || "Jamie Davis"}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-[#979489] truncate">
-                      {cv?.sections.find((s) => s.type === "experience")?.items[0]?.title || "Product Designer"}
-                    </p>
-                  </div>
-                </div>
-                <div className="mb-2.5 mt-3 h-px bg-[#dbddd2]" />
-                <p className="text-[10px] font-medium text-[#74796b]">A little about me</p>
-                <div className="mt-1.5 space-y-1">
-                  <div className="h-1 w-full rounded-xs bg-[#e7e7df]" />
-                  <div className="h-1 w-full rounded-xs bg-[#e7e7df]" />
-                  <div className="h-1 w-4/5 rounded-xs bg-[#e7e7df]" />
-                </div>
-                <p className="mb-1.5 mt-3 text-[10px] font-medium text-[#74796b]">Experience</p>
-                <div className="space-y-1">
-                  <div className="h-1.5 w-3/5 rounded-xs bg-[#d9dece]" />
-                  <div className="h-1 w-full rounded-xs bg-[#e7e7df]" />
-                  <div className="h-1 w-full rounded-xs bg-[#e7e7df]" />
-                </div>
-                <div className="mt-3 flex gap-1">
-                  <span className="h-2.5 w-10 rounded-xs bg-[#e9eddf]" />
-                  <span className="h-2.5 w-8 rounded-xs bg-[#eee7f4]" />
-                  <span className="h-2.5 w-7 rounded-xs bg-[#eee9df]" />
-                </div>
-              </div>
-
-              {/* Bottom Reassuring Badge */}
-              <div className="absolute bottom-5 left-5 z-10 flex items-center gap-2.5 rounded-xl border border-white bg-[#fafcf4] px-4 py-2.5 shadow-[0_5px_20px_rgba(96,73,118,0.08)] lg:left-8">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e1ebce] text-[#829b5c]">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-                <span className="text-xs font-medium text-[#727c5c]">
-                  Made for you. Matched to the role.
-                </span>
-              </div>
-
-              <span className="absolute right-6 top-10 text-2xl text-[#af92c7] select-none pointer-events-none">✦</span>
-              <span className="absolute bottom-10 right-10 text-xl text-[#a58cba] select-none pointer-events-none">✧</span>
-            </div>
-          </section>
-
-          {/* CV Library Section: Your recent CVs with small count from real data, real document cards, no trio metric cards */}
-          <section id="cvs-section" className="mb-8 scroll-mt-6">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-lg font-medium tracking-tight text-[#292a27] font-heading">
-                  Your recent CVs
-                </h2>
-                <span id="recent-count" className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs text-[#929285] font-medium">
-                  {(cv ? 1 : 0) + drafts.length}
-                </span>
-              </div>
-              <Link to="/drafts" className="flex items-center gap-1.5 text-xs font-medium text-[#8c8d81] hover:text-[#4e5646]">
-                <span>View all CVs</span>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
               </Link>
-            </div>
 
-            {!cv && drafts.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[#dcdcd1] bg-[#fffefa] py-12 px-6 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#e8e0f3] border border-[#ddd3e9] flex items-center justify-center mx-auto text-[#625181] mb-3">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-sm font-medium text-[#292a27] font-heading">No CVs found</h3>
-                <p className="text-xs text-[#8b8c81] mt-1 max-w-sm mx-auto">
-                  Create a fresh profile from scratch or upload an existing PDF/text document to begin.
-                </p>
-                <div className="mt-4 flex items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleStartFromScratch}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#30332d] px-3.5 py-2 text-xs font-medium text-white transition hover:bg-[#4a4e43]"
-                  >
-                    Create a CV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleOpenUploadModal}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-3.5 py-2 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7]"
-                  >
-                    Upload document
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div id="cv-grid" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {/* 1. Canonical Master CV Card (if present) */}
-                {cv && (
-                  <button
-                    type="button"
-                    onClick={() => navigate({ to: "/", search: { view: "editor" } })}
-                    className="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-xs cursor-pointer"
-                  >
-                    <div className="relative flex h-36 justify-center overflow-hidden bg-[#e9e5f0]">
-                      <span className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs text-[#625181] font-medium">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#9782d8]" />
-                        Ready to go
-                      </span>
-                      {/* Document Paper Miniature */}
-                      <div className="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-xs transition group-hover:-translate-y-1">
-                        <p className="text-[11px] font-bold tracking-tight text-[#292a27] truncate uppercase">
-                          {cv.contact.name || "Alex Morgan"}
-                        </p>
-                        <p className="mt-0.5 truncate text-[10px] text-[#b0aca2]">
-                          {cv.sections.find((s) => s.type === "experience")?.items[0]?.title || "Canonical Profile"}
-                        </p>
-                        <div className="my-2 h-px bg-[#aaa0bc]" />
-                        <div className="flex gap-2">
-                          <div className="w-2/3 space-y-1">
-                            <div className="h-1 w-2/3 rounded-xs bg-[#aaa0bc]" />
-                            <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                            <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                            <div className="h-1 w-4/5 rounded-xs bg-[#e8e7e0]" />
-                          </div>
-                          <div className="flex-1 space-y-1">
-                            <div className="h-1 rounded-xs bg-[#aaa0bc]" />
-                            <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                          </div>
-                        </div>
-                      </div>
-                      <span className="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776] shadow-2xs">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                      </span>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="truncate text-sm font-medium text-[#292a27]">
-                        Master CV
-                        <span className="font-normal text-[#a2a095]"> — {cv.stylePrefs?.templateId ? cv.stylePrefs.templateId.charAt(0).toUpperCase() + cv.stylePrefs.templateId.slice(1) : "Modern"}</span>
-                      </h3>
-                      <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#a0a094]">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Edited {formatRelativeTime(cv.updatedAt)}</span>
-                      </p>
-                    </div>
-                  </button>
-                )}
-
-                {/* 2. Draft Applications */}
-                {drafts.slice(0, cv ? 2 : 3).map((draft, idx) => {
-                  const bgClass = idx % 2 === 0 ? "bg-[#e9ecdf]" : "bg-[#efe7dd]";
-                  const accentLine = idx % 2 === 0 ? "bg-[#a7af8f]" : "bg-[#c1ad95]";
-                  return (
-                    <button
-                      key={draft.id}
-                      type="button"
-                      onClick={() => navigate({ to: "/drafts", search: { id: draft.id } })}
-                      className="group overflow-hidden rounded-xl border border-[#e6e5dd] bg-[#fffefa] text-left transition hover:border-[#c3bab0] hover:shadow-xs cursor-pointer"
-                    >
-                      <div className={`relative flex h-36 justify-center overflow-hidden ${bgClass}`}>
-                        <span className="absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-md border border-white/70 bg-white/75 px-2 py-1 text-xs text-[#7d886c] font-medium">
-                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                          Tailored
-                        </span>
-                        <div className="mt-5 w-40 rounded-t bg-[#fffefa] px-5 pb-4 pt-4 shadow-xs transition group-hover:-translate-y-1">
-                          <p className="text-[11px] font-bold tracking-tight text-[#292a27] truncate uppercase">
-                            {cv?.contact?.name || "Alex Morgan"}
-                          </p>
-                          <p className="mt-0.5 truncate text-[10px] text-[#b0aca2]">
-                            {draft.jobTitle}
-                          </p>
-                          <div className={`my-2 h-px ${accentLine}`} />
-                          <div className="flex gap-2">
-                            <div className="w-2/3 space-y-1">
-                              <div className={`h-1 w-2/3 rounded-xs ${accentLine}`} />
-                              <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                              <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                              <div className="h-1 w-4/5 rounded-xs bg-[#e8e7e0]" />
-                            </div>
-                            <div className="flex-1 space-y-1">
-                              <div className={`h-1 rounded-xs ${accentLine}`} />
-                              <div className="h-1 rounded-xs bg-[#e8e7e0]" />
-                            </div>
-                          </div>
-                        </div>
-                        <span className="absolute bottom-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-[#878776] shadow-2xs">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                          </svg>
-                        </span>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="truncate text-sm font-medium text-[#292a27]">
-                          {draft.jobTitle}
-                          <span className="font-normal text-[#a2a095]"> — {draft.company}</span>
-                        </h3>
-                        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#a0a094]">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>Edited {formatRelativeTime(draft.createdAt)}</span>
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* Workspace Readiness: standard section typography, no outer boxed container, compact setup checklist */}
-          {isAllReady ? (
-            <section id="readiness-section" className="mb-7 scroll-mt-6">
-              <div className="flex items-center gap-2 text-xs text-[#73736b] py-1">
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>Ready to tailor your next application</span>
-              </div>
-            </section>
-          ) : (
-            <section id="readiness-section" className="mb-7 scroll-mt-6">
-              <div className="mb-3">
-                <h2 className="text-lg font-medium tracking-tight text-[#292a27] font-heading">
-                  Workspace readiness
-                </h2>
-                <p className="mt-1 text-sm text-[#73736b]">
-                  Complete your local setup to tailor and capture applications.
-                </p>
-              </div>
-              <div className="rounded-xl border border-[#e8e7e2] bg-[#fffefa] divide-y divide-[#eeede7]">
-                {/* Row 1: Save your CV */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 sm:px-4">
-                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                    <span className="mt-0.5 sm:mt-0 shrink-0">
-                      {isCvSaved ? (
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-[#c7c5bc]" />
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <span className="text-sm font-medium text-[#292a27]">Save your CV</span>
-                      <span className="mx-2 text-[#dcdcd5] hidden sm:inline">&middot;</span>
-                      <span className="block sm:inline text-xs text-[#73736b]">
-                        {isCvSaved
-                          ? "Master CV saved to your local workspace"
-                          : "Store your master resume locally to tailor for job postings"}
-                      </span>
-                    </div>
-                  </div>
-                  {!isCvSaved && (
-                    <button
-                      type="button"
-                      onClick={cv ? () => navigate({ to: "/", search: { view: "editor" } }) : handleStartFromScratch}
-                      className="text-xs font-medium text-[#625181] hover:text-[#4a396b] shrink-0 self-start sm:self-auto cursor-pointer"
-                    >
-                      Create or import &rarr;
-                    </button>
-                  )}
-                </div>
-
-                {/* Row 2: Connect extension */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 sm:px-4">
-                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                    <span className="mt-0.5 sm:mt-0 shrink-0">
-                      {isExtensionConnected ? (
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-[#c7c5bc]" />
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <span className="text-sm font-medium text-[#292a27]">Connect extension</span>
-                      <span className="mx-2 text-[#dcdcd5] hidden sm:inline">&middot;</span>
-                      <span className="block sm:inline text-xs text-[#73736b]">
-                        {isExtensionConnected
-                          ? "Extension connected to local bridge"
-                          : "Capture job postings directly from your browser"}
-                      </span>
-                    </div>
-                  </div>
-                  {!isExtensionConnected && (
-                    <Link
-                      to="/extension"
-                      className="text-xs font-medium text-[#625181] hover:text-[#4a396b] shrink-0 self-start sm:self-auto"
-                    >
-                      Pair extension &rarr;
-                    </Link>
-                  )}
-                </div>
-
-                {/* Row 3: Choose your AI */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 sm:px-4">
-                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                    <span className="mt-0.5 sm:mt-0 shrink-0">
-                      {isAiConfigured ? (
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-[#c7c5bc]" />
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <span className="text-sm font-medium text-[#292a27]">Choose your AI</span>
-                      <span className="mx-2 text-[#dcdcd5] hidden sm:inline">&middot;</span>
-                      <span className="block sm:inline text-xs text-[#73736b]">
-                        {isAiConfigured
-                          ? `AI provider active (${workspaceStatus?.aiProvider ? workspaceStatus.aiProvider.toUpperCase() : "Configured"})`
-                          : "Bring your private OpenAI, Anthropic, or GLM API key"}
-                      </span>
-                    </div>
-                  </div>
-                  {!isAiConfigured && (
-                    <Link
-                      to="/settings/ai"
-                      className="text-xs font-medium text-[#625181] hover:text-[#4a396b] shrink-0 self-start sm:self-auto"
-                    >
-                      Configure AI &rarr;
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Application Toolkit: restored illustrated coming-next toolkit matching reference lines 390-507 */}
-          <section id="tools-section" className="mb-7 scroll-mt-6">
-            <div className="mb-4">
-              <h2 className="text-lg font-medium tracking-tight text-[#292a27] font-heading">
-                Your application toolkit
-              </h2>
-              <p className="mt-1 text-xs text-[#99998f]">
-                Polish your portrait, review your CV, and draft your introduction.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {/* Card 1: Portrait studio */}
-              <div className="overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left shadow-2xs">
-                <div className="relative flex h-32 items-center justify-center overflow-hidden bg-[#ececdf]" aria-hidden="true">
-                  <div className="absolute h-36 w-36 rounded-full border border-[#dcdcca]" />
-                  <div className="absolute h-24 w-24 rounded-full border border-[#dddecb]" />
-                  <div className="relative mr-[-12px] mt-5 h-24 w-20 -rotate-[12deg] overflow-hidden rounded-lg border-4 border-[#fffef7] shadow-xs bg-[#e2e2d5] flex items-center justify-center">
-                    <svg className="w-10 h-10 text-[#a3a692]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                  <div className="relative -mt-2 h-28 w-24 rotate-[8deg] overflow-hidden rounded-lg border-4 border-[#fffef7] shadow-xs bg-[#f7f6ed] flex items-center justify-center">
-                    <svg className="w-12 h-12 text-[#7d886c]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
-                  <span className="absolute right-5 top-5 rounded-full bg-[#fafbf1] p-1.5 leading-none text-[#93986e]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.857L13 21l-2.286-6.857L5 12l5.714-2.857L13 3z" />
-                    </svg>
-                  </span>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-medium text-[#292a27]">Portrait studio</h3>
-                    <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-[10px] font-medium text-[#73736b]">
-                      Coming next
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-xs text-[#919287]">
-                    Upload and preview a professional portrait crop.
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 2: CV review */}
-              <div className="overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left shadow-2xs">
-                <div className="relative flex h-32 items-center justify-center bg-[#f1e7de]" aria-hidden="true">
-                  <div className="relative flex w-48 -rotate-3 items-center gap-3 rounded-xl border border-white/90 bg-[#fffaf4] p-3.5 shadow-xs">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-[#a8b48e] bg-[#f5f8ef] text-[#788761]">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-[#766a5d]">Review checklist</p>
-                      <div className="mt-1.5 h-1.5 w-20 rounded-full bg-[#e8e1d6]">
-                        <div className="h-full w-10/12 rounded-full bg-[#bbc5a4]" />
-                      </div>
-                      <p className="mt-1 text-[11px] text-[#b2a697]">Action-driven verbs</p>
-                    </div>
-                  </div>
-                  <svg className="absolute right-7 top-5 rotate-12 w-7 h-7 text-[#c5a284]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-medium text-[#292a27]">CV review</h3>
-                    <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-[10px] font-medium text-[#73736b]">
-                      Coming next
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-xs text-[#919287]">
-                    Check your writing for clarity and impact.
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 3: Cover letter builder */}
-              <div className="overflow-hidden rounded-xl border border-[#e8e6dd] bg-[#fffefa] text-left shadow-2xs">
-                <div className="relative flex h-32 items-center justify-center overflow-hidden bg-[#e5eaf0]" aria-hidden="true">
-                  <div className="mt-8 h-32 w-40 -rotate-[8deg] rounded-t-lg bg-[#fafcfe] p-4 shadow-xs">
-                    <p className="text-xs font-medium text-[#8b98a6]">Hello, future team.</p>
-                    <div className="mt-3 space-y-2">
-                      <div className="h-1 w-full rounded bg-[#dfe5ec]" />
-                      <div className="h-1 w-11/12 rounded bg-[#dfe5ec]" />
-                      <div className="h-1 w-full rounded bg-[#dfe5ec]" />
-                      <div className="h-1 w-4/5 rounded bg-[#dfe5ec]" />
-                    </div>
-                  </div>
-                  <div className="absolute right-10 top-7 flex h-9 w-9 rotate-12 items-center justify-center rounded-xl bg-[#ccd8e6] text-[#8a9bb4] shadow-xs">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-medium text-[#292a27]">Cover letter builder</h3>
-                    <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-[10px] font-medium text-[#73736b]">
-                      Coming next
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-xs text-[#919287]">
-                    Start with an outline. Make it sound like you.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Sage Advice Strip: A tiny tip, a big difference */}
-          <section id="learn-section" className="mb-8 flex scroll-mt-6 flex-wrap sm:flex-nowrap items-center gap-4 rounded-xl border border-[#e6e5da] bg-[#f2f2e9] px-5 py-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5e7d4] text-[#93976e]" aria-hidden="true">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#292a27]">A tiny tip, a big difference.</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#8d907d]">
-                Don’t just list what you did. Show the difference you made. Numbers tell a great story.
-              </p>
-            </div>
-          </section>
-        </motion.div>
-      ) : (
-        /* ==================== ASTRA EXACT FOLIO EDITOR SPLIT PANE ==================== */
-        <div className="space-y-6">
-          {/* Top Folio Header & Document Actions: calm compact controls, restrained toolbar, Export PDF isolated to editor */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e8e7e2] pb-5 no-print">
-            <div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/", search: { view: "overview" } })}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#73736b] hover:text-[#292a27] transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  <span>Overview</span>
-                </button>
-                <span className="text-[#dcdcd5]">/</span>
-                <h1 className="text-xl font-bold tracking-tight text-[#292a27] font-heading">
-                  Document Studio
-                </h1>
-              </div>
-              <p className="mt-1 text-xs text-[#73736b]">
-                Edit your canonical sections and style preferences with real-time printable preview.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2.5 shrink-0">
-              <Link
-                to="/templates"
-                className="rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-3 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7]"
+              <a
+                href="#templates"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#c3b6d4] bg-white/60 px-5 py-3.5 text-sm font-medium text-[#463853] hover:bg-white/90 transition"
               >
-                Templates
-              </Link>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saveStatus === "saving" || saveStatus === "saved"}
-                className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                  saveStatus === "saved"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-[#30332d] text-white hover:bg-[#4a4e43] shadow-xs"
-                }`}
-              >
-                {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : "Save Changes"}
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#e4e3dd] bg-white px-3 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#faf9f6] cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                <span>Explore templates</span>
+                <svg className="w-4 h-4 text-[#79628f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-                <span>Export PDF</span>
-              </button>
+              </a>
+
+              <a
+                href="#workflow"
+                className="text-xs font-medium text-[#625181] hover:underline sm:ml-2"
+              >
+                See 3-step workflow →
+              </a>
             </div>
           </div>
 
-          {!cv ? (
-            <div className="rounded-2xl border border-dashed border-[#dcdcd1] bg-[#fffefa] py-12 px-6 text-center space-y-3">
-              <h2 className="text-base font-medium text-[#292a27] font-heading">No CV in Studio</h2>
-              <p className="text-xs text-[#8b8c81] max-w-sm mx-auto">
-                Start a fresh CV from scratch or upload a document to begin editing.
-              </p>
-              <div className="flex items-center justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleStartFromScratch}
-                  className="rounded-lg bg-[#30332d] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#4a4e43]"
-                >
-                  Create from scratch
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenUploadModal}
-                  className="rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-4 py-2 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7]"
-                >
-                  Upload document
-                </button>
-              </div>
+          {/* Truthful Qualitative Guardrails (No false 100% on-device, no universal ATS guarantee) */}
+          <div className="mt-10 pt-6 border-t border-[#d8cce4] flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-[#796788]">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>Local-first master CV in your browser</span>
             </div>
-          ) : (
-            <>
-              {/* Mobile Tab Switcher */}
-              <div className="lg:hidden no-print flex items-center justify-center">
-                <div className="inline-flex rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] p-1">
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("edit")}
-                    className={`rounded-md px-4 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      mobileTab === "edit"
-                        ? "bg-[#30332d] text-white shadow-xs"
-                        : "text-[#73736b] hover:text-[#292a27]"
-                    }`}
-                  >
-                    ✏️ Form Editor
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMobileTab("preview")}
-                    className={`rounded-md px-4 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      mobileTab === "preview"
-                        ? "bg-[#30332d] text-white shadow-xs"
-                        : "text-[#73736b] hover:text-[#292a27]"
-                    }`}
-                  >
-                    📄 Printable Preview
-                  </button>
-                </div>
-              </div>
-
-              {/* Desktop Two-Column Split Pane / Mobile Active Tab */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div
-                  className={`lg:col-span-6 no-print ${
-                    mobileTab === "edit" ? "block" : "hidden lg:block"
-                  }`}
-                >
-                  <Editor
-                    cv={cv}
-                    onChange={handleCvChange}
-                    onSave={handleSave}
-                    onReset={handleReset}
-                    onConnectExtension={handleOpenConnect}
-                    onUploadCV={handleOpenUploadModal}
-                    saveStatus={saveStatus}
-                    storageError={storageError}
-                    validationErrors={validationErrors}
-                  />
-                </div>
-
-                <div
-                  className={`lg:col-span-6 lg:sticky lg:top-24 ${
-                    mobileTab === "preview" ? "block" : "hidden lg:block"
-                  }`}
-                >
-                  <Preview
-                    cv={cv}
-                    onTemplateChange={handleTemplateChange}
-                    onPrint={() => window.print()}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>Bring Your Own AI Key or run local</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>Native A4 &amp; Letter print fidelity</span>
+            </div>
+          </div>
         </div>
-      )}
 
-          {/* Connect to Extension Modal */}
-          {isConnectModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/50 backdrop-blur-xs no-print">
-              <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] max-w-md w-full p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-3">
-                  <h2 className="text-sm font-bold text-[#292a27] font-heading flex items-center gap-2">
-                    <span className="text-[#9782d8]">🔗</span> Connect Browser Extension
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setIsConnectModalOpen(false)}
-                    className="text-[#73736b] hover:text-[#292a27] text-lg leading-none cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </div>
+        {/* Right Column: Staged Truthful Transformation Demonstration (Clearly labelled illustrative) */}
+        <div
+          className="relative min-h-[420px] lg:min-h-full items-center justify-center p-6 hidden sm:flex overflow-hidden"
+          aria-label="Target job specification matched to an authentic tailored CV document"
+        >
+          {/* Subtle background rings */}
+          <div className="absolute -right-12 -top-12 h-80 w-80 rounded-full border border-white/40 pointer-events-none" />
+          <div className="absolute right-10 bottom-6 h-96 w-96 rounded-full border border-white/20 pointer-events-none" />
 
-                <div className="p-3 bg-[#faf9f6] rounded-xl border border-[#eeeadd] text-xs text-[#73736b] space-y-2 leading-relaxed">
-                  <p className="font-semibold text-[#292a27]">
-                    Local Storage &amp; AI Transfer Consent:
-                  </p>
-                  <p>
-                    Syncing stores your master CV locally on your machine at <code>127.0.0.1:3000</code>.
-                  </p>
-                  <p>
-                    When you use the extension on a job posting, document text is processed by your configured AI provider to prioritize relevant experience.
-                  </p>
-                </div>
+          {/* Demonstration Notice Ribbon */}
+          <div className="absolute top-3 right-4 z-20 rounded-md bg-white/80 backdrop-blur-xs px-2.5 py-1 text-[10px] font-mono font-medium text-[#625181] border border-[#d8cde6]">
+            Illustrative Transformation Demonstration (Not a Result Guarantee)
+          </div>
 
-                {syncError && (
-                  <div className="p-3 bg-rose-50 text-rose-700 rounded-lg text-xs border border-rose-200">
-                    <strong>Error:</strong> {syncError}
-                  </div>
-                )}
-
-                {!pairingCode ? (
-                  <div className="pt-2 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => handleGeneratePairingCode(true)}
-                      disabled={isSyncing}
-                      className="w-full py-2.5 px-4 bg-[#30332d] hover:bg-[#4a4e43] disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-xs"
-                    >
-                      {isSyncing ? "Connecting..." : cv ? "Sync Master CV & Get Code" : "Get Pairing Code"}
-                    </button>
-                    <div className="text-center pt-1">
-                      <Link to="/extension" className="text-xs text-[#625181] hover:underline">
-                        Or open dedicated Extension Setup page &rarr;
-                      </Link>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3 pt-1">
-                    <div className="text-center p-4 bg-[#e8e0f3]/40 border border-[#ddd3e9] rounded-xl">
-                      <span className="text-[11px] font-semibold text-[#625181] uppercase tracking-wider block mb-1">
-                        One-Time Pairing Code
-                      </span>
-                      <div className="text-3xl font-mono font-extrabold text-[#292a27] tracking-widest select-all">
-                        {pairingCode}
-                      </div>
-                      <span className="text-[11px] text-[#73736b] block mt-2">
-                        Enter this code in the extension popup (valid for 10 minutes)
-                      </span>
-                    </div>
-
-                    {syncSuccess && (
-                      <p className="text-xs text-emerald-600 text-center font-medium">
-                        ✓ Master CV synced to local backend successfully
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(pairingCode);
-                          alert("Code copied to clipboard!");
-                        }}
-                        className="flex-1 py-2 bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] rounded-lg text-xs font-semibold transition cursor-pointer border border-[#e4e3dd]"
-                      >
-                        Copy Code
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsConnectModalOpen(false)}
-                        className="flex-1 py-2 bg-[#30332d] hover:bg-[#4a4e43] text-white rounded-lg text-xs font-semibold transition cursor-pointer"
-                      >
-                        Done
-                      </button>
-                    </div>
-                  </div>
-                )}
+          {/* Job Specification Card (tilted left) */}
+          <div className="absolute left-4 lg:left-8 top-14 w-60 -rotate-[4deg] rounded-2xl border border-white/90 bg-[#f7f4fa] p-4 shadow-[0_8px_30px_rgba(97,70,119,0.14)] transition-transform hover:rotate-0 duration-300">
+            <div className="mb-2.5 flex items-center justify-between border-b border-[#e7e1ed] pb-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#91819e]">Target Role</span>
+              <span className="rounded-md bg-[#e4daee] px-1.5 py-0.5 text-[10px] font-medium text-[#625181]">Clipped via Extension</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e0e7dc] text-xs font-bold text-[#5a704c]">
+                AC
+              </span>
+              <div>
+                <p className="text-xs font-semibold text-[#292a27]">Staff Systems Engineer</p>
+                <p className="text-[11px] text-[#867891]">Acme Cloud • Remote</p>
               </div>
             </div>
-          )}
-
-          {/* Upload Existing CV Modal */}
-          {isUploadModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/50 backdrop-blur-xs no-print">
-              <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] max-w-lg w-full p-6 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-3">
-                  <h2 className="text-sm font-bold text-[#292a27] font-heading flex items-center gap-2">
-                    <span className="text-[#9782d8]">📄</span> Upload &amp; Extract CV
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUploadModalOpen(false);
-                      setOverwriteCandidate(null);
-                    }}
-                    className="text-[#73736b] hover:text-[#292a27] text-lg leading-none cursor-pointer"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {overwriteCandidate ? (
-                  <div className="space-y-4 py-2">
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
-                      <div className="font-bold text-amber-950">Existing CV Profile Found</div>
-                      <p>
-                        A master CV is already loaded. Replacing it will overwrite your current profile with the extracted data:
-                      </p>
-                      <p className="font-semibold">
-                        Name: {overwriteCandidate.contact.name || "Unnamed"} ({overwriteCandidate.sections.length} sections extracted)
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => setOverwriteCandidate(null)}
-                        className="flex-1 py-2 px-3 bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] rounded-lg text-xs font-semibold cursor-pointer border border-[#e4e3dd]"
-                      >
-                        Keep Existing CV
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleConfirmOverwrite}
-                        className="flex-1 py-2 px-3 bg-[#30332d] hover:bg-[#4a4e43] text-white rounded-lg text-xs font-semibold cursor-pointer shadow-xs"
-                      >
-                        Replace &amp; Review
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {aiStatus && !aiStatus.configured && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
-                        <div className="font-bold text-amber-950">⚠️ AI Provider Key Required</div>
-                        <p>
-                          Document extraction requires an active AI provider. Please configure your key in settings.
-                        </p>
-                        <Link to="/settings/ai" className="inline-block font-semibold text-[#625181] hover:underline pt-0.5">
-                          Go to AI Settings &rarr;
-                        </Link>
-                      </div>
-                    )}
-
-                    {extractError && (
-                      <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
-                        <span className="font-semibold">Error:</span> {extractError}
-                      </div>
-                    )}
-
-                    <div className="flex border-b border-[#e8e7e2] text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setUploadMode("file")}
-                        className={`pb-2 px-3 font-semibold border-b-2 cursor-pointer transition ${
-                          uploadMode === "file"
-                            ? "border-[#30332d] text-[#292a27]"
-                            : "border-transparent text-[#73736b] hover:text-[#292a27]"
-                        }`}
-                      >
-                        Upload Document (PDF / DOCX)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setUploadMode("text")}
-                        className={`pb-2 px-3 font-semibold border-b-2 cursor-pointer transition ${
-                          uploadMode === "text"
-                            ? "border-[#30332d] text-[#292a27]"
-                            : "border-transparent text-[#73736b] hover:text-[#292a27]"
-                        }`}
-                      >
-                        Paste Text
-                      </button>
-                    </div>
-
-                    {uploadMode === "file" ? (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-medium text-[#292a27]">
-                          Select PDF or DOCX file (max 5MB)
-                        </label>
-                        <input
-                          type="file"
-                          accept=".pdf,.docx,.txt"
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) {
-                              if (f.size > 5 * 1024 * 1024) {
-                                setExtractError("Selected file exceeds 5MB limit.");
-                                setSelectedFile(null);
-                              } else {
-                                setExtractError(null);
-                                setSelectedFile(f);
-                              }
-                            }
-                          }}
-                          className="block w-full text-xs text-[#73736b] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#e8e0f3] file:text-[#625181] hover:file:bg-[#ddd3e9] cursor-pointer border border-[#e8e7e2] rounded-lg p-2 bg-white"
-                        />
-                        {selectedFile && (
-                          <div className="text-[11px] text-[#73736b]">
-                            Selected: <span className="font-mono">{selectedFile.name}</span> ({(selectedFile.size / 1024).toFixed(1)} KB)
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-medium text-[#292a27]">
-                          Paste your CV text directly
-                        </label>
-                        <textarea
-                          rows={6}
-                          value={pastedText}
-                          onChange={(e) => setPastedText(e.target.value)}
-                          placeholder="Paste experience, education, skills, and contact details..."
-                          className="w-full text-xs font-mono border border-[#e8e7e2] rounded-xl p-2.5 focus:outline-hidden focus:border-[#9782d8] bg-white text-[#292a27]"
-                        />
-                        <div className="text-[11px] text-[#92928a] text-right">
-                          {pastedText.length} / 60,000 characters
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="p-3 bg-[#faf9f6] border border-[#eeeadd] rounded-xl space-y-1.5 text-xs text-[#73736b]">
-                      <p className="font-semibold text-[#292a27]">Data Transfer Notice</p>
-                      <p className="text-[11px] leading-relaxed">
-                        Extracting your CV sends document text to your configured AI provider ({aiStatus?.provider || "OpenAI/Anthropic/GLM"}).
-                      </p>
-                      <label className="flex items-start gap-2 pt-1 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={consentChecked}
-                          onChange={(e) => setConsentChecked(e.target.checked)}
-                          className="mt-0.5 rounded text-[#625181] focus:ring-[#9782d8]"
-                        />
-                        <span className="text-[11.5px] font-medium text-[#292a27] select-none">
-                          I consent to sending this document text to my configured AI provider for structuring.
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#e8e7e2]">
-                      <button
-                        type="button"
-                        onClick={() => setIsUploadModalOpen(false)}
-                        className="px-3 py-1.5 text-xs text-[#73736b] hover:text-[#292a27] cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleExtractCV}
-                        disabled={
-                          isExtracting ||
-                          !consentChecked ||
-                          (uploadMode === "file" ? !selectedFile : !pastedText.trim()) ||
-                          (aiStatus !== null && !aiStatus.configured)
-                        }
-                        className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#30332d] hover:bg-[#4a4e43] disabled:opacity-50 text-white transition cursor-pointer shadow-xs disabled:cursor-not-allowed"
-                      >
-                        {isExtracting ? extractProgress || "Extracting..." : "Extract & Structure CV"}
-                      </button>
-                    </div>
-                  </>
-                )}
+            <div className="mt-3 space-y-1.5 border-t border-[#ede7f2] pt-2 text-[11px] text-[#554763]">
+              <div className="font-medium text-[#3b2d49]">Required skills:</div>
+              <div className="rounded bg-[#ece5f4] px-2 py-1 text-[10px] text-[#5d4672]">
+                • Distributed consensus (Raft/Paxos)
+              </div>
+              <div className="rounded bg-[#ece5f4] px-2 py-1 text-[10px] text-[#5d4672]">
+                • Go/Rust high-throughput pipelines
+              </div>
+              <div className="rounded bg-[#ece5f4] px-2 py-1 text-[10px] text-[#5d4672]">
+                • Kubernetes cluster automation
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Tailored CV Card (tilted right) */}
+          <div className="absolute right-4 lg:right-10 top-10 w-72 rotate-[2.5deg] rounded-xl border border-white bg-[#fffefa] p-5 shadow-[0_18px_44px_rgba(112,87,128,0.18)] transition-transform hover:rotate-0 duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e7e0f4] text-xs font-bold text-[#625181]">
+                  AR
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#292a27]">Alex Rivera</p>
+                  <p className="text-[10px] text-[#79628f]">Staff Systems Engineer</p>
+                </div>
+              </div>
+              <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700 border border-emerald-200">
+                Tailored Variant
+              </span>
+            </div>
+
+            <div className="my-2.5 h-px bg-[#ece8df]" />
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-[#41423c]">
+                <span>Aligned Highlights</span>
+                <span className="text-[10px] text-[#625181] lowercase font-normal">diff applied</span>
+              </div>
+
+              <div className="rounded-md bg-[#f9f7fc] border border-[#e4dcf0] p-2 space-y-1 text-[10px]">
+                <p className="text-[#3b2d49] font-medium leading-snug">
+                  <span className="text-emerald-600 font-bold">✓</span> Prioritized Raft/Paxos consensus project to top of Experience
+                </p>
+                <p className="text-[#3b2d49] font-medium leading-snug">
+                  <span className="text-emerald-600 font-bold">✓</span> Framed throughput metrics (250k req/s) matching job spec
+                </p>
+                <p className="text-[#796b86] leading-snug">
+                  <span className="text-[#998baf]">•</span> Omitted unrelated mobile dev bullets to preserve 1-page density
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-2 border-t border-[#f0ede6] flex items-center justify-between text-[10px] text-[#86877e]">
+              <span>Master facts locked</span>
+              <span className="font-medium text-[#625181]">Review before export</span>
+            </div>
+          </div>
+
+          {/* Floating Confirmation Pill */}
+          <div className="absolute bottom-4 left-6 lg:left-12 z-20 flex items-center gap-2 rounded-full border border-white bg-[#f8faf4] px-4 py-2 shadow-[0_6px_20px_rgba(96,73,118,0.12)]">
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#dbe8c8] text-[#55723b]">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <span className="text-[11px] font-medium text-[#4f5c38]">
+              Truth preserved: 0 invented facts • 100% verifiable experience
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 2. SETUP VS REPEAT WORKFLOW COMPARISON ================= */}
+      <section id="workflow" aria-labelledby="workflow-heading" className="space-y-6 scroll-mt-24">
+        <div className="border-b border-[#e8e7e2] pb-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-2">
+            <span>THE WORKFLOW</span>
+          </div>
+          <h2 id="workflow-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#292a27] font-heading">
+            Upfront setup once. One click for every job after.
+          </h2>
+          <p className="mt-1.5 text-sm text-[#73736b] max-w-2xl">
+            Why spend hours manually rewriting bullet points for each job application? Set up your master career facts once, then tailor role-specific applications quickly.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Column A: One-time setup */}
+          <div className="rounded-2xl border border-[#e4e1d7] bg-[#fbfaf6] p-6 sm:p-8 flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-[#ece8df]">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#625181] font-mono">
+                  Phase 1 • Initial Setup
+                </span>
+                <span className="rounded-md bg-[#e8e0f3] px-2 py-0.5 text-[11px] font-medium text-[#625181]">
+                  First-Time Setup
+                </span>
+              </div>
+
+              <div className="mt-6 space-y-6">
+                <div className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ececdf] text-xs font-bold text-[#5a624a] font-mono">
+                    01
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#292a27]">Import or enter your master facts</h3>
+                    <p className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      Load your complete work history, projects, metrics, and education once. This is your master vault of truthful experience.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#ececdf] text-xs font-bold text-[#5a624a] font-mono">
+                    02
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#292a27]">Connect extension &amp; choose AI provider</h3>
+                    <p className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      Pair the browser extension with your local workspace and provide your API key (Anthropic, OpenAI, Groq, or local Ollama).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[#ece8df] text-xs text-[#8c8d81] flex items-center justify-between">
+              <span>Saved in local browser storage</span>
+              <span className="text-emerald-700 font-medium">✓ Ready for one-click tailoring</span>
+            </div>
+          </div>
+
+          {/* Column B: Repeat one-click workflow */}
+          <div className="rounded-2xl border border-[#ddd3e9] bg-[#f7f3fb] p-6 sm:p-8 flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex items-center justify-between pb-3 border-b border-[#e6dced]">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#625181] font-mono">
+                  Phase 2 • Every Job
+                </span>
+                <span className="rounded-md bg-[#292a27] px-2 py-0.5 text-[11px] font-medium text-white">
+                  Repeat Workflow
+                </span>
+              </div>
+
+              <div className="mt-6 space-y-6">
+                <div className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#e4daf0] text-xs font-bold text-[#625181] font-mono">
+                    01
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#292a27]">Clip any posting with one click</h3>
+                    <p className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      Browse LinkedIn, Indeed, Greenhouse, or Lever. Tap the JobAI extension icon to extract the target role specification cleanly.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#e4daf0] text-xs font-bold text-[#625181] font-mono">
+                    02
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#292a27]">Generate tailored draft variant</h3>
+                    <p className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      JobAI highlights your most relevant achievements and reorders bullet points to match role priorities without inventing facts.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#e4daf0] text-xs font-bold text-[#625181] font-mono">
+                    03
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#292a27]">Review diff &amp; export print-ready PDF</h3>
+                    <p className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      Inspect the changes side-by-side in your local editor, make any personal adjustments, and export crisp A4 or Letter PDF.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[#e6dced] text-xs text-[#8c8d81] flex items-center justify-between">
+              <span>Zero blank-page staring</span>
+              <span className="text-[#625181] font-medium">Never send a generic resume</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= 3. WORKING FREE BROWSER TOOLS ================= */}
+      <section id="toolkit" aria-labelledby="tools-heading" className="space-y-6 scroll-mt-24">
+        <div className="border-b border-[#e8e7e2] pb-5 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-2">
+              <span>TOOLKIT</span>
+            </div>
+            <h2 id="tools-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#292a27] font-heading">
+              Toolkit
+            </h2>
+            <p className="mt-1 text-sm text-[#73736b] max-w-2xl">
+              Inspect your resume bullet points for strong action verbs, quantifiable metrics, and print density. Instant, deterministic feedback with zero signup and zero data tracking.
+            </p>
+          </div>
+
+          <div className="text-xs text-[#8c8d81] flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span>Runs 100% locally in your browser</span>
+          </div>
+        </div>
+
+        {/* Interactive Tool Card (shared with /toolkit/bullet-analyzer) */}
+        <BulletAnalyzer />
+
+        <div className="flex justify-end">
+          <Link
+            to="/toolkit"
+            className="text-sm font-medium text-[#625181] hover:text-[#9782d8] transition-colors"
+          >
+            See all tools →
+          </Link>
+        </div>
+      </section>
+
+      {/* ================= 4. FEATURED TEMPLATES SHOWCASE ================= */}
+      <section id="templates" aria-labelledby="gallery-heading" className="space-y-6 scroll-mt-24 min-w-0">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e8e7e2] pb-5">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 id="gallery-heading" className="text-2xl font-semibold tracking-tight text-[#292a27] font-heading">
+                Print-Ready CV Templates
+              </h2>
+              <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
+                20 Professional Layouts
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-[#73736b]">
+              Engineered with native CSS @page rules for crisp PDF generation and structured readability.
+            </p>
+          </div>
+
+          <Link
+            to="/templates"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#625181] hover:text-[#292a27] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2 rounded-sm"
+          >
+            <span>View all in template catalog</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <div
+          className="flex gap-4 overflow-x-auto overscroll-x-contain snap-x snap-mandatory pb-1 min-w-0 md:grid md:grid-cols-4 md:overflow-visible md:pb-0"
+          role="list"
+          aria-label="Featured CV templates"
+        >
+          {FEATURED_TEMPLATES.map((tmpl) => (
+            <div
+              key={tmpl.id}
+              role="listitem"
+              className="snap-start shrink-0 w-[72%] max-w-[16.5rem] min-w-0 md:w-auto md:max-w-none"
+            >
+              <Link
+                to="/templates"
+                data-featured-template={tmpl.id}
+                className="group flex h-full flex-col rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-4 transition hover:border-[#c9bcd9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2"
+              >
+                <div className="mb-3 flex h-36 flex-col justify-between overflow-hidden rounded-xl border border-[#e8e7e2] bg-[#faf9f6] p-3 shadow-2xs">
+                  <TemplateThumbnail layout={tmpl.layout} templateId={tmpl.id} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="truncate text-sm font-medium font-heading text-[#292a27]">{tmpl.name}</h3>
+                  <span className="shrink-0 rounded bg-black/5 px-1.5 py-0.5 font-mono text-[10px] text-[#63645b]">
+                    {tmpl.category}
+                  </span>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end">
+          <Link
+            to="/templates"
+            className="text-sm font-medium text-[#625181] hover:text-[#9782d8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9782d8] focus-visible:ring-offset-2 rounded-sm"
+          >
+            Browse all templates →
+          </Link>
+        </div>
+      </section>
+
+      {/* ================= 5. AI FREEDOM & TRANSPARENT PRICING ================= */}
+      <section id="ai-freedom" aria-labelledby="ai-heading" className="space-y-6 scroll-mt-24">
+        <div className="border-b border-[#e8e7e2] pb-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-2">
+            <span>BYOK &amp; LOCAL LLM FREEDOM</span>
+          </div>
+          <h2 id="ai-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#292a27] font-heading">
+            AI Freedom. Use your preferred provider, or run local.
+          </h2>
+          <p className="mt-1.5 text-sm text-[#73736b] max-w-2xl">
+            No locked proprietary models. No subscription markups. Connect your own API key to access wholesale intelligence, or run completely offline with local Ollama models.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1: BYOK Providers */}
+          <div className="rounded-2xl border border-[#e4e1d7] bg-[#fffefa] p-6 flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8e0f3] text-[#625181] mb-4">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold text-[#292a27] font-heading">
+                Bring Your Own Key (BYOK)
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-[#73736b]">
+                Plug in Anthropic (Claude 3.5 Sonnet), OpenAI (GPT-4o), Groq (Llama 3.3 70B), or Mistral directly. Your credentials remain on your local machine with strict file permissions.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-[#f0efe9] text-[11px] text-[#625181] font-medium">
+              Official API endpoints only
+            </div>
+          </div>
+
+          {/* Card 2: Wholesale Pricing Transparency */}
+          <div className="rounded-2xl border border-[#e4e1d7] bg-[#fffefa] p-6 flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e0ecdf] text-[#446b5a] mb-4">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold text-[#292a27] font-heading">
+                Wholesale Pricing Transparency
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-[#73736b]">
+                Pay your model provider directly at raw wholesale token rates — token costs vary by provider and prompt length. JobAI adds zero markup and zero recurring monthly fees.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-[#f0efe9] text-[11px] text-[#446b5a] font-medium">
+              Zero subscription markups
+            </div>
+          </div>
+
+          {/* Card 3: Local Offline LLMs */}
+          <div className="rounded-2xl border border-[#e4e1d7] bg-[#fffefa] p-6 flex flex-col justify-between shadow-2xs">
+            <div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e3e8ee] text-[#48637e] mb-4">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-semibold text-[#292a27] font-heading">
+                Local Ollama &amp; Offline Models
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-[#73736b]">
+                Prefer zero network calls? Connect to Ollama, LM Studio, or any local OpenAI-compatible endpoint running directly on your computer.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-[#f0efe9] text-[11px] text-[#48637e] font-medium">
+              100% offline option supported
+            </div>
+          </div>
+        </div>
+
+        {/* Transparent Processing Disclosure Callout */}
+        <div className="rounded-2xl border border-[#dedcd2] bg-[#f8f7f2] p-5 sm:p-6 text-xs text-[#6e6f66] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="font-semibold text-[#292a27]">Truthful Data Transmission Disclosure:</span>
+            <p className="leading-relaxed">
+              Master CV data lives in your browser's local storage. When you click tailor, only the target job text and relevant CV sections are sent to your configured AI endpoint. Data is never resold or used to train third-party models.
+            </p>
+          </div>
+          <Link
+            to="/app/settings/ai"
+            className="shrink-0 rounded-lg border border-[#d8d6cc] bg-white px-3.5 py-2 text-xs font-medium text-[#292a27] hover:bg-[#edece4] transition"
+          >
+            Configure AI in Settings →
+          </Link>
+        </div>
+      </section>
+
+      {/* ================= 6. RESTRAINED LAVENDER EXTENSION PANEL ================= */}
+      <section
+        id="extension"
+        aria-labelledby="extension-heading"
+        className="rounded-3xl border border-[#ddd3e9] bg-[#f4effa] p-6 sm:p-10 lg:p-12 flex flex-col md:flex-row items-center justify-between gap-8 scroll-mt-24"
+      >
+        <div className="max-w-xl space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#c9bcd9] bg-white/50 px-3 py-1 text-xs font-medium text-[#79628f]">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>BROWSER EXTENSION COMPANION</span>
+          </div>
+
+          <h2 id="extension-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#393040] font-heading">
+            Pair extension. Clip listings with zero cloud leak.
+          </h2>
+
+          <p className="text-sm leading-relaxed text-[#685775]">
+            Our lightweight Chrome extension captures job postings directly from LinkedIn, Indeed, Greenhouse, and Lever, handing the job spec safely to your local JobAI server via a secure token.
+          </p>
+
+          <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-[#796788]">
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>CSRF-protected pairing</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>Strict localhost loopback</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#625181]"></span>
+              <span>Zero telemetry</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="shrink-0">
+          <Link
+            to="/extension"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#292a27] px-5 py-3 text-sm font-medium text-white shadow-sm hover:bg-[#41423c] transition"
+          >
+            <span>Extension setup guide</span>
+            <svg className="w-4 h-4 text-[#c7bcd9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      {/* ================= 7. ADVICE & GUIDES ARCHIVE ================= */}
+      <section id="resources" aria-labelledby="blog-heading" className="space-y-6 scroll-mt-24 mt-8 sm:mt-0">
+        <div className="flex items-end justify-between border-b border-[#e8e7e2] pb-4">
+          <div>
+            <h2 id="blog-heading" className="text-2xl font-semibold tracking-tight text-[#292a27] font-heading">
+              From the Advice &amp; Guides archive
+            </h2>
+            <p className="mt-1 text-sm text-[#73736b]">
+              Practical, honest guides on resume craft, ATS systems, and tailoring strategy.
+            </p>
+          </div>
+
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#625181] hover:text-[#292a27] transition"
+          >
+            <span>Read all articles</span>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {blogArticles.map((article) => (
+            <article
+              key={article.slug}
+              className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-6 flex flex-col justify-between shadow-2xs hover:border-[#c9bcd9] transition"
+            >
+              <div>
+                <span className="text-[11px] font-mono text-[#919187] uppercase tracking-wider">
+                  {article.readingTime}
+                </span>
+                <h3 className="mt-2.5 text-base font-semibold text-[#292a27] font-heading line-clamp-2">
+                  <Link
+                    to="/blog/$slug"
+                    params={{ slug: article.slug }}
+                    className="hover:text-[#625181] transition-colors"
+                  >
+                    {article.title}
+                  </Link>
+                </h3>
+                <p className="mt-2.5 text-xs text-[#73736b] leading-relaxed line-clamp-3">
+                  {article.summary}
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#f0efe9]">
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: article.slug }}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#625181] hover:text-[#292a27] transition"
+                >
+                  <span>Read guide</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ================= 8. STRONG FINAL CONVERSION CTA ================= */}
+      <section
+        aria-labelledby="cta-heading"
+        className="rounded-3xl border border-[#e4e1d7] bg-[#f5f3eb] p-8 sm:p-14 text-center space-y-5"
+      >
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#d8d5cb] bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-[#625181]">
+          <span>GET STARTED NOW</span>
+        </div>
+
+        <h2 id="cta-heading" className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#292a27] font-heading max-w-xl mx-auto">
+          Start building your tailored CV today.
+        </h2>
+
+        <p className="text-sm text-[#73736b] max-w-md mx-auto leading-relaxed">
+          Import your master career facts once. Generate truthful, role-matched applications without manual rewriting.
+        </p>
+
+        <div className="pt-3 flex flex-wrap items-center justify-center gap-4">
+          <Link
+            to="/app"
+            search={{ view: "editor" }}
+            className="inline-flex items-center gap-2.5 rounded-xl bg-[#292a27] px-7 py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-[#41423c] transition focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+          >
+            <span>Create your CV</span>
+            <svg className="w-4 h-4 text-[#c7bcd9]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Link>
+
+          <Link
+            to="/templates"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#d8d6ce] bg-white/70 px-5 py-3.5 text-sm font-medium text-[#463853] hover:bg-white transition"
+          >
+            <span>Explore templates</span>
+          </Link>
+        </div>
+
+        <p className="text-[11px] text-[#9a9a91] pt-2">
+          Free to use with your own API key • No subscription required • Full export freedom
+        </p>
+      </section>
     </div>
   );
 }

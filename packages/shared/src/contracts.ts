@@ -5,6 +5,7 @@ export interface TemplateMetadata {
   id: string;
   name: string;
   description: string;
+  category?: string;
 }
 
 export interface AppConfig {

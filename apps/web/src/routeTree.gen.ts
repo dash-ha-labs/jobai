@@ -14,7 +14,23 @@ import { Route as DraftsRouteImport } from './routes/drafts'
 import { Route as ExtensionRouteImport } from './routes/extension'
 import { Route as ImportJobRouteImport } from './routes/import-job'
 import { Route as TemplatesRouteImport } from './routes/templates'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppApplicationsRouteImport } from './routes/app/applications'
+import { Route as AppEditorRouteImport } from './routes/app/editor'
+import { Route as AppExtensionRouteImport } from './routes/app/extension'
+import { Route as AppTemplatesRouteImport } from './routes/app/templates'
+import { Route as AppToolkitRouteImport } from './routes/app/toolkit'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ResourcesIndexRouteImport } from './routes/resources/index'
+import { Route as ResourcesSlugRouteImport } from './routes/resources/$slug'
 import { Route as SettingsAiRouteImport } from './routes/settings.ai'
+import { Route as ToolkitIndexRouteImport } from './routes/toolkit/index'
+import { Route as ToolkitBulletAnalyzerRouteImport } from './routes/toolkit/bullet-analyzer'
+import { Route as ToolkitPdfTextPreviewRouteImport } from './routes/toolkit/pdf-text-preview'
+import { Route as AppBlogIndexRouteImport } from './routes/app/blog/index'
+import { Route as AppBlogSlugRouteImport } from './routes/app/blog/$slug'
+import { Route as AppSettingsAiRouteImport } from './routes/app/settings.ai'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,9 +57,89 @@ const TemplatesRoute = TemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppApplicationsRoute = AppApplicationsRouteImport.update({
+  id: '/app/applications',
+  path: '/app/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppEditorRoute = AppEditorRouteImport.update({
+  id: '/app/editor',
+  path: '/app/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppExtensionRoute = AppExtensionRouteImport.update({
+  id: '/app/extension',
+  path: '/app/extension',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTemplatesRoute = AppTemplatesRouteImport.update({
+  id: '/app/templates',
+  path: '/app/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppToolkitRoute = AppToolkitRouteImport.update({
+  id: '/app/toolkit',
+  path: '/app/toolkit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesIndexRoute = ResourcesIndexRouteImport.update({
+  id: '/resources/',
+  path: '/resources/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesSlugRoute = ResourcesSlugRouteImport.update({
+  id: '/resources/$slug',
+  path: '/resources/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsAiRoute = SettingsAiRouteImport.update({
   id: '/settings/ai',
   path: '/settings/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolkitIndexRoute = ToolkitIndexRouteImport.update({
+  id: '/toolkit/',
+  path: '/toolkit/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolkitBulletAnalyzerRoute = ToolkitBulletAnalyzerRouteImport.update({
+  id: '/toolkit/bullet-analyzer',
+  path: '/toolkit/bullet-analyzer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolkitPdfTextPreviewRoute = ToolkitPdfTextPreviewRouteImport.update({
+  id: '/toolkit/pdf-text-preview',
+  path: '/toolkit/pdf-text-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppBlogIndexRoute = AppBlogIndexRouteImport.update({
+  id: '/app/blog/',
+  path: '/app/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppBlogSlugRoute = AppBlogSlugRouteImport.update({
+  id: '/app/blog/$slug',
+  path: '/app/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsAiRoute = AppSettingsAiRouteImport.update({
+  id: '/app/settings/ai',
+  path: '/app/settings/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -53,7 +149,23 @@ export interface FileRoutesByFullPath {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/app/applications': typeof AppApplicationsRoute
+  '/app/editor': typeof AppEditorRoute
+  '/app/extension': typeof AppExtensionRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app/toolkit': typeof AppToolkitRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
+  '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
+  '/app/': typeof AppIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/resources/': typeof ResourcesIndexRoute
+  '/toolkit/': typeof ToolkitIndexRoute
+  '/app/blog/$slug': typeof AppBlogSlugRoute
+  '/app/settings/ai': typeof AppSettingsAiRoute
+  '/app/blog/': typeof AppBlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +173,23 @@ export interface FileRoutesByTo {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/app/applications': typeof AppApplicationsRoute
+  '/app/editor': typeof AppEditorRoute
+  '/app/extension': typeof AppExtensionRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app/toolkit': typeof AppToolkitRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
+  '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
+  '/app': typeof AppIndexRoute
+  '/blog': typeof BlogIndexRoute
+  '/resources': typeof ResourcesIndexRoute
+  '/toolkit': typeof ToolkitIndexRoute
+  '/app/blog/$slug': typeof AppBlogSlugRoute
+  '/app/settings/ai': typeof AppSettingsAiRoute
+  '/app/blog': typeof AppBlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +198,23 @@ export interface FileRoutesById {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/app/applications': typeof AppApplicationsRoute
+  '/app/editor': typeof AppEditorRoute
+  '/app/extension': typeof AppExtensionRoute
+  '/app/templates': typeof AppTemplatesRoute
+  '/app/toolkit': typeof AppToolkitRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
+  '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
+  '/app/': typeof AppIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/resources/': typeof ResourcesIndexRoute
+  '/toolkit/': typeof ToolkitIndexRoute
+  '/app/blog/$slug': typeof AppBlogSlugRoute
+  '/app/settings/ai': typeof AppSettingsAiRoute
+  '/app/blog/': typeof AppBlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +224,23 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/app/applications'
+    | '/app/editor'
+    | '/app/extension'
+    | '/app/templates'
+    | '/app/toolkit'
+    | '/blog/$slug'
+    | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/bullet-analyzer'
+    | '/toolkit/pdf-text-preview'
+    | '/app/'
+    | '/blog/'
+    | '/resources/'
+    | '/toolkit/'
+    | '/app/blog/$slug'
+    | '/app/settings/ai'
+    | '/app/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +248,23 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/app/applications'
+    | '/app/editor'
+    | '/app/extension'
+    | '/app/templates'
+    | '/app/toolkit'
+    | '/blog/$slug'
+    | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/bullet-analyzer'
+    | '/toolkit/pdf-text-preview'
+    | '/app'
+    | '/blog'
+    | '/resources'
+    | '/toolkit'
+    | '/app/blog/$slug'
+    | '/app/settings/ai'
+    | '/app/blog'
   id:
     | '__root__'
     | '/'
@@ -96,7 +272,23 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/app/applications'
+    | '/app/editor'
+    | '/app/extension'
+    | '/app/templates'
+    | '/app/toolkit'
+    | '/blog/$slug'
+    | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/bullet-analyzer'
+    | '/toolkit/pdf-text-preview'
+    | '/app/'
+    | '/blog/'
+    | '/resources/'
+    | '/toolkit/'
+    | '/app/blog/$slug'
+    | '/app/settings/ai'
+    | '/app/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +297,23 @@ export interface RootRouteChildren {
   ExtensionRoute: typeof ExtensionRoute
   ImportJobRoute: typeof ImportJobRoute
   TemplatesRoute: typeof TemplatesRoute
+  AppApplicationsRoute: typeof AppApplicationsRoute
+  AppEditorRoute: typeof AppEditorRoute
+  AppExtensionRoute: typeof AppExtensionRoute
+  AppTemplatesRoute: typeof AppTemplatesRoute
+  AppToolkitRoute: typeof AppToolkitRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  ResourcesSlugRoute: typeof ResourcesSlugRoute
   SettingsAiRoute: typeof SettingsAiRoute
+  ToolkitBulletAnalyzerRoute: typeof ToolkitBulletAnalyzerRoute
+  ToolkitPdfTextPreviewRoute: typeof ToolkitPdfTextPreviewRoute
+  AppIndexRoute: typeof AppIndexRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  ResourcesIndexRoute: typeof ResourcesIndexRoute
+  ToolkitIndexRoute: typeof ToolkitIndexRoute
+  AppBlogSlugRoute: typeof AppBlogSlugRoute
+  AppSettingsAiRoute: typeof AppSettingsAiRoute
+  AppBlogIndexRoute: typeof AppBlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,11 +353,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/app'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/applications': {
+      id: '/app/applications'
+      path: '/app/applications'
+      fullPath: '/app/applications'
+      preLoaderRoute: typeof AppApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/editor': {
+      id: '/app/editor'
+      path: '/app/editor'
+      fullPath: '/app/editor'
+      preLoaderRoute: typeof AppEditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/extension': {
+      id: '/app/extension'
+      path: '/app/extension'
+      fullPath: '/app/extension'
+      preLoaderRoute: typeof AppExtensionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/templates': {
+      id: '/app/templates'
+      path: '/app/templates'
+      fullPath: '/app/templates'
+      preLoaderRoute: typeof AppTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/toolkit': {
+      id: '/app/toolkit'
+      path: '/app/toolkit'
+      fullPath: '/app/toolkit'
+      preLoaderRoute: typeof AppToolkitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/': {
+      id: '/resources/'
+      path: '/resources'
+      fullPath: '/resources/'
+      preLoaderRoute: typeof ResourcesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/$slug': {
+      id: '/resources/$slug'
+      path: '/resources/$slug'
+      fullPath: '/resources/$slug'
+      preLoaderRoute: typeof ResourcesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/ai': {
       id: '/settings/ai'
       path: '/settings/ai'
       fullPath: '/settings/ai'
       preLoaderRoute: typeof SettingsAiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/toolkit/': {
+      id: '/toolkit/'
+      path: '/toolkit'
+      fullPath: '/toolkit/'
+      preLoaderRoute: typeof ToolkitIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/toolkit/bullet-analyzer': {
+      id: '/toolkit/bullet-analyzer'
+      path: '/toolkit/bullet-analyzer'
+      fullPath: '/toolkit/bullet-analyzer'
+      preLoaderRoute: typeof ToolkitBulletAnalyzerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/toolkit/pdf-text-preview': {
+      id: '/toolkit/pdf-text-preview'
+      path: '/toolkit/pdf-text-preview'
+      fullPath: '/toolkit/pdf-text-preview'
+      preLoaderRoute: typeof ToolkitPdfTextPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/blog/': {
+      id: '/app/blog/'
+      path: '/app/blog'
+      fullPath: '/app/blog/'
+      preLoaderRoute: typeof AppBlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/blog/$slug': {
+      id: '/app/blog/$slug'
+      path: '/app/blog/$slug'
+      fullPath: '/app/blog/$slug'
+      preLoaderRoute: typeof AppBlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/settings/ai': {
+      id: '/app/settings/ai'
+      path: '/app/settings/ai'
+      fullPath: '/app/settings/ai'
+      preLoaderRoute: typeof AppSettingsAiRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -161,7 +481,23 @@ const rootRouteChildren: RootRouteChildren = {
   ExtensionRoute: ExtensionRoute,
   ImportJobRoute: ImportJobRoute,
   TemplatesRoute: TemplatesRoute,
+  AppApplicationsRoute: AppApplicationsRoute,
+  AppEditorRoute: AppEditorRoute,
+  AppExtensionRoute: AppExtensionRoute,
+  AppTemplatesRoute: AppTemplatesRoute,
+  AppToolkitRoute: AppToolkitRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  ResourcesSlugRoute: ResourcesSlugRoute,
   SettingsAiRoute: SettingsAiRoute,
+  ToolkitBulletAnalyzerRoute: ToolkitBulletAnalyzerRoute,
+  ToolkitPdfTextPreviewRoute: ToolkitPdfTextPreviewRoute,
+  AppIndexRoute: AppIndexRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  ResourcesIndexRoute: ResourcesIndexRoute,
+  ToolkitIndexRoute: ToolkitIndexRoute,
+  AppBlogSlugRoute: AppBlogSlugRoute,
+  AppSettingsAiRoute: AppSettingsAiRoute,
+  AppBlogIndexRoute: AppBlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

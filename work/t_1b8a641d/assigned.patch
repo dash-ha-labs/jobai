@@ -1,0 +1,454 @@
+diff --git a/apps/web/src/routes/resources/index.tsx b/apps/web/src/routes/resources/index.tsx
+new file mode 100644
+index 0000000..8dd265f
+--- /dev/null
++++ b/apps/web/src/routes/resources/index.tsx
+@@ -0,0 +1,152 @@
++import { createFileRoute, Link } from "@tanstack/react-router";
++import { articles } from "../blog/content/articles";
++import { checklists } from "./content/checklists";
++
++export const Route = createFileRoute("/resources/")({
++  head: () => ({
++    meta: [
++      { title: "Practical resources for your job search — JobAI" },
++      {
++        name: "description",
++        content:
++          "Original checklists and existing JobAI guides for truthful CV tailoring, pre-apply review, and application tracking.",
++      },
++    ],
++  }),
++  component: ResourcesIndexPage,
++});
++
++function ResourcesIndexPage() {
++  return (
++    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12">
++      <header className="mb-10 sm:mb-12 max-w-3xl">
++        <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-3">
++          <span className="h-2 w-2 rounded-full bg-[#9782d8]" aria-hidden="true" />
++          <span>Guides &amp; checklists</span>
++        </div>
++        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#292a27] font-heading">
++          Practical resources for your job search
++        </h1>
++        <p className="mt-3 text-sm sm:text-base text-[#73736b] leading-relaxed">
++          Checklists you can run through before you apply, plus the existing JobAI guides on
++          tailoring, bullets, and export review. No invented scores or guaranteed outcomes.
++          Just the steps we actually use.
++        </p>
++      </header>
++
++      <section aria-labelledby="resources-guides-heading" className="mb-12 sm:mb-16">
++        <div className="flex items-end justify-between gap-4 border-b border-[#e8e7e2] pb-4 mb-6">
++          <div>
++            <h2
++              id="resources-guides-heading"
++              className="text-xl sm:text-2xl font-semibold tracking-tight text-[#292a27] font-heading"
++            >
++              Guides
++            </h2>
++            <p className="mt-1 text-sm text-[#73736b]">
++              From the Advice &amp; Guides archive. Full articles live on the blog.
++            </p>
++          </div>
++          <Link
++            to="/blog"
++            className="inline-flex items-center gap-1 text-xs font-medium text-[#625181] hover:text-[#292a27] transition shrink-0"
++          >
++            <span>All articles</span>
++            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
++              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
++            </svg>
++          </Link>
++        </div>
++
++        <div className="grid gap-6 md:grid-cols-3">
++          {articles.map((article) => (
++            <article
++              key={article.slug}
++              className="flex flex-col rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-6 shadow-2xs hover:border-[#c9bcd9] transition"
++              aria-labelledby={`guide-title-${article.slug}`}
++            >
++              <span className="text-[11px] font-medium text-[#625181]">{article.category}</span>
++              <h3
++                id={`guide-title-${article.slug}`}
++                className="mt-2.5 text-base font-semibold text-[#292a27] font-heading leading-snug"
++              >
++                <Link
++                  to="/blog/$slug"
++                  params={{ slug: article.slug }}
++                  className="hover:text-[#625181] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
++                >
++                  {article.title}
++                </Link>
++              </h3>
++              <p className="mt-2.5 text-sm text-[#73736b] leading-relaxed flex-1">{article.excerpt}</p>
++              <div className="mt-6 pt-4 border-t border-[#f0efe9] flex items-center justify-between gap-3">
++                <span className="text-xs text-[#8c8d81]">{article.readTime}</span>
++                <Link
++                  to="/blog/$slug"
++                  params={{ slug: article.slug }}
++                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#625181] hover:text-[#292a27] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
++                >
++                  <span>Read guide</span>
++                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
++                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
++                  </svg>
++                </Link>
++              </div>
++            </article>
++          ))}
++        </div>
++      </section>
++
++      <section aria-labelledby="resources-checklists-heading">
++        <div className="border-b border-[#e8e7e2] pb-4 mb-6">
++          <h2
++            id="resources-checklists-heading"
++            className="text-xl sm:text-2xl font-semibold tracking-tight text-[#292a27] font-heading"
++          >
++            Checklists
++          </h2>
++          <p className="mt-1 text-sm text-[#73736b]">
++            Original, printable-style lists. Use them as a last pass, not as a promise of results.
++          </p>
++        </div>
++
++        <div className="grid gap-6 md:grid-cols-3">
++          {checklists.map((checklist) => (
++            <article
++              key={checklist.slug}
++              className="flex flex-col rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-6 shadow-2xs hover:border-[#c9bcd9] transition"
++              aria-labelledby={`checklist-title-${checklist.slug}`}
++            >
++              <span className="text-[11px] font-medium uppercase tracking-wider text-[#8c8d81]">Checklist</span>
++              <h3
++                id={`checklist-title-${checklist.slug}`}
++                className="mt-2.5 text-base font-semibold text-[#292a27] font-heading leading-snug"
++              >
++                <Link
++                  to="/resources/$slug"
++                  params={{ slug: checklist.slug }}
++                  className="hover:text-[#625181] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
++                >
++                  {checklist.title}
++                </Link>
++              </h3>
++              <p className="mt-2.5 text-sm text-[#73736b] leading-relaxed flex-1">{checklist.excerpt}</p>
++              <div className="mt-6 pt-4 border-t border-[#f0efe9]">
++                <Link
++                  to="/resources/$slug"
++                  params={{ slug: checklist.slug }}
++                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#625181] hover:text-[#292a27] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
++                >
++                  <span>Open checklist</span>
++                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
++                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
++                  </svg>
++                </Link>
++              </div>
++            </article>
++          ))}
++        </div>
++      </section>
++    </div>
++  );
++}
+diff --git a/apps/web/src/routes/resources/$slug.tsx b/apps/web/src/routes/resources/$slug.tsx
+new file mode 100644
+index 0000000..7b253e9
+--- /dev/null
++++ b/apps/web/src/routes/resources/$slug.tsx
+@@ -0,0 +1,148 @@
++import { createFileRoute, Link } from "@tanstack/react-router";
++import { getChecklistBySlug } from "./content/checklists";
++
++export const Route = createFileRoute("/resources/$slug")({
++  head: ({ params }) => {
++    const checklist = getChecklistBySlug(params.slug);
++    return {
++      meta: [
++        {
++          title: checklist
++            ? `${checklist.title} — JobAI`
++            : "Checklist not found — JobAI",
++        },
++        {
++          name: "description",
++          content: checklist?.excerpt ?? "Practical job-search checklists from JobAI.",
++        },
++      ],
++    };
++  },
++  loader: ({ params }) => ({
++    checklist: getChecklistBySlug(params.slug),
++  }),
++  component: ResourcesSlugPage,
++  notFoundComponent: ResourcesNotFound,
++});
++
++function ResourcesSlugPage() {
++  const { slug } = Route.useParams();
++  const checklist = getChecklistBySlug(slug);
++
++  if (!checklist) {
++    return <ResourcesNotFound />;
++  }
++
++  return (
++    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12">
++      <nav aria-label="Breadcrumb" className="mb-6">
++        <Link
++          to="/resources"
++          className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
++        >
++          <svg
++            className="w-4 h-4 text-[#9b9a92]"
++            fill="none"
++            stroke="currentColor"
++            viewBox="0 0 24 24"
++            aria-hidden="true"
++          >
++            <path
++              strokeLinecap="round"
++              strokeLinejoin="round"
++              strokeWidth={2}
++              d="M10 19l-7-7m0 0l7-7m-7 7h18"
++            />
++          </svg>
++          <span>Back to resources</span>
++        </Link>
++      </nav>
++
++      <article className="mx-auto max-w-[65ch]" aria-labelledby="checklist-header-title">
++        <header className="mb-8">
++          <span className="inline-flex text-xs font-medium text-[#625181] bg-[#e8e3f1] px-2.5 py-0.5 rounded-full">
++            Checklist
++          </span>
++          <h1
++            id="checklist-header-title"
++            className="mt-3 text-3xl sm:text-4xl font-medium tracking-tight text-[#292a27] font-heading leading-[1.2]"
++          >
++            {checklist.title}
++          </h1>
++          <p className="mt-4 text-lg text-[#5a5b54] leading-relaxed">{checklist.lead}</p>
++        </header>
++
++        <div className="space-y-10">
++          {checklist.sections.map((section, idx) => (
++            <section key={section.heading} aria-labelledby={`checklist-section-${idx}`}>
++              <h2
++                id={`checklist-section-${idx}`}
++                className="text-xl sm:text-2xl font-medium text-[#292a27] font-heading tracking-tight mb-3"
++              >
++                {section.heading}
++              </h2>
++              {section.intro ? (
++                <p className="text-[15px] sm:text-base text-[#41423c] leading-relaxed mb-4">
++                  {section.intro}
++                </p>
++              ) : null}
++              <ul className="space-y-3">
++                {section.items.map((item) => (
++                  <li
++                    key={item}
++                    className="flex items-start gap-3 rounded-xl border border-[#e8e7e2] bg-[#fffefa] px-4 py-3 text-sm sm:text-[15px] text-[#41423c] leading-relaxed"
++                  >
++                    <span
++                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border border-[#e2ded5] bg-white"
++                      aria-hidden="true"
++                    />
++                    <span>{item}</span>
++                  </li>
++                ))}
++              </ul>
++            </section>
++          ))}
++        </div>
++
++        <footer className="mt-12 pt-8 border-t border-[#e8e7e2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
++          <div>
++            <h2 className="text-sm font-medium text-[#292a27]">Use these steps on your current CV</h2>
++            <p className="text-xs text-[#8c8d81] mt-0.5">
++              Open the local workspace to import, edit, and keep a master copy before you tailor.
++            </p>
++          </div>
++          <Link
++            to="/app"
++            className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#41423c] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
++          >
++            <span>Open the app</span>
++            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
++              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
++            </svg>
++          </Link>
++        </footer>
++      </article>
++    </div>
++  );
++}
++
++function ResourcesNotFound() {
++  return (
++    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-16">
++      <div className="mx-auto max-w-md text-center">
++        <h1 className="text-2xl font-medium tracking-tight text-[#292a27] font-heading mb-2">
++          Checklist not found
++        </h1>
++        <p className="text-sm text-[#73736b] mb-6 leading-relaxed">
++          That resources page does not exist. The checklists live on the hub.
++        </p>
++        <Link
++          to="/resources"
++          className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#41423c] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
++        >
++          Return to resources
++        </Link>
++      </div>
++    </div>
++  );
++}
+diff --git a/apps/web/src/routes/resources/content/checklists.ts b/apps/web/src/routes/resources/content/checklists.ts
+new file mode 100644
+index 0000000..ff972c5
+--- /dev/null
++++ b/apps/web/src/routes/resources/content/checklists.ts
+@@ -0,0 +1,132 @@
++export interface Checklist {
++  slug: string;
++  title: string;
++  excerpt: string;
++  lead: string;
++  sections: Array<{
++    heading: string;
++    intro?: string;
++    items: string[];
++  }>;
++}
++
++export const checklists: Checklist[] = [
++  {
++    slug: "cv-pre-flight",
++    title: "CV pre-flight checklist before you apply",
++    excerpt:
++      "A last-pass list for contact details, consistent facts, file naming, and the copy you are about to send — before you attach anything.",
++    lead:
++      "Use this once you have a draft you intend to send. It is a short inspection, not a rewrite. The aim is to catch contradictions, missing contact paths, and the wrong file — not to invent a stronger story.",
++    sections: [
++      {
++        heading: "Facts and identity",
++        intro: "Callers and application forms should match the document you attach.",
++        items: [
++          "Your name, email, and phone number are current and match the application form.",
++          "The email is one you actually check; a forgotten student address is a common miss.",
++          "Location or work-authorisation lines, if you include them, are still true.",
++          "Employment dates, titles, and employer names do not contradict your LinkedIn or the form you just filled.",
++          "If you list a portfolio, GitHub, or personal site, the URL opens and shows the work you claim.",
++        ],
++      },
++      {
++        heading: "The version you are sending",
++        items: [
++          "This file is the tailored draft for this job, not an older generic export sitting in Downloads.",
++          "Your master CV is still intact. A tailored send should not overwrite the full history you keep locally.",
++          "The filename is readable to a stranger (your name and the role or company), not Draft3-final-FINAL.pdf.",
++          "If you added a cover note or form answers, they use the same facts as the CV — same dates, same title, same tools.",
++        ],
++      },
++      {
++        heading: "Readability before attach",
++        intro: "You do not need a special ATS score. You do need a document a person can open and read.",
++        items: [
++          "Open the actual PDF (or the exported file you will attach) in a normal viewer, not only the editor preview.",
++          "Section headings sit with their content; nothing important is stranded alone at a page break.",
++          "Links in the file, if any, open the intended page.",
++          "You have read the posting once more and can say, in a sentence, why this draft is for that role.",
++        ],
++      },
++    ],
++  },
++  {
++    slug: "tailor-without-inventing-facts",
++    title: "Tailoring checklist: match the job without inventing facts",
++    excerpt:
++      "Reorder and rephrase what you actually did so the hiring team can find it. Do not add tools, titles, or outcomes you cannot defend.",
++    lead:
++      "Tailoring is selection and wording, not invention. If a requirement is not in your history, leave it off and be ready to talk about the closest real work instead.",
++    sections: [
++      {
++        heading: "Read the posting against real work",
++        items: [
++          "Mark only the duties, tools, and outcomes you have actually done. Adjacent work stays adjacent — do not upgrade it.",
++          "If the posting names a tool you have only seen in passing, do not put it in Skills. Mention related tools you used, if they are true.",
++          "Note the two or three requirements you can evidence. Those belong near the top of the relevant roles.",
++          "If you cannot evidence a must-have, do not invent it. Decide whether you still apply on the strength of what is real.",
++        ],
++      },
++      {
++        heading: "Edit the draft, not your biography",
++        items: [
++          "Keep a master document with the full history. Duplicate it for this application; do not delete real roles to make a prettier story.",
++          "Move the most relevant bullets and projects up. Drop early or unrelated lines that dilute the match.",
++          "Rephrase with the posting’s ordinary vocabulary only where it still describes your work. Do not paste their sentences into your experience.",
++          "Do not change job titles, team size, budget, or ownership to look closer to the spec.",
++          "Quantify only numbers you could explain if asked. If you do not remember the figure, describe the work without a fake metric.",
++        ],
++      },
++      {
++        heading: "Before you send",
++        items: [
++          "Read the draft aloud. Anything you would have to walk back in an interview comes out now.",
++          "Save a copy of the version you sent, named for this company, so you know what they have.",
++          "If JobAI (or any assistant) suggested wording, you still own every claim. Remove anything you cannot stand behind.",
++        ],
++      },
++    ],
++  },
++  {
++    slug: "application-tracking",
++    title: "Application tracking checklist",
++    excerpt:
++      "Keep a simple record of what you sent, which CV version went with it, and when you last heard back — so follow-ups are based on facts you wrote down.",
++    lead:
++      "You do not need a CRM. You need a list you will actually update. Record enough to answer: what did I send, to whom, and what happens next.",
++    sections: [
++      {
++        heading: "Log each send on the day you apply",
++        items: [
++          "Company, role title, and the URL or requisition ID from the posting.",
++          "Date you submitted, and the channel (company site, agency, referral, or listing board).",
++          "Which CV file you attached (filename is enough) and whether a cover note went with it.",
++          "The name and email of a recruiter or hiring contact if the posting or confirmation gave one.",
++          "Any stated timeline (“we aim to reply in two weeks”) copied as written — not a guessed industry average.",
++        ],
++      },
++      {
++        heading: "Keep drafts separate from the master",
++        items: [
++          "Store tailored files next to the log entry, not as the only copy of your career history.",
++          "If you reuse a tailored draft for a similar role, note that it was reused so you remember what that employer saw.",
++          "When a posting closes or you withdraw, mark the row. An open list of zombie applications is not a plan.",
++        ],
++      },
++      {
++        heading: "Follow up from the record, not from memory",
++        items: [
++          "If they published a timeline, wait for it before nudging. If they did not, one polite check after a stretch that feels long to you is enough; there is no universal day-count that guarantees a reply.",
++          "When you follow up, mention the role title and date from your log so you are not reconstructing from inbox search.",
++          "Record the outcome: interview, rejection, no reply, or withdrawn. That is how you stop applying into a closed loop.",
++          "After an interview, add who you spoke with and any facts you promised to send. Then send only those facts.",
++        ],
++      },
++    ],
++  },
++];
++
++export function getChecklistBySlug(slug: string): Checklist | undefined {
++  return checklists.find((item) => item.slug === slug);
++}
+
+# __root.tsx to="/resources" count=3
+# test resources assertions present: True
+# test Resources href /resources: True
