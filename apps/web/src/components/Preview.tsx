@@ -53,14 +53,20 @@ export function Preview({ cv, onPrint: _onPrint, onTemplateChange: _onTemplateCh
         }
       `}</style>
 
-      {/* CV Paper Canvas */}
-      <div className="flex-1 overflow-y-auto bg-[#eeeadd] p-3 sm:p-6 rounded-2xl flex justify-center items-start shadow-inner border border-[#e1dccd]">
+      {/* CV Paper Canvas: calm neutral canvas, quiet shadow, no nested rounded shells */}
+      <div className="flex-1 min-w-0 overflow-y-auto bg-[#f4f2ed] p-3 sm:p-6 rounded-xl flex justify-center items-start border border-[#e8e6df]">
         <div
           id="cv-paper"
-          className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-[#e4e1d8] w-full ${
-            isLetter ? "max-w-[8.5in] min-h-[11in]" : "max-w-[210mm] min-h-[297mm]"
+          className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-[#e6e4dc] w-full ${
+            isLetter ? "max-w-[8.5in]" : "max-w-[210mm]"
           } mx-auto transition-all ${marginClasses} ${fontSizeClasses}`}
-          style={{ "--accent-color": primaryColor } as React.CSSProperties}
+          style={
+            {
+              "--accent-color": primaryColor,
+              aspectRatio: isLetter ? "8.5 / 11" : "210 / 297",
+              minHeight: isLetter ? "min(11in, 100%)" : "min(297mm, 100%)",
+            } as React.CSSProperties
+          }
         >
           {currentTemplate === "modern" && <ModernTemplate cv={cv} primaryColor={primaryColor} />}
           {currentTemplate === "executive" && <ExecutiveTemplate cv={cv} primaryColor={primaryColor} />}

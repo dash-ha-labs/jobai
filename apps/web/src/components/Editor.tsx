@@ -4,28 +4,27 @@ import type { CV, CVSection, CVSectionItem, CVSectionType, CVStylePrefs } from "
 interface EditorProps {
   cv: CV;
   onChange: (updatedCv: CV) => void;
-  onSave: () => void;
-  onReset: () => void;
+  onSave?: () => void;
+  onReset?: () => void;
   onConnectExtension?: () => void;
   onUploadCV?: () => void;
-  saveStatus: "idle" | "saving" | "saved" | "unsaved";
-  storageError: string | null;
-  validationErrors: string[];
+  saveStatus?: "idle" | "saving" | "saved" | "unsaved";
+  storageError?: string | null;
+  validationErrors?: string[];
 }
 
 export function Editor({
   cv,
   onChange,
-  onSave,
-  onReset,
-  onConnectExtension,
-  onUploadCV,
-  saveStatus,
+  onSave: _onSave,
+  onReset: _onReset,
+  onConnectExtension: _onConnectExtension,
+  onUploadCV: _onUploadCV,
+  saveStatus: _saveStatus,
   storageError,
-  validationErrors,
+  validationErrors = [],
 }: EditorProps) {
   const [activeTab, setActiveTab] = useState<"content" | "styles">("content");
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Update contact field
   const handleContactChange = (field: keyof CV["contact"], value: string) => {
@@ -94,6 +93,7 @@ export function Editor({
   };
 
   const moveSection = (index: number, direction: "up" | "down") => {
+    // ponytail: section reorder uses in-memory array splice; upgrade to drag-and-drop pointer sensors when touch sorting requested.
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= cv.sections.length) return;
 
@@ -199,130 +199,69 @@ export function Editor({
   };
 
   return (
-    <div className="bg-[#fffefa] rounded-2xl shadow-xs border border-[#e8e7e2] flex flex-col h-full overflow-hidden">
-      {/* Editor Header Bar */}
-      <div className="p-4 border-b border-[#e8e7e2] flex flex-wrap items-center justify-between gap-3 bg-[#faf9f6]">
-        <div className="flex items-center gap-1.5 bg-[#f5f4f0] p-1 rounded-xl border border-[#e4e3dd]">
-          <button
-            type="button"
-            onClick={() => setActiveTab("content")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              activeTab === "content"
-                ? "bg-[#30332d] text-white shadow-xs"
-                : "text-[#73736b] hover:text-[#292a27]"
-            }`}
-          >
-            Content & Sections
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("styles")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer ${
-              activeTab === "styles"
-                ? "bg-[#30332d] text-white shadow-xs"
-                : "text-[#73736b] hover:text-[#292a27]"
-            }`}
-          >
-            Design & Spacing
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Status Indicator */}
-          {saveStatus === "saved" && (
-            <span className="text-xs font-medium text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Saved
-            </span>
+    <div className="flex flex-col space-y-5">
+      {/* Subdued Tabs: Understated selected underline or lavender treatment */}
+      <div
+        className="flex items-center gap-6 border-b border-[#e8e7e2] px-1 pb-px"
+        role="tablist"
+        aria-label="Editor tabs"
+      >
+        <button
+          type="button"
+          role="tab"
+          id="tab-content"
+          aria-selected={activeTab === "content"}
+          aria-controls="panel-content"
+          onClick={() => setActiveTab("content")}
+          className={`relative pb-2.5 text-xs font-medium transition-colors cursor-pointer ${
+            activeTab === "content"
+              ? "text-[#292a27] font-semibold"
+              : "text-[#73736b] hover:text-[#292a27]"
+          }`}
+        >
+          <span>Content</span>
+          {activeTab === "content" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#9782d8]" />
           )}
-          {saveStatus === "unsaved" && (
-            <span className="text-xs font-medium text-amber-700 flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              Unsaved edits
-            </span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          id="tab-styles"
+          aria-selected={activeTab === "styles"}
+          aria-controls="panel-styles"
+          onClick={() => setActiveTab("styles")}
+          className={`relative pb-2.5 text-xs font-medium transition-colors cursor-pointer ${
+            activeTab === "styles"
+              ? "text-[#292a27] font-semibold"
+              : "text-[#73736b] hover:text-[#292a27]"
+          }`}
+        >
+          <span>Design &amp; Spacing</span>
+          {activeTab === "styles" && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#9782d8]" />
           )}
-
-          {/* Explicit Save Button */}
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={saveStatus === "saving"}
-            className="px-4 py-2 bg-[#30332d] hover:bg-[#4a4e43] disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition shadow-xs cursor-pointer flex items-center gap-1.5"
-          >
-            {saveStatus === "saving" ? (
-              <span>Saving...</span>
-            ) : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                <span>Save CV</span>
-              </>
-            )}
-          </button>
-
-          {/* Import / Upload CV Button */}
-          {onUploadCV && (
-            <button
-              type="button"
-              onClick={onUploadCV}
-              className="px-3 py-1.5 bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] border border-[#e4e3dd] rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Import or replace CV from document or text"
-            >
-              <svg className="w-3.5 h-3.5 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              <span>Import</span>
-            </button>
-          )}
-
-          {/* Connect to extension Button */}
-          {onConnectExtension && (
-            <button
-              type="button"
-              onClick={onConnectExtension}
-              className="px-3 py-1.5 bg-[#e8e0f3] hover:bg-[#ddd3e9] text-[#625181] border border-[#ddd3e9] rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Sync CV with local server and pair Chrome extension"
-            >
-              <svg className="w-3.5 h-3.5 text-[#625181]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              <span className="hidden sm:inline">Connect Extension</span>
-            </button>
-          )}
-
-          {/* Destructive Reset */}
-          <button
-            type="button"
-            onClick={() => setShowResetConfirm(true)}
-            className="px-2.5 py-1.5 text-xs text-[#92928a] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-            title="Reset CV and start over"
-          >
-            Reset
-          </button>
-        </div>
+        </button>
       </div>
 
       {/* Storage Error Alert */}
       {storageError && (
-        <div className="p-3 bg-red-50 border-b border-red-200 text-red-700 text-xs flex items-center gap-2">
-          <span className="font-bold">Storage Error:</span>
-          <span>{storageError} (your edits remain in memory)</span>
+        <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-700">
+          <span className="font-semibold">Storage Error:</span>
+          <span>{storageError} (edits remain in memory)</span>
         </div>
       )}
 
       {/* Validation Errors Notice */}
       {validationErrors.length > 0 && (
-        <div className="p-3 bg-amber-50 border-b border-amber-200 text-amber-900 text-xs space-y-1">
-          <div className="font-bold flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="space-y-1 rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-900">
+          <div className="flex items-center gap-1.5 font-semibold text-amber-800">
+            <svg className="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             <span>Please complete required fields before saving:</span>
           </div>
-          <ul className="list-disc pl-5 space-y-0.5">
+          <ul className="list-disc pl-5 space-y-0.5 text-amber-800">
             {validationErrors.map((err, i) => (
               <li key={i}>{err}</li>
             ))}
@@ -330,111 +269,95 @@ export function Editor({
         </div>
       )}
 
-      {/* Confirmation Modal for Reset */}
-      {showResetConfirm && (
-        <div className="p-4 bg-red-50 border-b border-red-200 flex flex-wrap items-center justify-between gap-3 text-xs text-red-800">
-          <div>
-            <span className="font-bold">Clear entire CV?</span> All content and saved changes will be deleted.
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setShowResetConfirm(false);
-                onReset();
-              }}
-              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-medium rounded shadow-xs cursor-pointer"
-            >
-              Yes, delete
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(false)}
-              className="px-3 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium rounded cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Tab Views */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+      {/* Main Tab Panels */}
+      <div>
         {activeTab === "styles" ? (
-          <StyleControls
-            stylePrefs={cv.stylePrefs || {}}
-            onChange={handleStylePrefChange}
-          />
+          <div id="panel-styles" role="tabpanel" aria-labelledby="tab-styles">
+            <StyleControls
+              stylePrefs={cv.stylePrefs || {}}
+              onChange={handleStylePrefChange}
+            />
+          </div>
         ) : (
-          <div className="space-y-8">
+          <div id="panel-content" role="tabpanel" aria-labelledby="tab-content" className="space-y-6">
             {/* Contact Details */}
             <section className="space-y-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Contact Details</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+                Contact Details
+              </h2>
+              <div className="space-y-2.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Full Name <span className="text-red-500">*</span>
+                  <label className="mb-1 block text-xs font-medium text-[#41423c]">
+                    Full Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={cv.contact.name}
                     onChange={(e) => handleContactChange("name", e.target.value)}
                     placeholder="e.g. Alex Morgan"
-                    className={`w-full px-3 py-1.5 text-xs rounded-md border ${
+                    className={`w-full rounded-lg border px-3 py-1.5 text-xs text-[#292a27] transition-colors focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8] ${
                       validationErrors.some((e) => e.toLowerCase().includes("name"))
-                        ? "border-red-400 bg-red-50/50"
-                        : "border-slate-300"
-                    } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+                        ? "border-rose-300 bg-rose-50/40"
+                        : "border-[#dcd9d0] bg-white hover:border-[#c8c5bb]"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Email Address <span className="text-red-500">*</span>
+                  <label className="mb-1 block text-xs font-medium text-[#41423c]">
+                    Email Address <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="email"
                     value={cv.contact.email}
                     onChange={(e) => handleContactChange("email", e.target.value)}
                     placeholder="e.g. alex.morgan@example.com"
-                    className={`w-full px-3 py-1.5 text-xs rounded-md border ${
+                    className={`w-full rounded-lg border px-3 py-1.5 text-xs text-[#292a27] transition-colors focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8] ${
                       validationErrors.some((e) => e.toLowerCase().includes("email"))
-                        ? "border-red-400 bg-red-50/50"
-                        : "border-slate-300"
-                    } focus:outline-none focus:ring-1 focus:ring-indigo-500`}
+                        ? "border-rose-300 bg-rose-50/40"
+                        : "border-[#dcd9d0] bg-white hover:border-[#c8c5bb]"
+                    }`}
                   />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-[#41423c]">
+                      Phone Number
+                    </label>
+                    <input
+                      type="text"
+                      value={cv.contact.phone || ""}
+                      onChange={(e) => handleContactChange("phone", e.target.value)}
+                      placeholder="e.g. +1 555-0199"
+                      className="w-full rounded-lg border border-[#dcd9d0] bg-white px-3 py-1.5 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-[#41423c]">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={cv.contact.location || ""}
+                      onChange={(e) => handleContactChange("location", e.target.value)}
+                      placeholder="e.g. London, UK"
+                      className="w-full rounded-lg border border-[#dcd9d0] bg-white px-3 py-1.5 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number (Optional)</label>
-                  <input
-                    type="text"
-                    value={cv.contact.phone || ""}
-                    onChange={(e) => handleContactChange("phone", e.target.value)}
-                    placeholder="e.g. +1 555-0199"
-                    className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Location (Optional)</label>
-                  <input
-                    type="text"
-                    value={cv.contact.location || ""}
-                    onChange={(e) => handleContactChange("location", e.target.value)}
-                    placeholder="e.g. London, UK"
-                    className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">Website / Portfolio (Optional)</label>
+                  <label className="mb-1 block text-xs font-medium text-[#41423c]">
+                    Website / Portfolio
+                  </label>
                   <input
                     type="text"
                     value={cv.contact.website || ""}
                     onChange={(e) => handleContactChange("website", e.target.value)}
                     placeholder="e.g. https://alexmorgan.dev"
-                    className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-lg border border-[#dcd9d0] bg-white px-3 py-1.5 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
                   />
                 </div>
               </div>
@@ -443,79 +366,68 @@ export function Editor({
             {/* Professional Summary */}
             <section className="space-y-2">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Professional Summary</h2>
-                <span className="text-[11px] text-slate-400">Optional</span>
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+                  Professional Summary
+                </h2>
+                <span className="text-[11px] text-[#9b9a92]">Optional</span>
               </div>
               <textarea
                 value={cv.summary || ""}
                 onChange={(e) => handleSummaryChange(e.target.value)}
                 placeholder="A concise overview of your background, key achievements, and core specializations..."
                 rows={3}
-                className="w-full px-3 py-2 text-xs rounded-md border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500 leading-relaxed"
+                className="w-full rounded-lg border border-[#dcd9d0] bg-white px-3 py-2 text-xs leading-relaxed text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
               />
             </section>
 
-            {/* Sections List */}
+            {/* Document Sections */}
             <section className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Document Sections</h2>
+              <div className="space-y-2 border-b border-[#ecebe5] pb-2.5">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+                    Document Sections
+                  </h2>
+                </div>
 
-                {/* Add Section Buttons */}
+                {/* Compact Add Section Buttons */}
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] text-slate-400 mr-1">Add:</span>
-                  <button
-                    type="button"
-                    onClick={() => addSection("experience")}
-                    className="px-2 py-1 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    + Experience
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addSection("education")}
-                    className="px-2 py-1 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    + Education
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addSection("skills")}
-                    className="px-2 py-1 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    + Skills
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addSection("projects")}
-                    className="px-2 py-1 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    + Projects
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addSection("custom")}
-                    className="px-2 py-1 text-xs font-medium bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    + Custom
-                  </button>
+                  <span className="mr-0.5 text-[11px] text-[#9b9a92]">Add:</span>
+                  {(
+                    [
+                      { type: "experience", label: "+ Experience" },
+                      { type: "education", label: "+ Education" },
+                      { type: "skills", label: "+ Skills" },
+                      { type: "projects", label: "+ Projects" },
+                      { type: "custom", label: "+ Custom" },
+                    ] as const
+                  ).map((btn) => (
+                    <button
+                      key={btn.type}
+                      type="button"
+                      onClick={() => addSection(btn.type)}
+                      className="rounded border border-[#e4e3dd] bg-[#f5f4f0] px-2 py-1 text-xs font-medium text-[#41423c] transition-colors hover:border-[#d6d4cb] hover:bg-[#eeede7] cursor-pointer"
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {cv.sections.length === 0 ? (
-                <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-lg text-slate-500 text-xs">
-                  No sections yet. Click "+ Experience", "+ Education", or another section button above to add your first section.
+                <div className="rounded-lg border border-dashed border-[#dcd9d0] p-6 text-center text-xs text-[#8c8c83]">
+                  No sections added yet. Click one of the buttons above to add experience, education, or skills.
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {cv.sections.map((section, secIndex) => (
                     <div
                       key={section.id}
-                      className="border border-slate-200 rounded-lg p-4 bg-slate-50/50 space-y-4"
+                      className="space-y-3 rounded-xl border border-[#e8e7e2] bg-[#fbfaf7] p-3.5"
                     >
                       {/* Section Header Controls */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
-                        <div className="flex items-center gap-2 flex-1 max-w-sm">
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#ecebe5] pb-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                          <span className="rounded bg-[#eeede7] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#55564f] shrink-0">
                             {section.type}
                           </span>
                           <input
@@ -523,17 +435,19 @@ export function Editor({
                             value={section.title}
                             onChange={(e) => updateSection(section.id, { title: e.target.value })}
                             placeholder="Section Title"
-                            className="text-xs font-bold text-slate-800 bg-transparent border-b border-dashed border-slate-300 focus:border-indigo-500 focus:outline-none px-1 py-0.5 w-full"
+                            aria-label={`${section.type} section title`}
+                            className="flex-1 min-w-0 border-b border-dashed border-[#d2cfc6] bg-transparent px-1 py-0.5 text-xs font-semibold text-[#292a27] transition-colors focus:border-[#9782d8] focus:outline-none"
                           />
                         </div>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
                             disabled={secIndex === 0}
                             onClick={() => moveSection(secIndex, "up")}
-                            className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 rounded hover:bg-slate-200 cursor-pointer"
+                            className="rounded p-1 text-[#8c8c83] transition-colors hover:bg-[#eeede7] hover:text-[#292a27] disabled:opacity-30 cursor-pointer"
                             title="Move section up"
+                            aria-label={`Move ${section.title || section.type} section up`}
                           >
                             ▲
                           </button>
@@ -541,32 +455,34 @@ export function Editor({
                             type="button"
                             disabled={secIndex === cv.sections.length - 1}
                             onClick={() => moveSection(secIndex, "down")}
-                            className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 rounded hover:bg-slate-200 cursor-pointer"
+                            className="rounded p-1 text-[#8c8c83] transition-colors hover:bg-[#eeede7] hover:text-[#292a27] disabled:opacity-30 cursor-pointer"
                             title="Move section down"
+                            aria-label={`Move ${section.title || section.type} section down`}
                           >
                             ▼
                           </button>
                           <button
                             type="button"
                             onClick={() => removeSection(section.id)}
-                            className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded cursor-pointer transition-colors"
-                            title="Delete section"
+                            className="rounded px-1.5 py-0.5 text-[11px] text-[#9a9990] transition-colors hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
+                            title="Remove section"
+                            aria-label={`Remove ${section.title || section.type} section`}
                           >
-                            Remove Section
+                            Remove
                           </button>
                         </div>
                       </div>
 
                       {/* Section Items */}
-                      <div className="space-y-4">
+                      <div className="space-y-3">
                         {section.items.map((item, itemIndex) => (
                           <div
                             key={item.id}
-                            className="bg-white border border-slate-200 rounded-md p-3.5 space-y-3 shadow-2xs"
+                            className="space-y-2.5 rounded-lg border border-[#e8e7e2] bg-white p-3 shadow-2xs"
                           >
                             {/* Item Reorder & Delete Bar */}
-                            <div className="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                              <span className="font-semibold text-slate-500 text-[11px]">
+                            <div className="flex items-center justify-between border-b border-[#f2f1ec] pb-1.5 text-xs">
+                              <span className="text-[11px] font-medium text-[#8c8c83]">
                                 Item #{itemIndex + 1}
                               </span>
                               <div className="flex items-center gap-1">
@@ -574,8 +490,9 @@ export function Editor({
                                   type="button"
                                   disabled={itemIndex === 0}
                                   onClick={() => moveItem(section.id, itemIndex, "up")}
-                                  className="px-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                                  className="px-1 text-[#8c8c83] transition-colors hover:text-[#292a27] disabled:opacity-30 cursor-pointer"
                                   title="Move item up"
+                                  aria-label={`Move item ${itemIndex + 1} up`}
                                 >
                                   ▲
                                 </button>
@@ -583,15 +500,18 @@ export function Editor({
                                   type="button"
                                   disabled={itemIndex === section.items.length - 1}
                                   onClick={() => moveItem(section.id, itemIndex, "down")}
-                                  className="px-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                                  className="px-1 text-[#8c8c83] transition-colors hover:text-[#292a27] disabled:opacity-30 cursor-pointer"
                                   title="Move item down"
+                                  aria-label={`Move item ${itemIndex + 1} down`}
                                 >
                                   ▼
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => removeItem(section.id, item.id)}
-                                  className="text-xs text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded cursor-pointer"
+                                  className="rounded px-1.5 py-0.5 text-[11px] text-[#9a9990] transition-colors hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
+                                  title="Delete item"
+                                  aria-label={`Delete item ${itemIndex + 1}`}
                                 >
                                   Delete
                                 </button>
@@ -599,71 +519,73 @@ export function Editor({
                             </div>
 
                             {/* Item Fields */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div className="space-y-2">
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
+                                <label className="mb-0.5 block text-[11px] font-medium text-[#41423c]">
                                   {section.type === "experience"
                                     ? "Job Title"
                                     : section.type === "education"
                                     ? "Degree / Program"
                                     : section.type === "skills"
-                                    ? "Skill Group / Category"
+                                    ? "Skill Category"
                                     : section.type === "projects"
                                     ? "Project Title"
                                     : "Title"}{" "}
-                                  <span className="text-red-500">*</span>
+                                  <span className="text-rose-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   value={item.title}
                                   onChange={(e) => updateItem(section.id, item.id, { title: e.target.value })}
-                                  placeholder="e.g. Lead Software Engineer"
-                                  className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  placeholder="e.g. Lead Engineer"
+                                  className="w-full rounded-md border border-[#dcd9d0] px-2.5 py-1 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
                                 />
                               </div>
 
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
-                                  {section.type === "experience"
-                                    ? "Company / Organization"
-                                    : section.type === "education"
-                                    ? "School / University"
-                                    : section.type === "projects"
-                                    ? "Role / Organization"
-                                    : "Subtitle"}
-                                </label>
-                                <input
-                                  type="text"
-                                  value={item.subtitle || ""}
-                                  onChange={(e) => updateItem(section.id, item.id, { subtitle: e.target.value })}
-                                  placeholder="e.g. Acme Corp"
-                                  className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                />
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                  <label className="mb-0.5 block text-[11px] font-medium text-[#41423c]">
+                                    {section.type === "experience"
+                                      ? "Organization"
+                                      : section.type === "education"
+                                      ? "School / University"
+                                      : section.type === "projects"
+                                      ? "Role / Client"
+                                      : "Subtitle"}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.subtitle || ""}
+                                    onChange={(e) => updateItem(section.id, item.id, { subtitle: e.target.value })}
+                                    placeholder="e.g. Acme Corp"
+                                    className="w-full rounded-md border border-[#dcd9d0] px-2.5 py-1 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="mb-0.5 block text-[11px] font-medium text-[#41423c]">
+                                    Date / Duration
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.date || ""}
+                                    onChange={(e) => updateItem(section.id, item.id, { date: e.target.value })}
+                                    placeholder="e.g. 2021 — Present"
+                                    className="w-full rounded-md border border-[#dcd9d0] px-2.5 py-1 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
+                                  />
+                                </div>
                               </div>
 
                               <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
-                                  Date / Duration
-                                </label>
-                                <input
-                                  type="text"
-                                  value={item.date || ""}
-                                  onChange={(e) => updateItem(section.id, item.id, { date: e.target.value })}
-                                  placeholder="e.g. 2021 — Present"
-                                  className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 mb-0.5">
-                                  Short Description
+                                <label className="mb-0.5 block text-[11px] font-medium text-[#41423c]">
+                                  Description
                                 </label>
                                 <input
                                   type="text"
                                   value={item.description || ""}
                                   onChange={(e) => updateItem(section.id, item.id, { description: e.target.value })}
                                   placeholder="Brief summary or context"
-                                  className="w-full px-2.5 py-1.5 text-xs rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                  className="w-full rounded-md border border-[#dcd9d0] px-2.5 py-1 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
                                 />
                               </div>
                             </div>
@@ -671,33 +593,34 @@ export function Editor({
                             {/* Bullets List */}
                             <div className="space-y-1.5 pt-1">
                               <div className="flex items-center justify-between">
-                                <label className="text-[11px] font-semibold text-slate-700">
-                                  Key Highlights / Bullets
+                                <label className="text-[11px] font-medium text-[#41423c]">
+                                  Highlights / Bullets
                                 </label>
                                 <button
                                   type="button"
                                   onClick={() => addBullet(section.id, item.id)}
-                                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+                                  className="text-[11px] font-medium text-[#625181] transition-colors hover:text-[#4d3d69] cursor-pointer"
                                 >
-                                  + Add bullet point
+                                  + Add bullet
                                 </button>
                               </div>
 
                               {(item.bullets || []).map((bullet, bIdx) => (
                                 <div key={bIdx} className="flex items-center gap-1.5">
-                                  <span className="text-slate-400 text-xs">•</span>
+                                  <span className="text-xs text-[#9b9a92]">•</span>
                                   <input
                                     type="text"
                                     value={bullet}
                                     onChange={(e) => updateBullet(section.id, item.id, bIdx, e.target.value)}
                                     placeholder="Achievement or responsibility..."
-                                    className="flex-1 px-2 py-1 text-xs rounded border border-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    className="flex-1 rounded border border-[#dcd9d0] px-2 py-1 text-xs text-[#292a27] transition-colors hover:border-[#c8c5bb] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => removeBullet(section.id, item.id, bIdx)}
-                                    className="text-slate-400 hover:text-red-600 px-1 text-xs cursor-pointer"
+                                    className="p-0.5 text-xs text-[#9b9a92] transition-colors hover:text-rose-600 cursor-pointer"
                                     title="Remove bullet"
+                                    aria-label={`Remove bullet ${bIdx + 1}`}
                                   >
                                     ✕
                                   </button>
@@ -710,7 +633,7 @@ export function Editor({
                         <button
                           type="button"
                           onClick={() => addItem(section.id)}
-                          className="w-full py-2 bg-white hover:bg-slate-100 border border-dashed border-slate-300 rounded text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors cursor-pointer"
+                          className="w-full rounded-lg border border-dashed border-[#dcd9d0] bg-white py-1.5 text-xs font-medium text-[#625181] transition-colors hover:border-[#9782d8] hover:bg-[#f7f5fb] cursor-pointer"
                         >
                           + Add item to {section.title || section.type}
                         </button>
@@ -727,7 +650,7 @@ export function Editor({
   );
 }
 
-// STYLE & DESIGN PREFERENCES CONTROLS
+// STYLE & DESIGN PREFERENCES CONTROLS: calm groups, small previews, named swatches
 function StyleControls({
   stylePrefs,
   onChange,
@@ -740,6 +663,33 @@ function StyleControls({
   const margin = stylePrefs.margin || "normal";
   const primaryColor = stylePrefs.primaryColor || "#4f46e5";
 
+  const templates = [
+    {
+      id: "modern",
+      name: "Modern Clean",
+      desc: "Contemporary sans-serif with color highlights",
+      skeleton: "modern",
+    },
+    {
+      id: "executive",
+      name: "Executive",
+      desc: "Formal serif structure for leadership roles",
+      skeleton: "executive",
+    },
+    {
+      id: "tech",
+      name: "Technical",
+      desc: "Monospace accents and engineering focus",
+      skeleton: "tech",
+    },
+    {
+      id: "compact",
+      name: "Compact",
+      desc: "High density layout maximizing page space",
+      skeleton: "compact",
+    },
+  ];
+
   const colorSwatches = [
     { name: "Indigo", value: "#4f46e5" },
     { name: "Slate", value: "#334155" },
@@ -749,95 +699,166 @@ function StyleControls({
   ];
 
   return (
-    <div className="space-y-6 max-w-lg">
+    <div className="space-y-6">
+      {/* 1. Template Previews */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          CV Layout Template
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { id: "modern", name: "Modern Clean", desc: "Contemporary sans-serif with color highlights" },
-            { id: "executive", name: "Executive", desc: "Formal serif structure for leadership roles" },
-            { id: "tech", name: "Technical", desc: "Monospace accents and engineering focus" },
-            { id: "compact", name: "Compact", desc: "High density layout maximizing page space" },
-          ].map((tmpl) => (
-            <button
-              key={tmpl.id}
-              type="button"
-              onClick={() => onChange("templateId", tmpl.id)}
-              className={`p-3 text-left rounded-lg border transition-all cursor-pointer ${
-                currentTemplate === tmpl.id
-                  ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-500"
-                  : "border-slate-200 hover:border-slate-300 bg-white"
-              }`}
-            >
-              <div className="font-bold text-xs text-slate-900">{tmpl.name}</div>
-              <div className="text-[11px] text-slate-500 mt-1 leading-snug">{tmpl.desc}</div>
-            </button>
-          ))}
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+            Template Layout
+          </h2>
+          <span className="text-[11px] text-[#9b9a92]">4 available</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5">
+          {templates.map((tmpl) => {
+            const isSelected = currentTemplate === tmpl.id;
+            return (
+              <button
+                key={tmpl.id}
+                type="button"
+                onClick={() => onChange("templateId", tmpl.id)}
+                className={`group relative flex flex-col rounded-xl border p-2.5 text-left transition cursor-pointer ${
+                  isSelected
+                    ? "border-[#9782d8] bg-[#f7f5fb] ring-1 ring-[#9782d8] shadow-2xs"
+                    : "border-[#e4e3dd] bg-white hover:border-[#d6d4cb] hover:bg-[#faf9f6]"
+                }`}
+                aria-pressed={isSelected}
+              >
+                {/* Mini thumbnail illustration */}
+                <div
+                  className="mb-2 h-10 w-full rounded-md border border-[#ecebe5] bg-[#faf9f6] p-1.5 flex flex-col justify-between overflow-hidden"
+                  aria-hidden="true"
+                >
+                  {tmpl.skeleton === "modern" && (
+                    <>
+                      <div className="h-1.5 w-1/3 rounded-xs bg-[#4f46e5]" />
+                      <div className="space-y-0.5">
+                        <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
+                        <div className="h-1 w-2/3 rounded-xs bg-[#e4e3dd]" />
+                      </div>
+                    </>
+                  )}
+                  {tmpl.skeleton === "executive" && (
+                    <>
+                      <div className="mx-auto h-1.5 w-1/2 rounded-xs bg-[#334155]" />
+                      <div className="space-y-0.5">
+                        <div className="mx-auto h-1 w-3/4 rounded-xs bg-[#e4e3dd]" />
+                        <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
+                      </div>
+                    </>
+                  )}
+                  {tmpl.skeleton === "tech" && (
+                    <>
+                      <div className="h-1.5 w-full rounded-xs bg-[#1e293b]" />
+                      <div className="space-y-0.5">
+                        <div className="h-1 w-4/5 rounded-xs bg-[#10b981]" />
+                        <div className="h-1 w-1/2 rounded-xs bg-[#e4e3dd]" />
+                      </div>
+                    </>
+                  )}
+                  {tmpl.skeleton === "compact" && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <div className="h-1 w-1/3 rounded-xs bg-[#334155]" />
+                        <div className="h-1 w-1/4 rounded-xs bg-[#9b9a92]" />
+                      </div>
+                      <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
+                      <div className="h-1 w-full rounded-xs bg-[#e4e3dd]" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between gap-1">
+                  <div className="text-xs font-semibold text-[#292a27] leading-tight">
+                    {tmpl.name}
+                  </div>
+                  {isSelected && (
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#9782d8] text-[9px] text-white shrink-0">
+                      ✓
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-[10px] text-[#8c8c83] line-clamp-1 leading-snug">
+                  {tmpl.desc}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* 2. Base Font Size */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          Base Font Size
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+          Font Size
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {[
-            { id: "small", label: "Compact (9.5pt)" },
-            { id: "normal", label: "Standard (10.5pt)" },
-            { id: "large", label: "Large (11.5pt)" },
-          ].map((size) => (
-            <button
-              key={size.id}
-              type="button"
-              onClick={() => onChange("fontSize", size.id)}
-              className={`flex-1 py-1.5 text-xs font-medium rounded-md border text-center transition-all cursor-pointer ${
-                fontSize === size.id
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              {size.label}
-            </button>
-          ))}
+            { id: "small", label: "Compact", sub: "9.5pt" },
+            { id: "normal", label: "Standard", sub: "10.5pt" },
+            { id: "large", label: "Large", sub: "11.5pt" },
+          ].map((size) => {
+            const isSelected = fontSize === size.id;
+            return (
+              <button
+                key={size.id}
+                type="button"
+                onClick={() => onChange("fontSize", size.id)}
+                className={`flex-1 rounded-lg border py-1.5 px-2 text-center text-xs transition cursor-pointer ${
+                  isSelected
+                    ? "border-[#9782d8] bg-[#f7f5fb] text-[#625181] font-semibold ring-1 ring-[#9782d8]"
+                    : "border-[#e4e3dd] bg-white text-[#73736b] hover:bg-[#faf9f6] hover:text-[#292a27]"
+                }`}
+                aria-pressed={isSelected}
+              >
+                <div className="leading-tight">{size.label}</div>
+                <div className="text-[10px] text-[#9b9a92] leading-none mt-0.5">{size.sub}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* 3. Page Spacing & Margin */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          Page Spacing & Margin
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#73736b]">
+          Spacing &amp; Margin
         </h2>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {[
-            { id: "compact", label: "Tight Margins" },
-            { id: "normal", label: "Balanced" },
-            { id: "spacious", label: "Spacious" },
-          ].map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => onChange("margin", m.id)}
-              className={`flex-1 py-1.5 text-xs font-medium rounded-md border text-center transition-all cursor-pointer ${
-                margin === m.id
-                  ? "border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold"
-                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+            { id: "compact", label: "Tight", desc: "Max fit" },
+            { id: "normal", label: "Balanced", desc: "Default" },
+            { id: "spacious", label: "Spacious", desc: "Roomy" },
+          ].map((m) => {
+            const isSelected = margin === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => onChange("margin", m.id)}
+                className={`flex-1 rounded-lg border py-1.5 px-2 text-center text-xs transition cursor-pointer ${
+                  isSelected
+                    ? "border-[#9782d8] bg-[#f7f5fb] text-[#625181] font-semibold ring-1 ring-[#9782d8]"
+                    : "border-[#e4e3dd] bg-white text-[#73736b] hover:bg-[#faf9f6] hover:text-[#292a27]"
+                }`}
+                aria-pressed={isSelected}
+              >
+                <div className="leading-tight">{m.label}</div>
+                <div className="text-[10px] text-[#9b9a92] leading-none mt-0.5">{m.desc}</div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {/* 4. Paper Size with Dimensions */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#73736b]">
           Paper Size
         </h2>
         <div className="flex gap-2">
           {[
-            { id: "A4", label: "A4", desc: "210 × 297 mm" },
-            { id: "Letter", label: "Letter", desc: "8.5 × 11 in" },
+            { id: "A4", label: "A4", dims: "210 × 297 mm" },
+            { id: "Letter", label: "Letter", dims: "8.5 × 11 in" },
           ].map((paper) => {
             const isSelected = (stylePrefs.paperSize || "A4") === paper.id;
             return (
@@ -845,46 +866,58 @@ function StyleControls({
                 key={paper.id}
                 type="button"
                 onClick={() => onChange("paperSize", paper.id)}
-                className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg border text-left transition-all cursor-pointer ${
+                className={`flex-1 rounded-xl border p-2.5 text-left transition cursor-pointer ${
                   isSelected
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700 font-semibold ring-1 ring-indigo-500"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    ? "border-[#9782d8] bg-[#f7f5fb] text-[#292a27] font-semibold ring-1 ring-[#9782d8]"
+                    : "border-[#e4e3dd] bg-white text-[#73736b] hover:border-[#d6d4cb] hover:bg-[#faf9f6]"
                 }`}
                 aria-pressed={isSelected}
               >
-                <div className="font-semibold">{paper.label}</div>
-                <div className="text-[11px] text-slate-500 mt-0.5">{paper.desc}</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold">{paper.label}</span>
+                  {isSelected && (
+                    <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#9782d8] text-[9px] text-white">
+                      ✓
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 text-[11px] text-[#8c8c83] font-normal">{paper.dims}</div>
               </button>
             );
           })}
         </div>
       </div>
 
+      {/* 5. Named Accent Color Swatches */}
       <div>
-        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#73736b]">
           Accent Color
         </h2>
-        <div className="flex items-center gap-3">
-          {colorSwatches.map((swatch) => (
-            <button
-              key={swatch.value}
-              type="button"
-              onClick={() => onChange("primaryColor", swatch.value)}
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
-                primaryColor.toLowerCase() === swatch.value.toLowerCase()
-                  ? "scale-110 ring-2 ring-offset-2 ring-slate-800"
-                  : "hover:scale-105"
-              }`}
-              style={{ backgroundColor: swatch.value }}
-              title={swatch.name}
-            >
-              {primaryColor.toLowerCase() === swatch.value.toLowerCase() && (
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          {colorSwatches.map((swatch) => {
+            const isSelected = primaryColor.toLowerCase() === swatch.value.toLowerCase();
+            return (
+              <button
+                key={swatch.value}
+                type="button"
+                onClick={() => onChange("primaryColor", swatch.value)}
+                className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition cursor-pointer ${
+                  isSelected
+                    ? "border-[#9782d8] bg-[#f7f5fb] text-[#292a27] ring-1 ring-[#9782d8]"
+                    : "border-[#e4e3dd] bg-white text-[#73736b] hover:bg-[#faf9f6] hover:text-[#292a27]"
+                }`}
+                aria-pressed={isSelected}
+              >
+                <span
+                  className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-black/10"
+                  style={{ backgroundColor: swatch.value }}
+                >
+                  {isSelected && <span className="h-1 w-1 rounded-full bg-white" />}
+                </span>
+                <span>{swatch.name}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -14,6 +14,8 @@ import { Route as DraftsRouteImport } from './routes/drafts'
 import { Route as ExtensionRouteImport } from './routes/extension'
 import { Route as ImportJobRouteImport } from './routes/import-job'
 import { Route as TemplatesRouteImport } from './routes/templates'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as SettingsAiRouteImport } from './routes/settings.ai'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +43,16 @@ const TemplatesRoute = TemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsAiRoute = SettingsAiRouteImport.update({
   id: '/settings/ai',
   path: '/settings/ai',
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +86,9 @@ export interface FileRoutesById {
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
   '/templates': typeof TemplatesRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +98,9 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/blog/$slug'
     | '/settings/ai'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +108,9 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/blog/$slug'
     | '/settings/ai'
+    | '/blog'
   id:
     | '__root__'
     | '/'
@@ -96,7 +118,9 @@ export interface FileRouteTypes {
     | '/extension'
     | '/import-job'
     | '/templates'
+    | '/blog/$slug'
     | '/settings/ai'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +129,9 @@ export interface RootRouteChildren {
   ExtensionRoute: typeof ExtensionRoute
   ImportJobRoute: typeof ImportJobRoute
   TemplatesRoute: typeof TemplatesRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   SettingsAiRoute: typeof SettingsAiRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +171,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/ai': {
       id: '/settings/ai'
       path: '/settings/ai'
@@ -161,7 +201,9 @@ const rootRouteChildren: RootRouteChildren = {
   ExtensionRoute: ExtensionRoute,
   ImportJobRoute: ImportJobRoute,
   TemplatesRoute: TemplatesRoute,
+  BlogSlugRoute: BlogSlugRoute,
   SettingsAiRoute: SettingsAiRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -76,6 +76,7 @@
     width: 100% !important;
     max-width: 100% !important;
     min-height: auto !important;
+    aspect-ratio: auto !important;
     page-break-after: auto;
   }
 

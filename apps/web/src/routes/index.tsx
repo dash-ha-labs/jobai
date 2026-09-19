@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { loadMasterCV, saveMasterCV, deleteMasterCV, loadDrafts } from "jobai-shared";
 import type { CV, JobMetadata } from "jobai-shared";
 import { Editor } from "../components/Editor";
@@ -117,6 +117,31 @@ function HomeComponent() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncSuccess, setSyncSuccess] = useState(false);
+
+  // Calm Editor More Actions & Reset Confirm State
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMoreMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMoreMenuOpen]);
 
   const [workspaceStatus, setWorkspaceStatus] = useState<{
     aiConfigured: boolean;
@@ -1018,49 +1043,79 @@ function HomeComponent() {
       ) : (
         /* ==================== ASTRA EXACT FOLIO EDITOR SPLIT PANE ==================== */
         <div className="space-y-6">
-          {/* Top Folio Header & Document Actions: calm compact controls, restrained toolbar, Export PDF isolated to editor */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e8e7e2] pb-5 no-print">
-            <div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/", search: { view: "overview" } })}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#73736b] hover:text-[#292a27] transition cursor-pointer"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          {/* Calm Compact Editor Header: My CV, real save state, Save CV & Export PDF prominent, More actions accessible menu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e8e7e2] pb-4 no-print">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/", search: { view: "overview" } })}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#73736b] hover:text-[#292a27] transition-colors cursor-pointer shrink-0"
+                title="Return to overview"
+                aria-label="Back to overview"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="hidden sm:inline">Overview</span>
+              </button>
+              <span className="text-[#dcdcd5] hidden sm:inline">/</span>
+              <h1 className="text-lg font-bold tracking-tight text-[#292a27] font-heading truncate">
+                {cv?.contact?.name ? `${cv.contact.name}’s CV` : "My CV"}
+              </h1>
+
+              {/* Real Save State Indicator */}
+              {saveStatus === "saving" && (
+                <span className="inline-flex items-center gap-1.5 text-xs text-[#73736b] bg-[#f5f4f0] border border-[#e4e3dd] px-2 py-0.5 rounded-full shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#9782d8] animate-pulse" />
+                  Saving...
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shrink-0">
+                  <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Overview</span>
-                </button>
-                <span className="text-[#dcdcd5]">/</span>
-                <h1 className="text-xl font-bold tracking-tight text-[#292a27] font-heading">
-                  Document Studio
-                </h1>
-              </div>
-              <p className="mt-1 text-xs text-[#73736b]">
-                Edit your canonical sections and style preferences with real-time printable preview.
-              </p>
+                  Saved
+                </span>
+              )}
+              {saveStatus === "unsaved" && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8a6d3b] bg-[#fbf7ee] border border-[#eee4ce] px-2 py-0.5 rounded-full shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d4973b]" />
+                  Unsaved edits
+                </span>
+              )}
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
-              <Link
-                to="/templates"
-                className="rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-3 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7]"
-              >
-                Templates
-              </Link>
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saveStatus === "saving" || saveStatus === "saved"}
-                className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
                   saveStatus === "saved"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-[#30332d] text-white hover:bg-[#4a4e43] shadow-xs"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 opacity-80 cursor-default"
+                    : "bg-[#30332d] text-white hover:bg-[#4a4e43] shadow-xs disabled:opacity-50"
                 }`}
               >
-                {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "✓ Saved" : "Save Changes"}
+                {saveStatus === "saving" ? (
+                  "Saving..."
+                ) : saveStatus === "saved" ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Saved</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    <span>Save CV</span>
+                  </>
+                )}
               </button>
+
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -1071,8 +1126,124 @@ function HomeComponent() {
                 </svg>
                 <span>Export PDF</span>
               </button>
+
+              {/* Accessible More Actions Menu */}
+              <div className="relative" ref={moreMenuRef}>
+                <button
+                  type="button"
+                  id="more-actions-button"
+                  aria-haspopup="true"
+                  aria-expanded={isMoreMenuOpen}
+                  aria-label="More actions"
+                  onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#e4e3dd] bg-white px-2.5 py-1.5 text-xs font-medium text-[#73736b] transition hover:bg-[#faf9f6] hover:text-[#292a27] cursor-pointer"
+                >
+                  <span>More</span>
+                  <svg className="w-3 h-3 text-[#9b9a92]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isMoreMenuOpen && (
+                  <div
+                    role="menu"
+                    aria-labelledby="more-actions-button"
+                    className="absolute right-0 mt-1.5 w-48 rounded-xl border border-[#e8e7e2] bg-white p-1.5 shadow-lg z-50 text-xs"
+                  >
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        handleOpenUploadModal();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#41423c] hover:bg-[#f5f4f0] cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      <span>Import document...</span>
+                    </button>
+                    <Link
+                      to="/templates"
+                      role="menuitem"
+                      onClick={() => setIsMoreMenuOpen(false)}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#41423c] hover:bg-[#f5f4f0] cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                      </svg>
+                      <span>Browse templates</span>
+                    </Link>
+                    <div className="border-t border-[#e8e7e2] my-1" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        setShowResetConfirm(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-rose-600 hover:bg-rose-50 cursor-pointer"
+                    >
+                      <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Reset CV...</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Reset Confirmation Dialog */}
+          {showResetConfirm && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/40 backdrop-blur-xs no-print"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="reset-dialog-title"
+              aria-describedby="reset-dialog-desc"
+            >
+              <div className="w-full max-w-sm rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-5 shadow-xl space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 id="reset-dialog-title" className="text-sm font-bold text-[#292a27]">
+                      Clear entire CV?
+                    </h2>
+                    <p id="reset-dialog-desc" className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                      All content, section edits, and custom styles will be permanently deleted from your local storage.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetConfirm(false)}
+                    className="rounded-lg border border-[#e4e3dd] bg-white px-3 py-1.5 text-xs font-medium text-[#41423c] hover:bg-[#f5f4f0] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowResetConfirm(false);
+                      handleReset();
+                    }}
+                    className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
+                  >
+                    Yes, delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {!cv ? (
             <div className="rounded-2xl border border-dashed border-[#dcdcd1] bg-[#fffefa] py-12 px-6 text-center space-y-3">
@@ -1099,38 +1270,42 @@ function HomeComponent() {
             </div>
           ) : (
             <>
-              {/* Mobile Tab Switcher */}
-              <div className="lg:hidden no-print flex items-center justify-center">
-                <div className="inline-flex rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] p-1">
+              {/* Responsive Edit / Preview Tab Switcher for narrow screens */}
+              <div className="lg:hidden no-print flex items-center justify-center mb-4">
+                <div className="inline-flex rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] p-1" role="tablist">
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={mobileTab === "edit"}
                     onClick={() => setMobileTab("edit")}
-                    className={`rounded-md px-4 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    className={`rounded-md px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
                       mobileTab === "edit"
-                        ? "bg-[#30332d] text-white shadow-xs"
+                        ? "bg-[#30332d] text-white shadow-2xs font-semibold"
                         : "text-[#73736b] hover:text-[#292a27]"
                     }`}
                   >
-                    ✏️ Form Editor
+                    Form Editor
                   </button>
                   <button
                     type="button"
+                    role="tab"
+                    aria-selected={mobileTab === "preview"}
                     onClick={() => setMobileTab("preview")}
-                    className={`rounded-md px-4 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    className={`rounded-md px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
                       mobileTab === "preview"
-                        ? "bg-[#30332d] text-white shadow-xs"
+                        ? "bg-[#30332d] text-white shadow-2xs font-semibold"
                         : "text-[#73736b] hover:text-[#292a27]"
                     }`}
                   >
-                    📄 Printable Preview
+                    Printable Preview
                   </button>
                 </div>
               </div>
 
-              {/* Desktop Two-Column Split Pane / Mobile Active Tab */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Desktop Two-Column Split Pane (320-360px inspector + flexible paper canvas) */}
+              <div className="flex flex-col lg:flex-row gap-6 items-start">
                 <div
-                  className={`lg:col-span-6 no-print ${
+                  className={`w-full lg:w-[340px] lg:shrink-0 no-print ${
                     mobileTab === "edit" ? "block" : "hidden lg:block"
                   }`}
                 >
@@ -1148,7 +1323,7 @@ function HomeComponent() {
                 </div>
 
                 <div
-                  className={`lg:col-span-6 lg:sticky lg:top-24 ${
+                  className={`w-full lg:flex-1 min-w-0 lg:sticky lg:top-24 ${
                     mobileTab === "preview" ? "block" : "hidden lg:block"
                   }`}
                 >
