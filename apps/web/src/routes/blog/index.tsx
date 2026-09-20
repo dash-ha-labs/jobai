@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { articles } from "./content/articles";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -20,22 +21,18 @@ export function BlogIndexComponent({ isApp = false }: { isApp?: boolean }) {
   const secondaryArticles = articles.slice(1);
 
   return (
-    <div className="w-full">
-      {/* Header: Compact Blog Heading & Introduction */}
-      <header className="mb-8 sm:mb-10">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-3">
+    <PageLayout
+      variant="fixed"
+      leading={
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b]">
           <span className="h-2 w-2 rounded-full bg-[#9782d8]" aria-hidden="true" />
           <span>Practical Guidance</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#292a27]">
-          Advice for your job search
-        </h1>
-        <p className="mt-2 text-sm sm:text-base text-[#73736b] max-w-2xl leading-relaxed">
-          Quiet, practical guidance for job seekers. Craft a truthful CV, articulate your
-          contributions with measurable impact, and verify exports before sending.
-        </p>
-      </header>
-
+      }
+      title="Advice for your job search"
+      description="Quiet, practical guidance for job seekers. Craft a truthful CV, articulate your contributions with measurable impact, and verify exports before sending."
+      className="space-y-8 sm:space-y-10"
+    >
       {/* Featured Article Card: Prominent with Restrained Layered-Paper Illustration */}
       {featuredArticle && (
         <article
@@ -343,6 +340,6 @@ export function BlogIndexComponent({ isApp = false }: { isApp?: boolean }) {
           );
         })}
       </div>
-    </div>
+    </PageLayout>
   );
 }

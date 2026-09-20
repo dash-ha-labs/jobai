@@ -77,12 +77,32 @@
     max-width: 100% !important;
     min-height: auto !important;
     aspect-ratio: auto !important;
+    /* CvPrintPreview scales paper on screen; print at 1:1 physical size. */
+    transform: none !important;
+    position: static !important;
     page-break-after: auto;
+    background-color: #ffffff !important;
+    color: #292a27 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   @page {
     size: A4 portrait;
     margin: 12mm 15mm;
+  }
+
+  @page letter {
+    size: letter portrait;
+    margin: 0.5in;
+  }
+
+  .cv-print-target[data-pdf-paper="Letter"] {
+    page: letter;
+  }
+
+  .cv-print-target[data-pdf-paper="A4"] {
+    page: auto;
   }
 
   /* Prevent awkward page breaks inside items */
@@ -91,8 +111,33 @@
     page-break-inside: auto;
   }
 
-  .cv-item {
+  .cv-section h2,
+  .cv-section h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .cv-item,
+  .cv-skill-group,
+  .cv-section .grid > div {
     break-inside: avoid;
     page-break-inside: avoid;
   }
+}
+
+/*
+ * html2pdf css-mode reads screen computed styles, not @media print.
+ * Keep breaks scoped to the print target so live preview layout is unchanged.
+ */
+.cv-print-target .cv-section h2,
+.cv-print-target .cv-section h3 {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.cv-print-target .cv-item,
+.cv-print-target .cv-skill-group,
+.cv-print-target .cv-section .grid > div {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }

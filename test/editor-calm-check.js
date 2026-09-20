@@ -91,16 +91,21 @@ for (const name of ["Indigo", "Slate", "Navy", "Emerald", "Burgundy"]) {
 assert(editorContent.includes("✓"), "Selection must show checkmark indicator beyond color alone");
 console.log("✓ Editor.tsx controls and design groups satisfy UX01 contract");
 
-// 3. Verify Preview.tsx neutral canvas and paper ratio
-const previewPath = path.join(rootDir, "apps/web/src/components/Preview.tsx");
+// 3. Verify CvPrintPreview.tsx neutral canvas and print-proportioned paper
+const previewPath = path.join(rootDir, "apps/web/src/components/CvPrintPreview.tsx");
 const previewContent = fs.readFileSync(previewPath, "utf-8");
 
-console.log("3. Checking Preview.tsx neutral canvas & paper aspect ratio...");
-assert(previewContent.includes("aspectRatio: isLetter ? \"8.5 / 11\" : \"210 / 297\""), "Paper must maintain A4/Letter aspect ratio");
+console.log("3. Checking CvPrintPreview.tsx neutral canvas & fixed physical paper...");
+assert(previewContent.includes('w: "210mm"'), "A4 paper width must be fixed at 210mm");
+assert(previewContent.includes('h: "297mm"'), "A4 paper height must be fixed at 297mm");
+assert(previewContent.includes('w: "8.5in"'), "Letter paper width must be fixed at 8.5in");
+assert(previewContent.includes("transform: `scale("), "Paper must scale via CSS transform, not reflow");
+assert(previewContent.includes("ResizeObserver"), "Scale must track container width");
 assert(previewContent.includes("bg-[#f4f2ed]"), "Canvas must be calm neutral background");
 assert(!previewContent.includes("shadow-inner border border-[#e1dccd]"), "Canvas must not have heavy inner shadow or nested card shell");
 assert(previewContent.includes("cv-print-target"), "Paper must retain print target class");
-console.log("✓ Preview.tsx canvas and paper fit satisfy UX01 contract");
+assert(previewContent.includes('id="cv-paper"'), "Paper must keep #cv-paper export hook");
+console.log("✓ CvPrintPreview.tsx canvas and print proportions satisfy UX01 contract");
 
 // 4. Verify print stylesheet
 const stylesPath = path.join(rootDir, "apps/web/src/styles.css");

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/app/settings/ai")({
   component: AISettingsComponent,
@@ -199,21 +200,17 @@ function AISettingsComponent() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto w-full space-y-6">
-      <div className="border-b border-[#e8e7e2] pb-5 mb-8">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-            AI Provider Settings
-          </h1>
-          <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs font-medium text-[#73736b]">
-            BYOK
-          </span>
-        </div>
-        <p className="text-sm text-[#73736b] mt-1.5 leading-relaxed">
-          Bring your own API key for OpenAI, Anthropic (Claude), or GLM (Zhipu AI).
-        </p>
-      </div>
-
+    <PageLayout
+      variant="fixed"
+      title="AI Provider Settings"
+      titleAddon={
+        <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs font-medium text-[#73736b]">
+          BYOK
+        </span>
+      }
+      description="Bring your own API key for OpenAI, Anthropic (Claude), or GLM (Zhipu AI)."
+      className="space-y-6"
+    >
       {error && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
           <span className="font-semibold">Error:</span>
@@ -474,6 +471,6 @@ function AISettingsComponent() {
           )}
         </>
       )}
-    </div>
+    </PageLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { articles } from "../blog/content/articles";
 import { checklists } from "./content/checklists";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/resources/")({
   head: () => ({
@@ -18,22 +19,18 @@ export const Route = createFileRoute("/resources/")({
 
 function ResourcesIndexPage() {
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12">
-      <header className="mb-10 sm:mb-12 max-w-3xl">
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b] mb-3">
+    <PageLayout
+      variant="fixed"
+      leading={
+        <div className="inline-flex items-center gap-2 rounded-full border border-[#e4e3dd] bg-white/70 px-3 py-1 text-xs font-medium text-[#73736b]">
           <span className="h-2 w-2 rounded-full bg-[#9782d8]" aria-hidden="true" />
           <span>Guides &amp; checklists</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-[#292a27] font-heading">
-          Practical resources for your job search
-        </h1>
-        <p className="mt-3 text-sm sm:text-base text-[#73736b] leading-relaxed">
-          Checklists you can run through before you apply, plus the existing JobAI guides on
-          tailoring, bullets, and export review. No invented scores or guaranteed outcomes.
-          Just the steps we actually use.
-        </p>
-      </header>
-
+      }
+      title="Practical resources for your job search"
+      description="Checklists you can run through before you apply, plus the existing JobAI guides on tailoring, bullets, and export review. No invented scores or guaranteed outcomes. Just the steps we actually use."
+      className="space-y-12 sm:space-y-16"
+    >
       <section aria-labelledby="resources-guides-heading" className="mb-12 sm:mb-16">
         <div className="flex items-end justify-between gap-4 border-b border-[#e8e7e2] pb-4 mb-6">
           <div>
@@ -147,6 +144,6 @@ function ResourcesIndexPage() {
           ))}
         </div>
       </section>
-    </div>
+    </PageLayout>
   );
 }

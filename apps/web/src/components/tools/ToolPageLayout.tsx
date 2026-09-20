@@ -1,10 +1,24 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { PageLayout } from "../PageLayout";
+import {
+  RESUME_SKILLS_TOOLS,
+  resumeSkillsToolRoute,
+  type ResumeSkillsSlug,
+} from "./resume-skills-registry";
 
-// Literal route map (no $slug route exists; each tool has a dedicated file route).
-export const TOOL_ROUTES = {
+const LEGACY_TOOL_ROUTES = {
   "bullet-analyzer": "/toolkit/bullet-analyzer",
   "pdf-text-preview": "/toolkit/pdf-text-preview",
+} as const;
+
+const RESUME_SKILLS_ROUTE_ENTRIES = Object.fromEntries(
+  RESUME_SKILLS_TOOLS.map((t) => [t.slug, resumeSkillsToolRoute(t.slug as ResumeSkillsSlug)]),
+) as Record<ResumeSkillsSlug, `/toolkit/${ResumeSkillsSlug}`>;
+
+export const TOOL_ROUTES = {
+  ...LEGACY_TOOL_ROUTES,
+  ...RESUME_SKILLS_ROUTE_ENTRIES,
 } as const;
 
 export type ToolSlug = keyof typeof TOOL_ROUTES;
@@ -16,7 +30,7 @@ export type ToolMeta = {
   description: string;
 };
 
-export const TOOLS: ToolMeta[] = [
+const LEGACY_TOOLS: ToolMeta[] = [
   {
     slug: "bullet-analyzer",
     name: "CV Bullet Impact & Readability Analyzer",
@@ -32,6 +46,23 @@ export const TOOLS: ToolMeta[] = [
       "Extract readable text from any PDF entirely in your browser. See what your resume actually says when a parser reads it — useful for ATS readability checks before you send it out.",
   },
 ];
+
+const RESUME_SKILLS_TOOL_META: ToolMeta[] = RESUME_SKILLS_TOOLS.map((t) => ({
+  slug: t.slug as ToolSlug,
+  name: t.name,
+  short: t.short,
+  description: t.description,
+}));
+
+export const TOOLS: ToolMeta[] = [...LEGACY_TOOLS, ...RESUME_SKILLS_TOOL_META];
+
+export function toolkitLinkProps(slug: ToolSlug) {
+  if (slug === "bullet-analyzer" || slug === "pdf-text-preview") {
+    return { to: LEGACY_TOOL_ROUTES[slug] };
+  }
+  return { to: "/toolkit/$toolSlug" as const, params: { toolSlug: slug } };
+}
+
 
 export function PrivacyBadge() {
   return (
@@ -55,28 +86,28 @@ export function ToolPageLayout({
 }) {
   const related = TOOLS.filter((t) => t.slug !== tool.slug);
   return (
-    <div className="w-full max-w-5xl mx-auto py-12 px-4 sm:px-6 space-y-10">
-      <div className="space-y-4">
+    <PageLayout
+      variant="fixed"
+      leading={
         <Link
           to="/toolkit"
           className="text-sm font-medium text-[#625181] hover:text-[#9782d8] transition-colors"
         >
           ← Back to Toolkit
         </Link>
-        <div className="border-b border-[#e8e7e2] pb-5 space-y-3">
-          <h1
-            className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#292a27] font-heading"
-          >
-            {tool.name}
-          </h1>
-          <p className="text-sm text-[#73736b] max-w-2xl leading-relaxed">{tool.description}</p>
-          <div className="text-xs text-[#73736b] flex items-center gap-1.5">
+      }
+      title={tool.name}
+      description={
+        <>
+          <p>{tool.description}</p>
+          <div className="mt-3 text-xs text-[#73736b] flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
             <span>This tool runs entirely in your browser. No data is sent to any server.</span>
           </div>
-        </div>
-      </div>
-
+        </>
+      }
+      className="space-y-10"
+    >
       {children}
 
       {howItWorks.length > 0 && (
@@ -113,7 +144,7 @@ export function ToolPageLayout({
           {related.map((t) => (
             <Link
               key={t.slug}
-              to={TOOL_ROUTES[t.slug]}
+              {...toolkitLinkProps(t.slug)}
               className="block rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-5 shadow-sm hover:border-[#9782d8] transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
@@ -129,7 +160,7 @@ export function ToolPageLayout({
           ))}
         </div>
       </section>
-    </div>
+    </PageLayout>
   );
 }
 

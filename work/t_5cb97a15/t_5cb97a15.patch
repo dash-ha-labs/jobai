@@ -1,0 +1,528 @@
+diff --git a/apps/web/src/components/Preview.tsx b/apps/web/src/components/Preview.tsx
+deleted file mode 100644
+index 3466121..0000000
+--- a/apps/web/src/components/Preview.tsx
++++ /dev/null
+@@ -1,74 +0,0 @@
+-import type * as React from "react";
+-import type { CV } from "jobai-shared";
+-import { CV_TEMPLATES } from "jobai-shared";
+-import { CvTemplateRenderer } from "../lib/cv-templates/renderer";
+-
+-interface PreviewProps {
+-  cv: CV;
+-  onPrint?: () => void;
+-  onTemplateChange?: (templateId: string) => void;
+-}
+-
+-/** @deprecated Use CV_TEMPLATES from jobai-shared */
+-export const TEMPLATES = CV_TEMPLATES.map((t) => ({
+-  id: t.id,
+-  name: t.name,
+-  desc: t.description,
+-}));
+-
+-export function Preview({ cv, onPrint: _onPrint, onTemplateChange: _onTemplateChange }: PreviewProps) {
+-  const currentTemplate = cv.stylePrefs?.templateId || "modern";
+-  const fontSize = cv.stylePrefs?.fontSize || "normal";
+-  const marginPref = cv.stylePrefs?.margin || "normal";
+-  const primaryColor = cv.stylePrefs?.primaryColor || "#4f46e5";
+-  const isLetter = cv.stylePrefs?.paperSize === "Letter";
+-  const paperLabel = isLetter ? "Letter (8.5 × 11 in)" : "A4 (210 × 297 mm)";
+-
+-  const marginClasses = {
+-    compact: "p-6 sm:p-8",
+-    normal: "p-8 sm:p-12",
+-    spacious: "p-10 sm:p-16",
+-  }[marginPref] || "p-8 sm:p-12";
+-
+-  const fontSizeClasses = {
+-    small: "text-[13px] leading-relaxed",
+-    normal: "text-[14px] leading-relaxed",
+-    large: "text-[15px] leading-relaxed",
+-  }[fontSize] || "text-[14px] leading-relaxed";
+-
+-  return (
+-    <div className="flex flex-col h-full">
+-      <div className="no-print text-xs text-[#92928a] mb-2 px-1 flex items-center justify-between">
+-        <span>Live {paperLabel} Printable Preview</span>
+-        <span className="hidden sm:inline">Export downloads a PDF or use print dialog</span>
+-      </div>
+-
+-      <style>{`
+-        @media print {
+-          @page {
+-            size: ${isLetter ? "8.5in 11in" : "210mm 297mm"} portrait;
+-            margin: ${isLetter ? "0.5in" : "12mm 15mm"};
+-          }
+-        }
+-      `}</style>
+-
+-      <div className="flex-1 min-w-0 overflow-y-auto bg-[#f4f2ed] p-3 sm:p-6 rounded-xl flex justify-center items-start border border-[#e8e6df]">
+-        <div
+-          id="cv-paper"
+-          className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-[#e6e4dc] w-full ${
+-            isLetter ? "max-w-[8.5in]" : "max-w-[210mm]"
+-          } mx-auto transition-all ${marginClasses} ${fontSizeClasses}`}
+-          style={
+-            {
+-              "--accent-color": primaryColor,
+-              aspectRatio: isLetter ? "8.5 / 11" : "210 / 297",
+-              minHeight: isLetter ? "min(11in, 100%)" : "min(297mm, 100%)",
+-            } as React.CSSProperties
+-          }
+-        >
+-          <CvTemplateRenderer cv={cv} templateId={currentTemplate} primaryColor={primaryColor} />
+-        </div>
+-      </div>
+-    </div>
+-  );
+-}
+diff --git a/apps/web/src/components/tools/ToolPageLayout.tsx b/apps/web/src/components/tools/ToolPageLayout.tsx
+index 57e4aba..81c8e28 100644
+--- a/apps/web/src/components/tools/ToolPageLayout.tsx
++++ b/apps/web/src/components/tools/ToolPageLayout.tsx
+@@ -1,12 +1,25 @@
+ import type { ReactNode } from "react";
+ import { Link } from "@tanstack/react-router";
++import {
++  RESUME_SKILLS_TOOLS,
++  resumeSkillsToolRoute,
++  type ResumeSkillsSlug,
++} from "./resume-skills-registry";
+ 
+-// Literal route map (no $slug route exists; each tool has a dedicated file route).
+-export const TOOL_ROUTES = {
++const LEGACY_TOOL_ROUTES = {
+   "bullet-analyzer": "/toolkit/bullet-analyzer",
+   "pdf-text-preview": "/toolkit/pdf-text-preview",
+ } as const;
+ 
++const RESUME_SKILLS_ROUTE_ENTRIES = Object.fromEntries(
++  RESUME_SKILLS_TOOLS.map((t) => [t.slug, resumeSkillsToolRoute(t.slug as ResumeSkillsSlug)]),
++) as Record<ResumeSkillsSlug, `/toolkit/${ResumeSkillsSlug}`>;
++
++export const TOOL_ROUTES = {
++  ...LEGACY_TOOL_ROUTES,
++  ...RESUME_SKILLS_ROUTE_ENTRIES,
++} as const;
++
+ export type ToolSlug = keyof typeof TOOL_ROUTES;
+ 
+ export type ToolMeta = {
+@@ -16,7 +29,7 @@ export type ToolMeta = {
+   description: string;
+ };
+ 
+-export const TOOLS: ToolMeta[] = [
++const LEGACY_TOOLS: ToolMeta[] = [
+   {
+     slug: "bullet-analyzer",
+     name: "CV Bullet Impact & Readability Analyzer",
+@@ -33,6 +46,23 @@ export const TOOLS: ToolMeta[] = [
+   },
+ ];
+ 
++const RESUME_SKILLS_TOOL_META: ToolMeta[] = RESUME_SKILLS_TOOLS.map((t) => ({
++  slug: t.slug as ToolSlug,
++  name: t.name,
++  short: t.short,
++  description: t.description,
++}));
++
++export const TOOLS: ToolMeta[] = [...LEGACY_TOOLS, ...RESUME_SKILLS_TOOL_META];
++
++export function toolkitLinkProps(slug: ToolSlug) {
++  if (slug === "bullet-analyzer" || slug === "pdf-text-preview") {
++    return { to: LEGACY_TOOL_ROUTES[slug] };
++  }
++  return { to: "/toolkit/$toolSlug" as const, params: { toolSlug: slug } };
++}
++
++
+ export function PrivacyBadge() {
+   return (
+     <div className="text-xs text-[#8c8d81] flex items-center gap-1.5">
+@@ -113,7 +143,7 @@ export function ToolPageLayout({
+           {related.map((t) => (
+             <Link
+               key={t.slug}
+-              to={TOOL_ROUTES[t.slug]}
++              {...toolkitLinkProps(t.slug)}
+               className="block rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-5 shadow-sm hover:border-[#9782d8] transition-colors"
+             >
+               <div className="flex items-start justify-between gap-3">
+diff --git a/apps/web/src/lib/cv-pdf-export.ts b/apps/web/src/lib/cv-pdf-export.ts
+index e3923e3..a58edd3 100644
+--- a/apps/web/src/lib/cv-pdf-export.ts
++++ b/apps/web/src/lib/cv-pdf-export.ts
+@@ -1,27 +1,141 @@
+ /**
+  * Client-side PDF export from the live #cv-paper DOM (WYSIWYG with all template layouts).
+  */
++
++export type CvPdfPaperSize = "A4" | "Letter";
++
++/** html2pdf pagebreak: css + legacy; avoid splitting items, headers, skill groups. */
++export const CV_PDF_PAGEBREAK = {
++  mode: ["css", "legacy"],
++  avoid: [".cv-item", ".cv-skill-group", ".cv-section h2", ".cv-section .grid > div"],
++};
++
++const PAPER_CSS_WIDTH: Record<CvPdfPaperSize, string> = {
++  A4: "210mm",
++  Letter: "8.5in",
++};
++
++export function resolveCvPdfFilename(filename: string): string {
++  const stem = String(filename ?? "")
++    .replace(/\.pdf$/i, "")
++    .trim();
++  const normalized = stem
++    .replace(/[^\w.-]+/g, "-")
++    .replace(/-+/g, "-")
++    .replace(/^-|-$/g, "");
++
++  if (!normalized || /^cv$/i.test(normalized) || /^my-cv$/i.test(normalized)) {
++    return "My-CV.pdf";
++  }
++  if (/-cv$/i.test(normalized)) {
++    return `${normalized.replace(/-cv$/i, "-CV")}.pdf`;
++  }
++  return `${normalized}-CV.pdf`;
++}
++
++export function resolveCvPrintTarget(root: HTMLElement): HTMLElement {
++  if (root.id === "cv-paper" || root.classList.contains("cv-print-target")) {
++    return root;
++  }
++  const nested = root.querySelector("#cv-paper, .cv-print-target");
++  return nested instanceof HTMLElement ? nested : root;
++}
++
++function applyPaperCaptureStyles(paper: HTMLElement, paperSize: CvPdfPaperSize): void {
++  paper.style.aspectRatio = "auto";
++  paper.style.minHeight = "auto";
++  paper.style.height = "auto";
++  paper.style.overflow = "visible";
++  paper.style.backgroundColor = "#ffffff";
++  paper.style.color = "#292a27";
++  paper.style.boxShadow = "none";
++  paper.style.width = PAPER_CSS_WIDTH[paperSize];
++  paper.style.maxWidth = PAPER_CSS_WIDTH[paperSize];
++  /* CvPrintPreview scales paper via transform for on-screen fit; capture at 1:1. */
++  paper.style.transform = "none";
++  paper.style.position = "static";
++  paper.setAttribute("data-pdf-paper", paperSize);
++  paper.classList.add("cv-print-target");
++}
++
++export function prepareCvPaperForCapture(element: HTMLElement, paperSize: CvPdfPaperSize): () => void {
++  const paper = resolveCvPrintTarget(element);
++  const previous = {
++    aspectRatio: paper.style.aspectRatio,
++    minHeight: paper.style.minHeight,
++    height: paper.style.height,
++    overflow: paper.style.overflow,
++    backgroundColor: paper.style.backgroundColor,
++    color: paper.style.color,
++    boxShadow: paper.style.boxShadow,
++    width: paper.style.width,
++    maxWidth: paper.style.maxWidth,
++    transform: paper.style.transform,
++    position: paper.style.position,
++    paperAttr: paper.getAttribute("data-pdf-paper"),
++    hadPrintClass: paper.classList.contains("cv-print-target"),
++  };
++
++  applyPaperCaptureStyles(paper, paperSize);
++
++  return () => {
++    paper.style.aspectRatio = previous.aspectRatio;
++    paper.style.minHeight = previous.minHeight;
++    paper.style.height = previous.height;
++    paper.style.overflow = previous.overflow;
++    paper.style.backgroundColor = previous.backgroundColor;
++    paper.style.color = previous.color;
++    paper.style.boxShadow = previous.boxShadow;
++    paper.style.width = previous.width;
++    paper.style.maxWidth = previous.maxWidth;
++    paper.style.transform = previous.transform;
++    paper.style.position = previous.position;
++    if (previous.paperAttr == null) paper.removeAttribute("data-pdf-paper");
++    else paper.setAttribute("data-pdf-paper", previous.paperAttr);
++    if (!previous.hadPrintClass) paper.classList.remove("cv-print-target");
++  };
++}
++
++export function buildCvPdfExportOptions(filename: string, paperSize: CvPdfPaperSize = "A4") {
++  const format = paperSize === "Letter" ? "letter" : "a4";
++  const resolvedName = resolveCvPdfFilename(filename);
++  const pagebreak = CV_PDF_PAGEBREAK;
++
++  return {
++    margin: [0, 0, 0, 0] as [number, number, number, number],
++    filename: resolvedName,
++    image: { type: "jpeg" as const, quality: 0.95 },
++    html2canvas: {
++      scale: 2,
++      useCORS: true,
++      logging: false,
++      backgroundColor: "#ffffff",
++      onclone(clonedDoc: Document) {
++        const cloned =
++          clonedDoc.getElementById("cv-paper") || clonedDoc.querySelector(".cv-print-target");
++        if (!cloned) return;
++        const Ctor = clonedDoc.defaultView?.HTMLElement ?? HTMLElement;
++        if (cloned instanceof Ctor) {
++          applyPaperCaptureStyles(cloned, paperSize);
++        }
++      },
++    },
++    jsPDF: { unit: "mm", format, orientation: "portrait" as const },
++    pagebreak,
++  };
++}
++
+ export async function exportCvPaperToPdf(
+   element: HTMLElement,
+   filename: string,
+-  paperSize: "A4" | "Letter" = "A4"
++  paperSize: CvPdfPaperSize = "A4",
+ ): Promise<void> {
+-  const format = paperSize === "Letter" ? "letter" : "a4";
+-  const html2pdf = (await import("html2pdf.js")).default;
+-
+-  await html2pdf()
+-    .set({
+-      margin: [0, 0, 0, 0],
+-      filename,
+-      image: { type: "jpeg", quality: 0.95 },
+-      html2canvas: {
+-        scale: 2,
+-        useCORS: true,
+-        logging: false,
+-        backgroundColor: "#ffffff",
+-      },
+-      jsPDF: { unit: "mm", format, orientation: "portrait" },
+-    })
+-    .from(element)
+-    .save();
++  const paper = resolveCvPrintTarget(element);
++  const restore = prepareCvPaperForCapture(paper, paperSize);
++  try {
++    const html2pdf = (await import("html2pdf.js")).default;
++    await html2pdf().set(buildCvPdfExportOptions(filename, paperSize)).from(paper).save();
++  } finally {
++    restore();
++  }
+ }
+diff --git a/apps/web/src/routes/app/applications.tsx b/apps/web/src/routes/app/applications.tsx
+index bdf47de..db93a0e 100644
+--- a/apps/web/src/routes/app/applications.tsx
++++ b/apps/web/src/routes/app/applications.tsx
+@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
+ import { useState, useEffect } from "react";
+ import { loadDrafts, deleteDraft, type JobMetadata, type CV } from "jobai-shared";
+ import { Editor } from "../../components/Editor";
+-import { Preview } from "../../components/Preview";
++import { CvPrintPreview } from "../../components/CvPrintPreview";
+ 
+ interface SearchParams {
+   id?: string;
+@@ -248,20 +248,7 @@ export function ApplicationsComponent() {
+               />
+             </div>
+             <div className="lg:col-span-6 lg:sticky lg:top-24">
+-              <Preview
+-                cv={draftCv}
+-                onTemplateChange={(tmpl) => {
+-                  setDraftCv({
+-                    ...draftCv,
+-                    stylePrefs: {
+-                      ...draftCv.stylePrefs,
+-                      templateId: tmpl,
+-                    },
+-                  });
+-                  setDraftSaveStatus("unsaved");
+-                }}
+-                onPrint={() => window.print()}
+-              />
++              <CvPrintPreview cv={draftCv} />
+             </div>
+           </div>
+         ) : (
+diff --git a/apps/web/src/routes/app/editor.tsx b/apps/web/src/routes/app/editor.tsx
+index 349a46e..530d3c6 100644
+--- a/apps/web/src/routes/app/editor.tsx
++++ b/apps/web/src/routes/app/editor.tsx
+@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
+ import { loadMasterCV, saveMasterCV, deleteMasterCV } from "jobai-shared";
+ import type { CV } from "jobai-shared";
+ import { Editor } from "../../components/Editor";
+-import { Preview } from "../../components/Preview";
++import { CvPrintPreview } from "../../components/CvPrintPreview";
+ 
+ interface SearchParams {
+   template?: string;
+@@ -375,17 +375,6 @@ export function EditorComponent() {
+     }
+   };
+ 
+-  const handleTemplateChange = (templateId: string) => {
+-    if (!cv) return;
+-    handleCvChange({
+-      ...cv,
+-      stylePrefs: {
+-        ...cv.stylePrefs,
+-        templateId,
+-      },
+-    });
+-  };
+-
+   const handleExportPdf = useCallback(async () => {
+     const paper = document.getElementById("cv-paper");
+     if (!paper || !cv) {
+@@ -689,11 +678,7 @@ export function EditorComponent() {
+                 mobileTab === "preview" ? "block" : "hidden lg:block"
+               }`}
+             >
+-              <Preview
+-                cv={cv}
+-                onTemplateChange={handleTemplateChange}
+-                onPrint={() => window.print()}
+-              />
++              <CvPrintPreview cv={cv} />
+             </div>
+           </div>
+         </>
+diff --git a/apps/web/src/routes/templates.tsx b/apps/web/src/routes/templates.tsx
+index 1ee6586..ea1c96d 100644
+--- a/apps/web/src/routes/templates.tsx
++++ b/apps/web/src/routes/templates.tsx
+@@ -6,7 +6,7 @@ import { loadMasterCV, saveMasterCV, getCvTemplateById } from "jobai-shared";
+ import type { AppConfig, TemplateMetadata } from "jobai-shared";
+ import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
+ import { getSampleCv } from "../content/sample-cvs";
+-import { Preview } from "../components/Preview";
++import { CvPrintPreview } from "../components/CvPrintPreview";
+ 
+ export const Route = createFileRoute("/templates")({
+   loader: async (): Promise<AppConfig> => {
+@@ -236,9 +236,9 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig
+             </div>
+ 
+             {/* Document Render Canvas */}
+-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#f4f2ed]">
+-              <div className="max-w-3xl mx-auto rounded-xl border border-[#e2dfd5] bg-white shadow-sm p-4 sm:p-6">
+-                <Preview cv={activePreviewSample.cv} />
++            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 bg-[#f4f2ed]">
++              <div className="max-w-3xl mx-auto">
++                <CvPrintPreview cv={activePreviewSample.cv} />
+               </div>
+             </div>
+ 
+diff --git a/apps/web/src/styles.css b/apps/web/src/styles.css
+index bb604fb..4395c09 100644
+--- a/apps/web/src/styles.css
++++ b/apps/web/src/styles.css
+@@ -77,7 +77,14 @@
+     max-width: 100% !important;
+     min-height: auto !important;
+     aspect-ratio: auto !important;
++    /* CvPrintPreview scales paper on screen; print at 1:1 physical size. */
++    transform: none !important;
++    position: static !important;
+     page-break-after: auto;
++    background-color: #ffffff !important;
++    color: #292a27 !important;
++    -webkit-print-color-adjust: exact !important;
++    print-color-adjust: exact !important;
+   }
+ 
+   @page {
+@@ -85,14 +92,52 @@
+     margin: 12mm 15mm;
+   }
+ 
++  @page letter {
++    size: letter portrait;
++    margin: 0.5in;
++  }
++
++  .cv-print-target[data-pdf-paper="Letter"] {
++    page: letter;
++  }
++
++  .cv-print-target[data-pdf-paper="A4"] {
++    page: auto;
++  }
++
+   /* Prevent awkward page breaks inside items */
+   .cv-section {
+     break-inside: auto;
+     page-break-inside: auto;
+   }
+ 
+-  .cv-item {
++  .cv-section h2,
++  .cv-section h3 {
++    break-after: avoid;
++    page-break-after: avoid;
++  }
++
++  .cv-item,
++  .cv-skill-group,
++  .cv-section .grid > div {
+     break-inside: avoid;
+     page-break-inside: avoid;
+   }
+ }
++
++/*
++ * html2pdf css-mode reads screen computed styles, not @media print.
++ * Keep breaks scoped to the print target so live preview layout is unchanged.
++ */
++.cv-print-target .cv-section h2,
++.cv-print-target .cv-section h3 {
++  break-after: avoid;
++  page-break-after: avoid;
++}
++
++.cv-print-target .cv-item,
++.cv-print-target .cv-skill-group,
++.cv-print-target .cv-section .grid > div {
++  break-inside: avoid;
++  page-break-inside: avoid;
++}
+diff --git a/test/editor-calm-check.js b/test/editor-calm-check.js
+index 63b71dc..43bf543 100644
+--- a/test/editor-calm-check.js
++++ b/test/editor-calm-check.js
+@@ -91,16 +91,21 @@ for (const name of ["Indigo", "Slate", "Navy", "Emerald", "Burgundy"]) {
+ assert(editorContent.includes("✓"), "Selection must show checkmark indicator beyond color alone");
+ console.log("✓ Editor.tsx controls and design groups satisfy UX01 contract");
+ 
+-// 3. Verify Preview.tsx neutral canvas and paper ratio
+-const previewPath = path.join(rootDir, "apps/web/src/components/Preview.tsx");
++// 3. Verify CvPrintPreview.tsx neutral canvas and print-proportioned paper
++const previewPath = path.join(rootDir, "apps/web/src/components/CvPrintPreview.tsx");
+ const previewContent = fs.readFileSync(previewPath, "utf-8");
+ 
+-console.log("3. Checking Preview.tsx neutral canvas & paper aspect ratio...");
+-assert(previewContent.includes("aspectRatio: isLetter ? \"8.5 / 11\" : \"210 / 297\""), "Paper must maintain A4/Letter aspect ratio");
++console.log("3. Checking CvPrintPreview.tsx neutral canvas & fixed physical paper...");
++assert(previewContent.includes('w: "210mm"'), "A4 paper width must be fixed at 210mm");
++assert(previewContent.includes('h: "297mm"'), "A4 paper height must be fixed at 297mm");
++assert(previewContent.includes('w: "8.5in"'), "Letter paper width must be fixed at 8.5in");
++assert(previewContent.includes("transform: `scale("), "Paper must scale via CSS transform, not reflow");
++assert(previewContent.includes("ResizeObserver"), "Scale must track container width");
+ assert(previewContent.includes("bg-[#f4f2ed]"), "Canvas must be calm neutral background");
+ assert(!previewContent.includes("shadow-inner border border-[#e1dccd]"), "Canvas must not have heavy inner shadow or nested card shell");
+ assert(previewContent.includes("cv-print-target"), "Paper must retain print target class");
+-console.log("✓ Preview.tsx canvas and paper fit satisfy UX01 contract");
++assert(previewContent.includes('id="cv-paper"'), "Paper must keep #cv-paper export hook");
++console.log("✓ CvPrintPreview.tsx canvas and print proportions satisfy UX01 contract");
+ 
+ // 4. Verify print stylesheet
+ const stylesPath = path.join(rootDir, "apps/web/src/styles.css");

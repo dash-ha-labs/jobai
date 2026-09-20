@@ -26,6 +26,7 @@ import { Route as ResourcesIndexRouteImport } from './routes/resources/index'
 import { Route as ResourcesSlugRouteImport } from './routes/resources/$slug'
 import { Route as SettingsAiRouteImport } from './routes/settings.ai'
 import { Route as ToolkitIndexRouteImport } from './routes/toolkit/index'
+import { Route as ToolkitToolSlugRouteImport } from './routes/toolkit/$toolSlug'
 import { Route as ToolkitBulletAnalyzerRouteImport } from './routes/toolkit/bullet-analyzer'
 import { Route as ToolkitPdfTextPreviewRouteImport } from './routes/toolkit/pdf-text-preview'
 import { Route as AppBlogIndexRouteImport } from './routes/app/blog/index'
@@ -117,6 +118,11 @@ const ToolkitIndexRoute = ToolkitIndexRouteImport.update({
   path: '/toolkit/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolkitToolSlugRoute = ToolkitToolSlugRouteImport.update({
+  id: '/toolkit/$toolSlug',
+  path: '/toolkit/$toolSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolkitBulletAnalyzerRoute = ToolkitBulletAnalyzerRouteImport.update({
   id: '/toolkit/bullet-analyzer',
   path: '/toolkit/bullet-analyzer',
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/$toolSlug': typeof ToolkitToolSlugRoute
   '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
   '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
   '/app/': typeof AppIndexRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/$toolSlug': typeof ToolkitToolSlugRoute
   '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
   '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
   '/app': typeof AppIndexRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/resources/$slug': typeof ResourcesSlugRoute
   '/settings/ai': typeof SettingsAiRoute
+  '/toolkit/$toolSlug': typeof ToolkitToolSlugRoute
   '/toolkit/bullet-analyzer': typeof ToolkitBulletAnalyzerRoute
   '/toolkit/pdf-text-preview': typeof ToolkitPdfTextPreviewRoute
   '/app/': typeof AppIndexRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/$toolSlug'
     | '/toolkit/bullet-analyzer'
     | '/toolkit/pdf-text-preview'
     | '/app/'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/$toolSlug'
     | '/toolkit/bullet-analyzer'
     | '/toolkit/pdf-text-preview'
     | '/app'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/resources/$slug'
     | '/settings/ai'
+    | '/toolkit/$toolSlug'
     | '/toolkit/bullet-analyzer'
     | '/toolkit/pdf-text-preview'
     | '/app/'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   ResourcesSlugRoute: typeof ResourcesSlugRoute
   SettingsAiRoute: typeof SettingsAiRoute
+  ToolkitToolSlugRoute: typeof ToolkitToolSlugRoute
   ToolkitBulletAnalyzerRoute: typeof ToolkitBulletAnalyzerRoute
   ToolkitPdfTextPreviewRoute: typeof ToolkitPdfTextPreviewRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -437,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolkitIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/toolkit/$toolSlug': {
+      id: '/toolkit/$toolSlug'
+      path: '/toolkit/$toolSlug'
+      fullPath: '/toolkit/$toolSlug'
+      preLoaderRoute: typeof ToolkitToolSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/toolkit/bullet-analyzer': {
       id: '/toolkit/bullet-analyzer'
       path: '/toolkit/bullet-analyzer'
@@ -489,6 +509,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   ResourcesSlugRoute: ResourcesSlugRoute,
   SettingsAiRoute: SettingsAiRoute,
+  ToolkitToolSlugRoute: ToolkitToolSlugRoute,
   ToolkitBulletAnalyzerRoute: ToolkitBulletAnalyzerRoute,
   ToolkitPdfTextPreviewRoute: ToolkitPdfTextPreviewRoute,
   AppIndexRoute: AppIndexRoute,

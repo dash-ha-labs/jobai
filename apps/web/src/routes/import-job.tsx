@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState, useEffect } from "react";
 import { validateJobHandoff, saveDraft } from "jobai-shared";
 import type { JobHandoffPayload, JobMetadata } from "jobai-shared";
+import { PageLayout } from "../components/PageLayout";
 
 export const Route = createFileRoute("/import-job")({
   component: ImportJobComponent,
@@ -110,22 +111,18 @@ function ImportJobComponent() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-      className="space-y-6 max-w-2xl mx-auto"
     >
-      <div className="border-b border-[#e8e7e2] pb-5">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl font-bold tracking-tight text-[#292a27] font-heading">
-            Job Import Migration
-          </h1>
+      <PageLayout
+        variant="fixed"
+        title="Job Import Migration"
+        titleAddon={
           <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
             Direct Extension Integration
           </span>
-        </div>
-        <p className="text-xs text-[#73736b] mt-1 leading-relaxed">
-          Job import is now handled directly by the JobAI browser extension.
-        </p>
-      </div>
-
+        }
+        description="Job import is now handled directly by the JobAI browser extension."
+        className="space-y-6"
+      >
       {errors.length > 0 && (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-rose-800 space-y-2">
           <div className="font-bold flex items-center gap-2">
@@ -208,6 +205,7 @@ function ImportJobComponent() {
           </div>
         </div>
       )}
+      </PageLayout>
     </motion.div>
   );
 }
