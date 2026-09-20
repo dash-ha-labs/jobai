@@ -436,7 +436,7 @@ function RootComponent() {
               </header>
 
               {/* Roomy Content Workspace */}
-              <main className="mx-auto max-w-[1440px] w-full px-5 pb-12 pt-8 sm:px-9 lg:px-10 flex-1">
+              <main className="mx-auto max-w-[1440px] w-full flex-1">
                 <Outlet />
               </main>
 

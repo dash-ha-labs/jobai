@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getArticleBySlug } from "./content/articles";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/blog/$slug")({
   head: ({ params }) => {
@@ -40,9 +41,10 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
   }
 
   return (
-    <div className="w-full pb-8">
-      {/* Breadcrumb back to Blog */}
-      <nav aria-label="Breadcrumb" className="mb-6">
+    <PageLayout
+      variant="fluid"
+      leading={
+      <nav aria-label="Breadcrumb">
         {isApp ? (
           <Link
             to="/app/blog"
@@ -87,8 +89,8 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
           </Link>
         )}
       </nav>
-
-      {/* Semantic Article Landmark with Narrow Reading Column (~65-72ch) */}
+      }
+    >
       <article className="mx-auto max-w-[65ch]" aria-labelledby="article-header-title">
         {/* Article Header */}
         <header className="mb-8">
@@ -335,14 +337,19 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
           )}
         </footer>
       </article>
-    </div>
+    </PageLayout>
   );
 }
 
 function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
   return (
-    <div className="w-full py-16 px-4">
-      <div className="mx-auto max-w-md text-center">
+    <PageLayout
+      variant="fixed"
+      title="Article not found"
+      description="The career guidance article you are looking for does not exist or has been moved."
+      className="text-center"
+    >
+      <div className="mx-auto max-w-md">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f2f0ea] text-[#73736b] mb-4">
           <svg
             className="w-6 h-6 text-[#9b9a92]"
@@ -359,12 +366,6 @@ function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-medium tracking-tight text-[#292a27] mb-2">
-          Article not found
-        </h1>
-        <p className="text-sm text-[#73736b] mb-6 leading-relaxed">
-          The career guidance article you are looking for does not exist or has been moved.
-        </p>
         {isApp ? (
           <Link
             to="/app/blog"
@@ -409,6 +410,6 @@ function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
           </Link>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

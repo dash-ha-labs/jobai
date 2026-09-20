@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
+import { PageLayout } from "../components/PageLayout";
 
 export const Route = createFileRoute("/extension")({
   component: ExtensionMarketingComponent,
@@ -15,8 +16,8 @@ function ExtensionMarketingComponent() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-      className="max-w-5xl mx-auto w-full space-y-12 py-4 sm:py-8"
     >
+      <PageLayout variant="fixed" className="space-y-12">
       {/* ================= 1. HERO SECTION ================= */}
       <section className="space-y-6 text-center sm:text-left">
         <div className="inline-flex items-center gap-2 rounded-full border border-[#ddd3e9] bg-[#e8e0f3]/60 px-3.5 py-1 text-xs font-semibold text-[#625181] uppercase tracking-wider">
@@ -264,6 +265,7 @@ function ExtensionMarketingComponent() {
           </Link>
         </div>
       </section>
+      </PageLayout>
     </motion.div>
   );
 }

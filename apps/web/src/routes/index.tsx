@@ -2,6 +2,7 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { CV_TEMPLATES } from "jobai-shared";
 import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
 import { BulletAnalyzer } from "../components/tools/BulletAnalyzer";
+import { PageLayout } from "../components/PageLayout";
 
 const FEATURED_TEMPLATES = CV_TEMPLATES.slice(0, 8);
 
@@ -59,7 +60,7 @@ export function PublicLandingComponent() {
   ];
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12 space-y-16 sm:space-y-24">
+    <PageLayout variant="fluid" className="space-y-16 sm:space-y-24">
       {/* ================= 1. OUTCOME HERO SECTION ================= */}
       <section
         id="hero"
@@ -709,6 +710,6 @@ export function PublicLandingComponent() {
           Free to use with your own API key • No subscription required • Full export freedom
         </p>
       </section>
-    </div>
+    </PageLayout>
   );
 }

@@ -3,7 +3,8 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState, useEffect } from "react";
 import { loadDrafts, deleteDraft, type JobMetadata, type CV } from "jobai-shared";
 import { Editor } from "../../components/Editor";
-import { Preview } from "../../components/Preview";
+import { CvPrintPreview } from "../../components/CvPrintPreview";
+import { PageLayout } from "../../components/PageLayout";
 
 interface SearchParams {
   id?: string;
@@ -152,31 +153,31 @@ export function ApplicationsComponent() {
   // If viewing a specific draft via ID
   if (search.id) {
     return (
-      <div className="max-w-5xl mx-auto w-full space-y-6">
-        <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-5 shadow-xs flex flex-wrap items-center justify-between gap-3 no-print">
-          <div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/app/applications", search: {} })}
-                className="text-xs font-semibold text-[#73736b] hover:text-[#292a27] transition cursor-pointer"
-              >
-                ← Back to Applications
-              </button>
-              <span className="text-[#c7c5bc]">|</span>
-              <span className="text-xs font-medium text-[#625181] bg-[#e8e0f3] px-2 py-0.5 rounded-full border border-[#ddd3e9]">
-                Draft ID: {search.id}
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading mt-1.5">
-              {activeDraft ? `${activeDraft.jobTitle} at ${activeDraft.company || "Target Role"}` : "Tailored Application CV"}
-            </h1>
-            <p className="text-xs text-[#73736b]">
-              Editing this tailored version will only update this draft. Your master CV profile remains untouched.
-            </p>
+      <PageLayout
+        variant="fixed"
+        leading={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/app/applications", search: {} })}
+              className="text-xs font-semibold text-[#73736b] hover:text-[#292a27] transition cursor-pointer"
+            >
+              ← Back to Applications
+            </button>
+            <span className="text-[#c7c5bc]">|</span>
+            <span className="text-xs font-medium text-[#625181] bg-[#e8e0f3] px-2 py-0.5 rounded-full border border-[#ddd3e9]">
+              Draft ID: {search.id}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2.5">
+        }
+        title={
+          activeDraft
+            ? `${activeDraft.jobTitle} at ${activeDraft.company || "Target Role"}`
+            : "Tailored Application CV"
+        }
+        description="Editing this tailored version will only update this draft. Your master CV profile remains untouched."
+        headerActions={
+          <>
             <button
               type="button"
               onClick={handleDownloadPdf}
@@ -192,9 +193,10 @@ export function ApplicationsComponent() {
             >
               {draftSaveStatus === "saving" ? "Saving..." : "Save Draft Version"}
             </button>
-          </div>
-        </div>
-
+          </>
+        }
+        className="space-y-6"
+      >
         {draftSaveError && (
           <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs border border-rose-200">
             <strong>Error:</strong> {draftSaveError}
@@ -248,20 +250,7 @@ export function ApplicationsComponent() {
               />
             </div>
             <div className="lg:col-span-6 lg:sticky lg:top-24">
-              <Preview
-                cv={draftCv}
-                onTemplateChange={(tmpl) => {
-                  setDraftCv({
-                    ...draftCv,
-                    stylePrefs: {
-                      ...draftCv.stylePrefs,
-                      templateId: tmpl,
-                    },
-                  });
-                  setDraftSaveStatus("unsaved");
-                }}
-                onPrint={() => window.print()}
-              />
+              <CvPrintPreview cv={draftCv} />
             </div>
           </div>
         ) : (
@@ -269,7 +258,7 @@ export function ApplicationsComponent() {
             Draft not found or could not be loaded.
           </div>
         )}
-      </div>
+      </PageLayout>
     );
   }
 
@@ -279,22 +268,18 @@ export function ApplicationsComponent() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-      className="max-w-5xl mx-auto w-full space-y-6"
     >
-      <div className="border-b border-[#e8e7e2] pb-5 mb-8">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-            Job Applications
-          </h1>
+      <PageLayout
+        variant="fixed"
+        title="Job Applications"
+        titleAddon={
           <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs text-[#929285] font-medium">
             {drafts.length}
           </span>
-        </div>
-        <p className="mt-1.5 text-sm text-[#73736b]">
-          Targeted resume versions tailored for specific roles and captured from job listings.
-        </p>
-      </div>
-
+        }
+        description="Targeted resume versions tailored for specific roles and captured from job listings."
+        className="space-y-6"
+      >
       {storageError && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
           <strong>Storage Notice:</strong> {storageError}
@@ -410,6 +395,7 @@ export function ApplicationsComponent() {
           ))}
         </div>
       )}
+      </PageLayout>
     </motion.div>
   );
 }

@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState, useEffect, useCallback } from "react";
 import { loadMasterCV, saveMasterCV, loadDrafts } from "jobai-shared";
 import type { CV, JobMetadata } from "jobai-shared";
+import { PageLayout } from "../../components/PageLayout";
 
 interface SearchParams {
   template?: string;
@@ -368,26 +369,19 @@ function HomeComponent() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="max-w-5xl mx-auto w-full space-y-6"
     >
-      {/* 1. Header: Personal Greeting & Workspace Status */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#e8e7e2] pb-5 mb-8">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0ede6] text-[#625181] border border-[#e2ded5]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#9782d8]" />
-              Local-first workspace
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-            {cv?.contact?.name ? `Welcome back, ${cv.contact.name.split(" ")[0]}` : "Welcome to JobAI"}
-          </h1>
-          <p className="text-sm text-[#73736b] mt-1">
-            Build tailored CVs, manage job targets, and sync with your local extension.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
+      <PageLayout
+        variant="fixed"
+        leading={
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0ede6] text-[#625181] border border-[#e2ded5]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#9782d8]" />
+            Local-first workspace
+          </span>
+        }
+        title={cv?.contact?.name ? `Welcome back, ${cv.contact.name.split(" ")[0]}` : "Welcome to JobAI"}
+        description="Build tailored CVs, manage job targets, and sync with your local extension."
+        headerActions={
+          <>
           <button
             onClick={cv ? () => navigate({ to: "/app/editor" }) : handleStartFromScratch}
             className="inline-flex items-center gap-2 rounded-lg bg-[#292a27] px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-[#41423c] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
@@ -397,9 +391,10 @@ function HomeComponent() {
             </svg>
             <span>{cv ? "Edit CV" : "Create CV"}</span>
           </button>
-        </div>
-      </div>
-
+          </>
+        }
+        className="space-y-6"
+      >
       {/* 2. Primary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Card 1: Master CV Status */}
@@ -925,6 +920,7 @@ function HomeComponent() {
           </div>
         </div>
       )}
+      </PageLayout>
     </motion.div>
   );
 }

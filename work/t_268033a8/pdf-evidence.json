@@ -1,0 +1,203 @@
+{
+  "generatedAt": "2026-09-19T18:35:06.904Z",
+  "table": [
+    {
+      "templateId": "modern",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2088283,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "executive",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2073111,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "tech",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 1755669,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "compact",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 1781859,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "creative",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2096700,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "academic",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2080799,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "corporate",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2079143,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "minimal",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2068161,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "bold",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2074369,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "elegant",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2074369,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "startup",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2075898,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "legal",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2073671,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "clinical",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2073647,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "designer",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2090701,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "timeline",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2074369,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "aurora",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2121557,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "classic",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2074369,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "matrix",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 1757240,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "global",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2077518,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "portfolio",
+      "paperSize": "A4",
+      "pages": 4,
+      "bytes": 2086630,
+      "widthMm": 210.0015555555555,
+      "heightMm": 297.0000833333333,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "modern",
+      "paperSize": "Letter",
+      "pages": 4,
+      "bytes": 2035338,
+      "widthMm": 215.89999999999998,
+      "heightMm": 279.4,
+      "magic": "%PDF-"
+    },
+    {
+      "templateId": "executive",
+      "paperSize": "Letter",
+      "pages": 4,
+      "bytes": 2020090,
+      "widthMm": 215.89999999999998,
+      "heightMm": 279.4,
+      "magic": "%PDF-"
+    }
+  ]
+}

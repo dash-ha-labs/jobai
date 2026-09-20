@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
 import { useState, useEffect } from "react";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/app/extension")({
   component: ExtensionComponent,
@@ -117,31 +118,38 @@ function ExtensionComponent() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-      className="max-w-5xl mx-auto w-full space-y-6"
     >
-      <div className="border-b border-[#e8e7e2] pb-5 mb-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-              Extension Setup &amp; Pairing
-            </h1>
-            {status?.boundOrigin ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Paired ({status.boundOrigin.replace("chrome-extension://", "").slice(0, 8)}...)
-              </span>
-            ) : status?.paired || status?.serverTokenActive ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f5f4f0] border border-[#e4e3dd] px-2.5 py-0.5 text-xs font-medium text-[#73736b]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#92928a]" />
-                Token active
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eeede7] border border-[#e4e3dd] px-2.5 py-0.5 text-xs font-medium text-[#73736b]">
-                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                Not paired
-              </span>
-            )}
-          </div>
+      <PageLayout
+        variant="fixed"
+        title="Extension Setup & Pairing"
+        titleAddon={
+          status?.boundOrigin ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Paired ({status.boundOrigin.replace("chrome-extension://", "").slice(0, 8)}...)
+            </span>
+          ) : status?.paired || status?.serverTokenActive ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f5f4f0] border border-[#e4e3dd] px-2.5 py-0.5 text-xs font-medium text-[#73736b]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#92928a]" />
+              Token active
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eeede7] border border-[#e4e3dd] px-2.5 py-0.5 text-xs font-medium text-[#73736b]">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              Not paired
+            </span>
+          )
+        }
+        description={
+          <>
+            Connect your Chrome extension to your local JobAI backend at{" "}
+            <code className="text-xs bg-[#f5f4f0] font-mono px-1.5 py-0.5 rounded border border-[#e4e3dd] text-[#292a27]">
+              {CANONICAL_BASE}
+            </code>{" "}
+            to tailor CVs directly on job boards.
+          </>
+        }
+        headerActions={
           <button
             type="button"
             onClick={fetchStatus}
@@ -150,16 +158,9 @@ function ExtensionComponent() {
           >
             {loadingStatus ? "Checking..." : "↻ Refresh status"}
           </button>
-        </div>
-        <p className="mt-1.5 text-sm text-[#73736b] leading-relaxed">
-          Connect your Chrome extension to your local JobAI backend at{" "}
-          <code className="text-xs bg-[#f5f4f0] font-mono px-1.5 py-0.5 rounded border border-[#e4e3dd] text-[#292a27]">
-            {CANONICAL_BASE}
-          </code>{" "}
-          to tailor CVs directly on job boards.
-        </p>
-      </div>
-
+        }
+        className="space-y-6"
+      >
       {statusError && (
         <div className="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs border border-rose-200">
           <strong>Status Check Error:</strong> {statusError}
@@ -288,6 +289,7 @@ function ExtensionComponent() {
           </div>
         </div>
       </div>
+      </PageLayout>
     </motion.div>
   );
 }

@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { loadMasterCV, saveMasterCV, deleteMasterCV } from "jobai-shared";
 import type { CV } from "jobai-shared";
 import { Editor } from "../../components/Editor";
-import { Preview } from "../../components/Preview";
+import { CvPrintPreview } from "../../components/CvPrintPreview";
+import { PageLayout } from "../../components/PageLayout";
 
 interface SearchParams {
   template?: string;
@@ -375,17 +376,6 @@ export function EditorComponent() {
     }
   };
 
-  const handleTemplateChange = (templateId: string) => {
-    if (!cv) return;
-    handleCvChange({
-      ...cv,
-      stylePrefs: {
-        ...cv.stylePrefs,
-        templateId,
-      },
-    });
-  };
-
   const handleExportPdf = useCallback(async () => {
     const paper = document.getElementById("cv-paper");
     if (!paper || !cv) {
@@ -411,7 +401,7 @@ export function EditorComponent() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageLayout variant="fluid" className="space-y-6">
       {/* Hidden SEO / SSR marker for contract compatibility */}
       <div className="sr-only">
         <h1>JobAI Document Editor — Canonical Master CV</h1>
@@ -689,11 +679,7 @@ export function EditorComponent() {
                 mobileTab === "preview" ? "block" : "hidden lg:block"
               }`}
             >
-              <Preview
-                cv={cv}
-                onTemplateChange={handleTemplateChange}
-                onPrint={() => window.print()}
-              />
+              <CvPrintPreview cv={cv} />
             </div>
           </div>
         </>
@@ -935,6 +921,6 @@ export function EditorComponent() {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

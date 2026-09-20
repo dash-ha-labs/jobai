@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getChecklistBySlug } from "./content/checklists";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/resources/$slug")({
   head: ({ params }) => {
@@ -34,8 +35,10 @@ function ResourcesSlugPage() {
   }
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-8 sm:py-12">
-      <nav aria-label="Breadcrumb" className="mb-6">
+    <PageLayout
+      variant="fluid"
+      leading={
+      <nav aria-label="Breadcrumb">
         <Link
           to="/resources"
           className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
@@ -57,7 +60,8 @@ function ResourcesSlugPage() {
           <span>Back to resources</span>
         </Link>
       </nav>
-
+      }
+    >
       <article className="mx-auto max-w-[65ch]" aria-labelledby="checklist-header-title">
         <header className="mb-8">
           <span className="inline-flex text-xs font-medium text-[#625181] bg-[#e8e3f1] px-2.5 py-0.5 rounded-full">
@@ -122,20 +126,19 @@ function ResourcesSlugPage() {
           </Link>
         </footer>
       </article>
-    </div>
+    </PageLayout>
   );
 }
 
 function ResourcesNotFound() {
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-9 lg:px-10 py-16">
-      <div className="mx-auto max-w-md text-center">
-        <h1 className="text-2xl font-medium tracking-tight text-[#292a27] font-heading mb-2">
-          Checklist not found
-        </h1>
-        <p className="text-sm text-[#73736b] mb-6 leading-relaxed">
-          That resources page does not exist. The checklists live on the hub.
-        </p>
+    <PageLayout
+      variant="fixed"
+      title="Checklist not found"
+      description="That resources page does not exist. The checklists live on the hub."
+      className="text-center"
+    >
+      <div className="mx-auto max-w-md">
         <Link
           to="/resources"
           className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#41423c] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
@@ -143,6 +146,6 @@ function ResourcesNotFound() {
           Return to resources
         </Link>
       </div>
-    </div>
+    </PageLayout>
   );
 }

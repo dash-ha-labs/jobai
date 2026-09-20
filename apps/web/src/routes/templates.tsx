@@ -6,7 +6,8 @@ import { loadMasterCV, saveMasterCV, getCvTemplateById } from "jobai-shared";
 import type { AppConfig, TemplateMetadata } from "jobai-shared";
 import { TemplateThumbnail } from "../lib/cv-templates/thumbnail";
 import { getSampleCv } from "../content/sample-cvs";
-import { Preview } from "../components/Preview";
+import { CvPrintPreview } from "../components/CvPrintPreview";
+import { PageLayout } from "../components/PageLayout";
 
 export const Route = createFileRoute("/templates")({
   loader: async (): Promise<AppConfig> => {
@@ -73,23 +74,18 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-      className="max-w-6xl mx-auto w-full space-y-6"
     >
-      {/* Header */}
-      <div className="border-b border-[#e8e7e2] pb-5 mb-8">
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#292a27] font-heading">
-            Print-Ready CV Templates
-          </h1>
+      <PageLayout
+        variant="fixed"
+        title="Print-Ready CV Templates"
+        titleAddon={
           <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
             {templateCount} layouts
           </span>
-        </div>
-        <p className="mt-1 text-xs text-[#73736b]">
-          Professional layouts across corporate, creative, academic, and technical styles. Preview realistic persona data, then apply the layout to your own CV in the editor.
-        </p>
-      </div>
-
+        }
+        description="Professional layouts across corporate, creative, academic, and technical styles. Preview realistic persona data, then apply the layout to your own CV in the editor."
+        className="space-y-6"
+      >
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {(config?.templates ?? []).map((tmpl: TemplateMetadata, idx: number) => {
@@ -236,9 +232,9 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
             </div>
 
             {/* Document Render Canvas */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-[#f4f2ed]">
-              <div className="max-w-3xl mx-auto rounded-xl border border-[#e2dfd5] bg-white shadow-sm p-4 sm:p-6">
-                <Preview cv={activePreviewSample.cv} />
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 bg-[#f4f2ed]">
+              <div className="max-w-3xl mx-auto">
+                <CvPrintPreview cv={activePreviewSample.cv} />
               </div>
             </div>
 
@@ -263,6 +259,7 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
           </div>
         </div>
       )}
+      </PageLayout>
     </motion.div>
   );
 }

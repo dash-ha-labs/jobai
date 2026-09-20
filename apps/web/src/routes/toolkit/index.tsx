@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { TOOLS, PrivacyBadge, TOOL_ROUTES } from "../../components/tools/ToolPageLayout";
+import { TOOLS, PrivacyBadge, toolkitLinkProps } from "../../components/tools/ToolPageLayout";
+import { PageLayout } from "../../components/PageLayout";
 
 export const Route = createFileRoute("/toolkit/")({
   component: ToolkitIndexPage,
@@ -20,17 +21,19 @@ function ToolkitIndexPage() {
   }, [query]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-12 px-4 sm:px-6 space-y-8">
-      <div className="border-b border-[#e8e7e2] pb-5 space-y-3">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#292a27] font-heading">
-          Toolkit
-        </h1>
-        <p className="text-sm text-[#73736b] max-w-2xl leading-relaxed">
+    <PageLayout
+      variant="fixed"
+      title="Toolkit"
+      description={
+        <>
           Free browser-based tools for your job search. Everything runs locally — no signup, no tracking, no data leaves your device.
-        </p>
-        <PrivacyBadge />
-      </div>
-
+          <div className="mt-3">
+            <PrivacyBadge />
+          </div>
+        </>
+      }
+      className="space-y-8"
+    >
       <div>
         <label htmlFor="toolkit-search" className="sr-only">
           Search tools
@@ -54,7 +57,7 @@ function ToolkitIndexPage() {
           {filtered.map((tool) => (
             <Link
               key={tool.slug}
-              to={TOOL_ROUTES[tool.slug]}
+              {...toolkitLinkProps(tool.slug)}
               className="block rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-5 sm:p-6 shadow-sm hover:border-[#9782d8] transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
@@ -70,6 +73,6 @@ function ToolkitIndexPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }
