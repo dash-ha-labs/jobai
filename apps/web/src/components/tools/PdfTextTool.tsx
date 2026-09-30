@@ -169,22 +169,22 @@ export function PdfTextTool() {
     <div className="w-full max-w-2xl mx-auto">
       <section
         aria-labelledby="pdf-text-tool-title"
-        className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-5 sm:p-8 shadow-xs"
+        className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-5 sm:p-8 shadow-xs"
       >
         <h2
           id="pdf-text-tool-title"
-          className="text-xl sm:text-2xl font-medium tracking-tight text-[#292a27] font-heading"
+          className="text-xl sm:text-2xl font-medium tracking-tight text-[#191b20] font-heading"
         >
           Preview text from your PDF
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-[#73736b]">
+        <p className="mt-2 text-sm leading-relaxed text-[#636c7a]">
           Read the text layer of a PDF you choose, entirely on this device. Your file is never
           uploaded, stored, or sent anywhere — text extraction happens in this page and is cleared
           when you leave or press Clear. Extracted text can differ from what you see in a PDF
           viewer, and it is not an employer ATS output. No OCR: scanned, image-only PDFs have no
           text to extract.
         </p>
-        <p className="mt-2 text-xs leading-relaxed text-[#92928a]">
+        <p className="mt-2 text-xs leading-relaxed text-[#8b939f]">
           Limits: PDF up to {MAX_FILE_BYTES / 1024 / 1024} MiB, up to {PDF_TEXT_LIMITS.MAX_PAGES}{" "}
           pages, up to {PDF_TEXT_LIMITS.MAX_CODEPOINTS / 1000},000 characters of text.
         </p>
@@ -193,7 +193,7 @@ export function PdfTextTool() {
         <div className="mt-6">
           <label
             htmlFor="pdf-text-file"
-            className="block text-sm font-medium text-[#292a27]"
+            className="block text-sm font-medium text-[#191b20]"
           >
             Choose a PDF from your device
           </label>
@@ -203,7 +203,7 @@ export function PdfTextTool() {
               id="pdf-text-file"
               type="file"
               accept="application/pdf,.pdf"
-              className="block w-full text-sm text-[#292a27] rounded-lg border border-[#e4e3dd] bg-white px-3 py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-[#f5f4f0] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#292a27] cursor-pointer"
+              className="block w-full text-sm text-[#191b20] rounded-lg border border-[#e3e6eb] bg-white px-3 py-2.5 file:mr-3 file:rounded-md file:border-0 file:bg-[#f1f3f6] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-[#191b20] cursor-pointer"
               onChange={(event) => handleFileChosen(event.target.files?.[0] ?? null)}
             />
             {phase === "extracting" ? (
@@ -211,7 +211,7 @@ export function PdfTextTool() {
                 key="cancel"
                 type="button"
                 onClick={handleCancel}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#e4e3dd] bg-white px-4 py-2.5 text-sm font-medium text-[#292a27] shadow-2xs transition hover:bg-[#f5f4f0] cursor-pointer w-full sm:w-auto shrink-0"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#e3e6eb] bg-white px-4 py-2.5 text-sm font-medium text-[#191b20] shadow-2xs transition hover:bg-[#f1f3f6] cursor-pointer w-full sm:w-auto shrink-0"
               >
                 Cancel
               </button>
@@ -221,15 +221,15 @@ export function PdfTextTool() {
                 type="button"
                 onClick={handlePreview}
                 disabled={!canPreview}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-[#4a4e43] cursor-pointer w-full sm:w-auto shrink-0 disabled:opacity-50 disabled:pointer-events-none"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#191b20] px-4 py-2.5 text-sm font-medium text-white shadow-xs transition hover:bg-[#3f4753] cursor-pointer w-full sm:w-auto shrink-0 disabled:opacity-50 disabled:pointer-events-none"
               >
                 Preview text
               </button>
             )}
           </div>
           {file && (
-            <p className="mt-2 text-xs text-[#73736b]">
-              Selected: <span className="font-medium text-[#292a27]">{fileName}</span> ({fileSize}
+            <p className="mt-2 text-xs text-[#636c7a]">
+              Selected: <span className="font-medium text-[#191b20]">{fileName}</span> ({fileSize}
               ){oversize ? " — over the 5 MiB limit" : ""}. Nothing is read until you press
               Preview text.
             </p>
@@ -240,16 +240,16 @@ export function PdfTextTool() {
         {phase === "error" && errorCode && (
           <div
             role="alert"
-            className="mt-4 rounded-xl border border-[#ecd9d3] bg-[#faf0ec] p-4"
+            className="mt-4 rounded-xl border border-[#ecd9d3] bg-[#f7f8fa] p-4"
           >
             <p className="text-sm font-medium text-[#7a3b24]">
               Could not extract text{file ? ` from ${fileName}` : ""}.
             </p>
-            <p className="mt-1 text-sm leading-relaxed text-[#8a5540]">{ERROR_HELP[errorCode]}</p>
+            <p className="mt-1 text-sm leading-relaxed text-[#657080]">{ERROR_HELP[errorCode]}</p>
             <button
               type="button"
               onClick={handleRetry}
-              className="mt-3 inline-flex items-center justify-center rounded-lg border border-[#e4d5cc] bg-white px-3.5 py-2 text-xs font-medium text-[#292a27] transition hover:bg-[#faf9f6] cursor-pointer"
+              className="mt-3 inline-flex items-center justify-center rounded-lg border border-[#e3e7ed] bg-white px-3.5 py-2 text-xs font-medium text-[#191b20] transition hover:bg-[#f7f8fa] cursor-pointer"
             >
               Try again
             </button>
@@ -258,9 +258,9 @@ export function PdfTextTool() {
 
         {/* Loading */}
         {phase === "extracting" && (
-          <p className="mt-4 flex items-center gap-2 text-sm text-[#73736b]" aria-hidden="false">
+          <p className="mt-4 flex items-center gap-2 text-sm text-[#636c7a]" aria-hidden="false">
             <span
-              className="inline-block h-2 w-2 rounded-full bg-[#979283] motion-safe:animate-pulse"
+              className="inline-block h-2 w-2 rounded-full bg-[#8b939f] motion-safe:animate-pulse"
               aria-hidden="true"
             />
             Reading your PDF on this device…
@@ -271,28 +271,28 @@ export function PdfTextTool() {
         {phase === "done" && result && (
           <div className="mt-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-medium text-[#292a27]">
+              <h3 className="text-sm font-medium text-[#191b20]">
                 Extracted text — {result.pageCount} {result.pageCount === 1 ? "page" : "pages"}
               </h3>
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#30332d] px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-[#4a4e43] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#191b20] px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-[#3f4753] cursor-pointer"
                 >
                   Copy text
                 </button>
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#e4e3dd] bg-white px-3.5 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#faf9f6] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#e3e6eb] bg-white px-3.5 py-1.5 text-xs font-medium text-[#191b20] transition hover:bg-[#f7f8fa] cursor-pointer"
                 >
                   Download .txt
                 </button>
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-3.5 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#e3e6eb] bg-[#f1f3f6] px-3.5 py-1.5 text-xs font-medium text-[#191b20] transition hover:bg-[#e3e6eb] cursor-pointer"
                 >
                   Clear
                 </button>
@@ -308,29 +308,29 @@ export function PdfTextTool() {
             )}
             <div
               ref={outputRef}
-              className="mt-3 max-h-96 overflow-y-auto rounded-xl border border-[#e8e7e2] bg-white p-4"
+              className="mt-3 max-h-96 overflow-y-auto rounded-xl border border-[#e3e6eb] bg-white p-4"
             >
               <pre
                 tabIndex={0}
-                className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#292a27] font-sans focus:outline-none focus:ring-2 focus:ring-[#c9c2b4] focus:rounded-lg"
+                className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#191b20] font-sans focus:outline-none focus:ring-2 focus:ring-[#c5cbd4] focus:rounded-lg"
                 aria-label="Extracted PDF text"
               >
                 {result.text}
               </pre>
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-[#92928a]">
+            <p className="mt-3 text-xs leading-relaxed text-[#8b939f]">
               Pages appear in order, separated by a blank line. Text comes from the PDF&rsquo;s
               text layer only; images and scanned content are not recognised, so parts of the
               visible document may be missing here.
             </p>
-            <div className="mt-4 rounded-xl border border-[#e1dccd] bg-[#eeeadd] p-4">
-              <p className="text-sm font-medium text-[#292a27]">Have a CV to write?</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#858174]">
+            <div className="mt-4 rounded-xl border border-[#e3e6eb] bg-[#f1f3f6] p-4">
+              <p className="text-sm font-medium text-[#191b20]">Have a CV to write?</p>
+              <p className="mt-1 text-xs leading-relaxed text-[#636c7a]">
                 Use this text as a reference while you build a clean, truthful CV in the editor.
               </p>
               <a
                 href="/app"
-                className="mt-3 inline-flex items-center justify-center rounded-lg border border-[#d6d1c3] bg-white/60 px-3.5 py-2 text-xs font-medium text-[#292a27] transition hover:bg-white cursor-pointer no-underline"
+                className="mt-3 inline-flex items-center justify-center rounded-lg border border-[#c5cbd4] bg-white/60 px-3.5 py-2 text-xs font-medium text-[#191b20] transition hover:bg-white cursor-pointer no-underline"
               >
                 Create your CV
               </a>

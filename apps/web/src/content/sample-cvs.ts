@@ -19,7 +19,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
   "templateDesc": "Minimalist layout with clear visual hierarchy and accent header",
   "personName": "Grace Hopper",
   "personRole": "Pioneer Computer Scientist & Systems Architect",
-  "accentColor": "#625181",
+  "accentColor": "#2457eb",
   "cv": {
     "id": "sample-modern",
     "version": "1.0.0",
@@ -124,7 +124,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
       "fontSize": "normal",
       "margin": "normal",
       "paperSize": "A4",
-      "primaryColor": "#625181"
+      "primaryColor": "#2457eb"
     },
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-01T00:00:00.000Z"
@@ -138,7 +138,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
   "templateDesc": "Structured traditional corporate layout optimized for leadership roles",
   "personName": "Indra Nooyi",
   "personRole": "Chief Executive Officer & Board Director",
-  "accentColor": "#30332d",
+  "accentColor": "#191b20",
   "cv": {
     "id": "sample-executive",
     "version": "1.0.0",
@@ -237,7 +237,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
       "fontSize": "normal",
       "margin": "normal",
       "paperSize": "A4",
-      "primaryColor": "#30332d"
+      "primaryColor": "#191b20"
     },
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-01T00:00:00.000Z"
@@ -377,7 +377,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
   "templateDesc": "Dense single-page layout maximizing content per square inch",
   "personName": "Katherine Johnson",
   "personRole": "Lead Orbital Trajectory Mathematician",
-  "accentColor": "#727c5c",
+  "accentColor": "#636c7a",
   "cv": {
     "id": "sample-compact",
     "version": "1.0.0",
@@ -466,7 +466,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
       "fontSize": "normal",
       "margin": "compact",
       "paperSize": "A4",
-      "primaryColor": "#727c5c"
+      "primaryColor": "#636c7a"
     },
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-01T00:00:00.000Z"
@@ -1057,7 +1057,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
   "templateDesc": "Refined centered header with light serif body copy",
   "personName": "Ada Lovelace",
   "personRole": "Computational Theorist & Algorithmic Pioneer",
-  "accentColor": "#7c3aed",
+  "accentColor": "#2457eb",
   "cv": {
     "id": "sample-elegant",
     "version": "1.0.0",
@@ -1146,7 +1146,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
       "fontSize": "normal",
       "margin": "normal",
       "paperSize": "A4",
-      "primaryColor": "#7c3aed"
+      "primaryColor": "#2457eb"
     },
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-01T00:00:00.000Z"
@@ -1750,7 +1750,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
   "templateDesc": "Gradient sidebar panel with high-contrast section labels",
   "personName": "Hedy Lamarr",
   "personRole": "Spread-Spectrum Co-Inventor & Systems Innovator",
-  "accentColor": "#9333ea",
+  "accentColor": "#2457eb",
   "cv": {
     "id": "sample-aurora",
     "version": "1.0.0",
@@ -1849,7 +1849,7 @@ export const FICTIONAL_SAMPLES: Record<string, FictionalSample> = {
       "fontSize": "normal",
       "margin": "normal",
       "paperSize": "A4",
-      "primaryColor": "#9333ea"
+      "primaryColor": "#2457eb"
     },
     "createdAt": "2026-01-01T00:00:00.000Z",
     "updatedAt": "2026-01-01T00:00:00.000Z"

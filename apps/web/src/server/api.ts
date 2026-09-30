@@ -307,9 +307,21 @@ export async function handleApiRequest(request: Request): Promise<Response> {
       return jsonResponse({ ok: true, cv }, 200, origin);
     }
 
-    // 6. POST /api/tailor (Extension-first AI tailoring)
-    if (pathname === "/api/tailor" && request.method === "POST") {
-      const isAuth = await authenticateRequest(request, false); // Paired token required
+    // 6. POST /api/tailor (Extension-first AI tailoring) and website-only local alias
+    if ((pathname === "/api/tailor" || pathname === "/api/cv/tailor") && request.method === "POST") {
+      const isWebsiteAlias = pathname === "/api/cv/tailor";
+      if (isWebsiteAlias) {
+        const requestOrigin = request.headers.get("Origin");
+        const urlOrigin = url.origin;
+        const allowedWebsiteOrigins = new Set(["http://127.0.0.1:3000", "http://localhost:3000"]);
+        if (!requestOrigin || requestOrigin !== urlOrigin || !allowedWebsiteOrigins.has(requestOrigin)) {
+          return errorResponse("Website tailoring requires an exact same-origin request", 403, "FORBIDDEN", origin, false);
+        }
+      }
+
+      // Website alias relies on the same-origin CSRF check. The extension endpoint
+      // remains paired-token-only and cannot authenticate with a CSRF marker.
+      const isAuth = await authenticateRequest(request, isWebsiteAlias);
       if (!isAuth) {
         return errorResponse("Unauthorized: extension must be paired", 401, "UNAUTHORIZED", origin);
       }

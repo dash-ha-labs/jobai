@@ -254,48 +254,53 @@ export function Popup() {
       <header className="popup-header">
         <div className="brand-row">
           <h1 className="brand-title">
-            JobAI <span className="badge">Automation</span>
+            JobAI
           </h1>
-          <span className="server-status">● 127.0.0.1:3000</span>
+          <span className="server-status"><span aria-hidden="true" /> Local app</span>
         </div>
         <p className="honest-notice">
-          One-click active-tab extraction &amp; AI CV tailoring with instant PDF generation.
+          Your local JobAI app helps tailor your CV. Pick a job, then review the PDF.
         </p>
       </header>
 
       {/* 1. AWAITING SETUP STATE */}
       {state.status === "awaiting_setup" && (
         <div className="setup-card">
-          <div className="setup-icon">⚙️</div>
+          <div className="setup-icon" aria-hidden="true">01</div>
           <h2 className="setup-title">
             {state.reason === "not_paired"
-              ? "Connect to JobAI Server"
+              ? "Let’s connect your browser"
               : state.reason === "no_profile"
-              ? "Sync Master CV"
-              : "AI Credentials Required"}
+              ? "Add your CV"
+              : "Choose an AI provider"}
           </h2>
           <p className="setup-desc">{state.message}</p>
 
           {state.reason === "not_paired" && (
             <div className="pair-form space-y-3">
+              <ol className="setup-steps" aria-label="Connection steps">
+                <li><span>1</span><div><strong>Open your JobAI app</strong><small>It runs locally on your computer.</small></div></li>
+                <li><span>2</span><div><strong>Get a one-time code</strong><small>Open the extension page and create a code.</small></div></li>
+                <li><span>3</span><div><strong>Enter the code below</strong><small>Pair once, then you’re ready to go.</small></div></li>
+              </ol>
               <button
                 type="button"
                 className="btn btn-primary w-full"
                 onClick={() => openTab("http://127.0.0.1:3000/extension")}
               >
-                Connect JobAI
+                Open JobAI app
               </button>
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-slate-200"></div>
                 <span className="flex-shrink mx-2 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                  or enter code
+                  or paste your code
                 </span>
                 <div className="flex-grow border-t border-slate-200"></div>
               </div>
               <input
                 type="text"
                 className="input-text text-center uppercase tracking-widest font-mono"
-                placeholder="6-LETTER CODE"
+                placeholder="6-CHARACTER CODE"
                 maxLength={6}
                 value={pairingCodeInput}
                 onChange={(e) => setPairingCodeInput(e.target.value.toUpperCase())}
@@ -306,10 +311,10 @@ export function Popup() {
                 onClick={handlePair}
                 disabled={isPairing || pairingCodeInput.trim().length < 6}
               >
-                {isPairing ? "Connecting..." : "Pair with Code"}
+                {isPairing ? "Connecting…" : "Connect browser"}
               </button>
               <span className="field-help text-center block text-xs text-slate-500">
-                Click "Connect JobAI" to generate a connection code on the website, then enter it here.
+                The code expires after a short time. You can create another one in the app.
               </span>
             </div>
           )}
@@ -317,7 +322,7 @@ export function Popup() {
           {state.reason === "no_profile" && (
             <div className="space-y-2">
               <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-900 leading-relaxed">
-                Extension is paired! Save and sync your Master CV in the JobAI editor to enable AI tailoring.
+                Your browser is connected. Add and save a Master CV in the JobAI app to start tailoring.
               </div>
               <button
                 type="button"
@@ -343,7 +348,7 @@ export function Popup() {
           {state.reason === "no_ai" && (
             <div className="space-y-2">
               <div className="alert-notice">
-                AI provider is not configured. Configure your API key (OpenAI, Anthropic, or GLM) in AI settings.
+                One last setup step: choose an AI provider in Settings. Your provider key is managed by your local app.
               </div>
               <button
                 type="button"
@@ -373,7 +378,7 @@ export function Popup() {
         <div className="idle-card">
           <div className="p-2.5 mb-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="status-dot" />
               <span className="font-semibold text-slate-800">
                 {state.aiProvider
                   ? `AI: ${state.aiProvider.toUpperCase()} (${state.aiModel || "active"})`
@@ -382,7 +387,7 @@ export function Popup() {
             </div>
             <button
               type="button"
-              className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium cursor-pointer"
+              className="settings-link"
               onClick={() => openTab("http://127.0.0.1:3000/settings/ai")}
             >
               AI settings &rarr;
@@ -392,14 +397,14 @@ export function Popup() {
           <div className="action-highlight">
             <h2 className="action-title">Ready to Tailor</h2>
             <p className="action-desc">
-              Navigate to any job listing tab, then click below to extract requirements, select matching achievements, and generate a tailored PDF.
+              Open a job listing, then choose below. You’ll be able to review the tailored CV before using it.
             </p>
             <button
               type="button"
               className="btn btn-primary btn-large"
               onClick={handleTailorActiveTab}
             >
-              🚀 Tailor my CV
+              Tailor this job
             </button>
           </div>
 
@@ -460,30 +465,33 @@ export function Popup() {
       {/* 3. EXTRACTING STATE */}
       {state.status === "extracting" && (
         <div className="progress-card">
-          <div className="spinner"></div>
+          <div className="processing-shimmer" aria-hidden="true"><span /></div>
           <h2 className="progress-title">Reading Job Listing</h2>
-          <p className="progress-desc">Extracting structured job data and visible description from current tab...</p>
+          <p className="progress-desc">Picking up the role details from this page.</p>
+          <div className="processing-stage"><span className="stage-dot active" /> Reading the job listing</div>
         </div>
       )}
 
       {/* 4. TAILORING STATE */}
       {state.status === "tailoring" && (
         <div className="progress-card">
-          <div className="spinner"></div>
+          <div className="processing-shimmer" aria-hidden="true"><span /></div>
           <h2 className="progress-title">Tailoring CV with AI</h2>
           <p className="progress-desc">
-            Aligning your experience for <strong>{state.job.title}</strong> at <strong>{state.job.company || "Company"}</strong>.
+            Finding the most relevant parts of your experience for <strong>{state.job.title}</strong> at <strong>{state.job.company || "this company"}</strong>.
           </p>
-          <span className="badge-quiet">Background task active: you can safely close this popup</span>
+          <div className="processing-stage"><span className="stage-dot active" /> Matching your experience</div>
+          <span className="badge-quiet">This can take a little while. You can close this window and come back.</span>
         </div>
       )}
 
       {/* 5. GENERATING PDF STATE */}
       {state.status === "generating_pdf" && (
         <div className="progress-card">
-          <div className="spinner"></div>
-          <h2 className="progress-title">Compiling PDF Document</h2>
-          <p className="progress-desc">Formatting text-selectable A4 layout on server...</p>
+          <div className="processing-shimmer" aria-hidden="true"><span /></div>
+          <h2 className="progress-title">Putting your CV together</h2>
+          <p className="progress-desc">Laying out your tailored CV as a PDF.</p>
+          <div className="processing-stage"><span className="stage-dot active" /> Preparing your PDF</div>
         </div>
       )}
 
@@ -503,14 +511,14 @@ export function Popup() {
               className={`tab-btn ${activeTab === "preview" ? "active" : ""}`}
               onClick={() => setActiveTab("preview")}
             >
-              📄 CV Document Preview
+              CV preview
             </button>
             <button
               type="button"
               className={`tab-btn ${activeTab === "changes" ? "active" : ""}`}
               onClick={() => setActiveTab("changes")}
             >
-              🔍 Tailoring Diff ({state.changes?.length || 0})
+              What changed ({state.changes?.length || 0})
             </button>
           </div>
 
@@ -571,7 +579,7 @@ export function Popup() {
                 {/* Unapproved Suggested Summary Banner */}
                 {state.unapprovedSuggestedSummary && (
                   <div className="unapproved-summary-box">
-                    <div className="unapproved-tag">💡 AI Proposed Summary (Unapproved)</div>
+                    <div className="unapproved-tag">AI suggested summary · not applied</div>
                     <p className="unapproved-text">&ldquo;{state.unapprovedSuggestedSummary}&rdquo;</p>
                     <div className="unapproved-note">
                       Original authentic summary was preserved in your PDF. To adopt this proposal, click &apos;Edit this CV in Web App&apos;.
@@ -631,14 +639,14 @@ export function Popup() {
               className="btn btn-primary"
               onClick={handleDownloadPdf}
             >
-              📥 Download PDF
+              Download PDF
             </button>
             <button
               type="button"
               className="btn btn-secondary"
               onClick={handlePreviewPdf}
             >
-              👁 Full PDF Tab
+              Open full PDF
             </button>
           </div>
 
@@ -648,7 +656,7 @@ export function Popup() {
               className="btn btn-outline"
               onClick={handleEditThisCv}
             >
-              ✏️ Edit this CV in Web App
+              Edit this CV in JobAI
             </button>
             <button
               type="button"
@@ -656,7 +664,7 @@ export function Popup() {
               onClick={handleAttach}
               disabled={isAttaching}
             >
-              {isAttaching ? "Attaching..." : "📎 Attach to Application Input"}
+              {isAttaching ? "Attaching…" : "Attach to application"}
             </button>
           </div>
 

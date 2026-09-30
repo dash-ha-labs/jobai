@@ -13,7 +13,7 @@ function AppToolkitRoute() {
       description="Quiet utility tools for CV editing, readability analysis, and application preparation."
       className="space-y-6"
     >
-      <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-8 text-center text-[#73736b]">
+      <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-8 text-center text-[#636c7a]">
         <p className="text-sm">Toolkit modules are readying for release.</p>
       </div>
     </PageLayout>

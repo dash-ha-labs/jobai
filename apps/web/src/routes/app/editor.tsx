@@ -1,25 +1,30 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, useBlocker } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { loadMasterCV, saveMasterCV, deleteMasterCV } from "jobai-shared";
 import type { CV } from "jobai-shared";
 import { Editor } from "../../components/Editor";
 import { CvPrintPreview } from "../../components/CvPrintPreview";
 import { PageLayout } from "../../components/PageLayout";
+import { getWorkProfile } from "../../content/work-profiles";
+import "../../components/editor-studio.css";
 
 interface SearchParams {
   template?: string;
+  track?: string;
 }
 
 export const Route = createFileRoute("/app/editor")({
   validateSearch: (search: Record<string, unknown>): SearchParams => {
     return {
       template: typeof search.template === "string" ? search.template : undefined,
+      track: typeof search.track === "string" && getWorkProfile(search.track) ? search.track : undefined,
     };
   },
   component: EditorComponent,
 });
 
-function createBlankCV(templateId = "modern"): CV {
+function createBlankCV(templateId = "modern", track?: string): CV {
+  const profile = getWorkProfile(track);
   return {
     id: `master-cv-${Date.now()}`,
     version: "1.0.0",
@@ -31,7 +36,7 @@ function createBlankCV(templateId = "modern"): CV {
       location: "",
     },
     summary: "",
-    sections: [
+    sections: profile ? profile.starterSections.map((section, index) => ({ ...section, id: `sec-${Date.now()}-${index}`, items: [] })) : [
       {
         id: `sec-${Date.now()}-1`,
         type: "experience",
@@ -55,7 +60,7 @@ function createBlankCV(templateId = "modern"): CV {
       templateId,
       fontSize: "normal",
       margin: "normal",
-      primaryColor: "#4f46e5",
+      primaryColor: "#245bd7",
     },
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -66,10 +71,16 @@ export function EditorComponent() {
   const search = Route.useSearch();
   const navigate = useNavigate();
 
-  const [cv, setCv] = useState<CV | null>(() => createBlankCV(search.template || "modern"));
+  const [cv, setCv] = useState<CV | null>(() => createBlankCV(search.template || "modern", search.track));
   const [loading, setLoading] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
+  const [showPreview, setShowPreview] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "unsaved">("idle");
+  const leaveDialog = useRef<HTMLDialogElement>(null);
+  const blocker = useBlocker({ shouldBlockFn: () => saveStatus === "unsaved", enableBeforeUnload: saveStatus === "unsaved", withResolver: true });
+  useEffect(() => {
+    if (blocker.status === "blocked") leaveDialog.current?.showModal();
+    else leaveDialog.current?.close();
+  }, [blocker.status]);
   const [storageError, setStorageError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -160,11 +171,11 @@ export function EditorComponent() {
         setStorageError(res.error);
       }
       if (search.template) {
-        setCv(createBlankCV(search.template));
+        setCv(createBlankCV(search.template, search.track));
       }
     }
     setLoading(false);
-  }, [search.template]);
+  }, [search.template, search.track]);
 
   const handleOpenUploadModal = () => {
     setExtractError(null);
@@ -237,13 +248,8 @@ export function EditorComponent() {
 
       const structuredCV: CV = data.cv;
 
-      if (cv && (cv.contact.name || cv.sections.some((s) => s.items.length > 0))) {
-        setOverwriteCandidate(structuredCV);
-      } else {
-        setCv(structuredCV);
-        setSaveStatus("unsaved");
-        setIsUploadModalOpen(false);
-      }
+      // Always show extracted details for review before applying them, even when starting from a blank profile.
+      setOverwriteCandidate(structuredCV);
     } catch (err: any) {
       setExtractError(err?.message || "Failed to extract CV");
     } finally {
@@ -269,7 +275,7 @@ export function EditorComponent() {
   }, []);
 
   const handleStartFromScratch = () => {
-    const fresh = createBlankCV(search.template || "modern");
+    const fresh = createBlankCV(search.template || "modern", search.track);
     setCv(fresh);
     setSaveStatus("unsaved");
   };
@@ -292,25 +298,18 @@ export function EditorComponent() {
     return errors;
   };
 
-  const handleSave = () => {
-    if (!cv) return;
+  const handleSave = (): boolean => {
+    if (!cv) return false;
     const errors = validateBeforeSave(cv);
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-
+    if (errors.length > 0) { setValidationErrors(errors); return false; }
     setSaveStatus("saving");
-    const res = saveMasterCV(cv);
-
-    if (res.success) {
-      setSaveStatus("saved");
-      setStorageError(null);
-      setValidationErrors([]);
-    } else {
-      setSaveStatus("unsaved");
-      setStorageError(res.error ?? "Failed to save CV to local storage");
+    const result = saveMasterCV(cv);
+    if (result.success) {
+      setSaveStatus("saved"); setStorageError(null); setValidationErrors([]);
+      return true;
     }
+    setSaveStatus("unsaved"); setStorageError(result.error ?? "Could not save your CV in this browser.");
+    return false;
   };
 
   const handleReset = () => {
@@ -394,36 +393,35 @@ export function EditorComponent() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-12 text-center text-sm text-[#73736b]">
+      <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-12 text-center text-sm text-[#636c7a]">
         Loading document workspace...
       </div>
     );
   }
 
   return (
-    <PageLayout variant="fluid" className="space-y-6">
+    <PageLayout variant="fluid" className="editor-studio space-y-6">
       {/* Hidden SEO / SSR marker for contract compatibility */}
       <div className="sr-only">
         <h1>JobAI Document Editor — Canonical Master CV</h1>
         <span>Modern Clean</span>
       </div>
 
-      {/* Calm Compact Editor Header: My CV, real save state, Save CV & Export PDF prominent, More actions accessible menu */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e8e7e2] pb-5 no-print">
+      <div className="editor-studio-header no-print">
         <div className="flex items-center gap-3 min-w-0">
-          <h1 className="text-lg font-bold tracking-tight text-[#292a27] font-heading truncate">
+          <h1 className="text-2xl font-semibold tracking-tight text-[#17212f] font-heading truncate">
             {cv?.contact?.name ? `${cv.contact.name}’s CV` : "My CV"}
           </h1>
 
           {/* Real Save State Indicator */}
           {saveStatus === "saving" && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-[#73736b] bg-[#f5f4f0] border border-[#e4e3dd] px-2 py-0.5 rounded-full shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#9782d8] animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 text-sm text-[#536174] bg-white border border-[#d7dee8] px-3 py-1 rounded-full shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-accent)] animate-pulse" />
               Saving...
             </span>
           )}
           {saveStatus === "saved" && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full shrink-0">
+            <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-3 py-1 rounded-full shrink-0">
               <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
@@ -431,7 +429,7 @@ export function EditorComponent() {
             </span>
           )}
           {saveStatus === "unsaved" && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8a6d3b] bg-[#fbf7ee] border border-[#eee4ce] px-2 py-0.5 rounded-full shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[#536174] bg-white border border-[#d7dee8] px-3 py-1 rounded-full shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-[#d4973b]" />
               Unsaved edits
             </span>
@@ -439,14 +437,17 @@ export function EditorComponent() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <button type="button" aria-pressed={showPreview} onClick={() => setShowPreview((value) => !value)} className="editor-studio-secondary">
+            {showPreview ? "Hide preview" : "Show preview"}
+          </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={saveStatus === "saving" || saveStatus === "saved"}
-            className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
+            className={`editor-studio-primary ${
               saveStatus === "saved"
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200 opacity-80 cursor-default"
-                : "bg-[#30332d] text-white hover:bg-[#4a4e43] shadow-xs disabled:opacity-50"
+                : "bg-[#191b20] text-white hover:bg-[#3f4753] shadow-xs disabled:opacity-50"
             }`}
           >
             {saveStatus === "saving" ? (
@@ -471,9 +472,9 @@ export function EditorComponent() {
           <button
             type="button"
             onClick={handleExportPdf}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e4e3dd] bg-white px-3 py-1.5 text-xs font-medium text-[#292a27] transition hover:bg-[#faf9f6] cursor-pointer"
+            className="editor-studio-secondary"
           >
-            <svg className="w-3.5 h-3.5 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-[#636c7a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             <span>Export PDF</span>
@@ -488,10 +489,10 @@ export function EditorComponent() {
               aria-expanded={isMoreMenuOpen}
               aria-label="More actions"
               onClick={() => setIsMoreMenuOpen((prev) => !prev)}
-              className="inline-flex items-center gap-1 rounded-lg border border-[#e4e3dd] bg-white px-2.5 py-1.5 text-xs font-medium text-[#73736b] transition hover:bg-[#faf9f6] hover:text-[#292a27] cursor-pointer"
+            className="editor-studio-secondary"
             >
               <span>More</span>
-              <svg className="w-3 h-3 text-[#9b9a92]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3 text-[#8b939f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -500,7 +501,7 @@ export function EditorComponent() {
               <div
                 role="menu"
                 aria-labelledby="more-actions-button"
-                className="absolute right-0 mt-1.5 w-48 rounded-xl border border-[#e8e7e2] bg-white p-1.5 shadow-lg z-50 text-xs"
+                className="absolute right-0 mt-1.5 w-48 rounded-xl border border-[#e3e6eb] bg-white p-1.5 shadow-lg z-50 text-xs"
               >
                 <button
                   type="button"
@@ -509,9 +510,9 @@ export function EditorComponent() {
                     setIsMoreMenuOpen(false);
                     handleOpenUploadModal();
                   }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#41423c] hover:bg-[#f5f4f0] cursor-pointer"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#3f4753] hover:bg-[#f1f3f6] cursor-pointer"
                 >
-                  <svg className="w-4 h-4 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#636c7a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                   <span>Import document...</span>
@@ -520,14 +521,14 @@ export function EditorComponent() {
                   to="/app/templates"
                   role="menuitem"
                   onClick={() => setIsMoreMenuOpen(false)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#41423c] hover:bg-[#f5f4f0] cursor-pointer"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[#3f4753] hover:bg-[#f1f3f6] cursor-pointer"
                 >
-                  <svg className="w-4 h-4 text-[#73736b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#636c7a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                   </svg>
                   <span>Browse templates</span>
                 </Link>
-                <div className="border-t border-[#e8e7e2] my-1" />
+                <div className="border-t border-[#e3e6eb] my-1" />
                 <button
                   type="button"
                   role="menuitem"
@@ -548,16 +549,25 @@ export function EditorComponent() {
         </div>
       </div>
 
+      {getWorkProfile(search.track) && <p className="editor-studio-context">Editing a {getWorkProfile(search.track)!.label} CV · {getWorkProfile(search.track)!.help}</p>}
+      <dialog ref={leaveDialog} className="work-leave-dialog" aria-labelledby="leave-cv-title" onCancel={event => { event.preventDefault(); blocker.reset?.(); }}>
+        <span className="work-kicker">KEEP YOUR WORK</span><h2 id="leave-cv-title">You have unsaved CV edits.</h2><p>Save your profile before leaving, or keep editing here.</p>
+        {validationErrors.length > 0 && <p role="alert">{validationErrors.join(". ")}. Choose “Keep editing” to complete these details.</p>}
+        {storageError && <p role="alert">{storageError}</p>}
+        <div><button className="work-primary" onClick={() => { if (handleSave()) blocker.proceed?.(); }}>Save and continue</button><button className="work-text-link" onClick={() => blocker.reset?.()}>Keep editing</button></div>
+        <button className="work-quiet-link" onClick={() => blocker.proceed?.()}>Leave without saving</button>
+      </dialog>
+
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/40 backdrop-blur-xs no-print"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191b20]/40 backdrop-blur-xs no-print"
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="reset-dialog-title"
           aria-describedby="reset-dialog-desc"
         >
-          <div className="w-full max-w-sm rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-5 shadow-xl space-y-4">
+          <div className="w-full max-w-sm rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-5 shadow-xl space-y-4">
             <div className="flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -565,10 +575,10 @@ export function EditorComponent() {
                 </svg>
               </div>
               <div>
-                <h2 id="reset-dialog-title" className="text-sm font-bold text-[#292a27]">
+                <h2 id="reset-dialog-title" className="text-sm font-bold text-[#191b20]">
                   Clear entire CV?
                 </h2>
-                <p id="reset-dialog-desc" className="mt-1 text-xs text-[#73736b] leading-relaxed">
+                <p id="reset-dialog-desc" className="mt-1 text-xs text-[#636c7a] leading-relaxed">
                   All content, section edits, and custom styles will be permanently deleted from your local storage.
                 </p>
               </div>
@@ -578,7 +588,7 @@ export function EditorComponent() {
               <button
                 type="button"
                 onClick={() => setShowResetConfirm(false)}
-                className="rounded-lg border border-[#e4e3dd] bg-white px-3 py-1.5 text-xs font-medium text-[#41423c] hover:bg-[#f5f4f0] transition-colors cursor-pointer"
+                className="rounded-lg border border-[#e3e6eb] bg-white px-3 py-1.5 text-xs font-medium text-[#3f4753] hover:bg-[#f1f3f6] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -598,23 +608,23 @@ export function EditorComponent() {
       )}
 
       {!cv ? (
-        <div className="rounded-2xl border border-dashed border-[#dcdcd1] bg-[#fffefa] py-12 px-6 text-center space-y-3">
-          <h2 className="text-base font-medium text-[#292a27] font-heading">No CV in Studio</h2>
-          <p className="text-xs text-[#8b8c81] max-w-sm mx-auto">
+        <div className="rounded-2xl border border-dashed border-[#e3e6eb] bg-[#ffffff] py-12 px-6 text-center space-y-3">
+          <h2 className="text-base font-medium text-[#191b20] font-heading">No CV in Studio</h2>
+          <p className="text-xs text-[#8b939f] max-w-sm mx-auto">
             Start a fresh CV from scratch or upload a document to begin editing.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={handleStartFromScratch}
-              className="rounded-lg bg-[#30332d] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#4a4e43]"
+              className="rounded-lg bg-[#191b20] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#3f4753]"
             >
               Create from scratch
             </button>
             <button
               type="button"
               onClick={handleOpenUploadModal}
-              className="rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] px-4 py-2 text-xs font-medium text-[#292a27] transition hover:bg-[#eeede7]"
+              className="rounded-lg border border-[#e3e6eb] bg-[#f1f3f6] px-4 py-2 text-xs font-medium text-[#191b20] transition hover:bg-[#e3e6eb]"
             >
               Upload document
             </button>
@@ -622,45 +632,8 @@ export function EditorComponent() {
         </div>
       ) : (
         <>
-          {/* Responsive Edit / Preview Tab Switcher for narrow screens */}
-          <div className="lg:hidden no-print flex items-center justify-center mb-4">
-            <div className="inline-flex rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] p-1" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mobileTab === "edit"}
-                onClick={() => setMobileTab("edit")}
-                className={`rounded-md px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                  mobileTab === "edit"
-                    ? "bg-[#30332d] text-white shadow-2xs font-semibold"
-                    : "text-[#73736b] hover:text-[#292a27]"
-                }`}
-              >
-                Form Editor
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mobileTab === "preview"}
-                onClick={() => setMobileTab("preview")}
-                className={`rounded-md px-3.5 py-1.5 text-xs font-medium transition cursor-pointer ${
-                  mobileTab === "preview"
-                    ? "bg-[#30332d] text-white shadow-2xs font-semibold"
-                    : "text-[#73736b] hover:text-[#292a27]"
-                }`}
-              >
-                Printable Preview
-              </button>
-            </div>
-          </div>
-
-          {/* Desktop Two-Column Split Pane (320-360px inspector + flexible paper canvas) */}
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div
-              className={`w-full lg:w-[340px] lg:shrink-0 no-print ${
-                mobileTab === "edit" ? "block" : "hidden lg:block"
-              }`}
-            >
+          <div className={`editor-studio-layout ${showPreview ? "has-preview" : ""}`}>
+            <div className="editor-studio-form no-print">
               <Editor
                 cv={cv}
                 onChange={handleCvChange}
@@ -674,11 +647,7 @@ export function EditorComponent() {
               />
             </div>
 
-            <div
-              className={`w-full lg:flex-1 min-w-0 lg:sticky lg:top-24 ${
-                mobileTab === "preview" ? "block" : "hidden lg:block"
-              }`}
-            >
+            <div className="editor-studio-preview" data-visible={showPreview} aria-hidden={!showPreview}>
               <CvPrintPreview cv={cv} />
             </div>
           </div>
@@ -687,23 +656,23 @@ export function EditorComponent() {
 
       {/* Connect to Extension Modal */}
       {isConnectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/50 backdrop-blur-xs no-print">
-          <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] max-w-md w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-3">
-              <h2 className="text-sm font-bold text-[#292a27] font-heading flex items-center gap-2">
-                <span className="text-[#9782d8]">🔗</span> Connect Browser Extension
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191b20]/50 backdrop-blur-xs no-print">
+          <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] max-w-md w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#e3e6eb] pb-3">
+              <h2 className="text-sm font-bold text-[#191b20] font-heading flex items-center gap-2">
+                <span className="text-[var(--ui-accent)]">🔗</span> Connect Browser Extension
               </h2>
               <button
                 type="button"
                 onClick={() => setIsConnectModalOpen(false)}
-                className="text-[#73736b] hover:text-[#292a27] text-lg leading-none cursor-pointer"
+                className="text-[#636c7a] hover:text-[#191b20] text-lg leading-none cursor-pointer"
               >
                 ×
               </button>
             </div>
 
-            <div className="p-3 bg-[#faf9f6] rounded-xl border border-[#eeeadd] text-xs text-[#73736b] space-y-2 leading-relaxed">
-              <p className="font-semibold text-[#292a27]">
+            <div className="p-3 bg-[#f7f8fa] rounded-xl border border-[#f1f3f6] text-xs text-[#636c7a] space-y-2 leading-relaxed">
+              <p className="font-semibold text-[#191b20]">
                 Local Storage &amp; AI Transfer Consent:
               </p>
               <p>
@@ -726,26 +695,26 @@ export function EditorComponent() {
                   type="button"
                   onClick={() => handleGeneratePairingCode(true)}
                   disabled={isSyncing}
-                  className="w-full py-2.5 px-4 bg-[#30332d] hover:bg-[#4a4e43] disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-xs"
+                  className="w-full py-2.5 px-4 bg-[#191b20] hover:bg-[#3f4753] disabled:opacity-50 text-white rounded-lg text-xs font-semibold transition cursor-pointer shadow-xs"
                 >
                   {isSyncing ? "Connecting..." : cv ? "Sync Master CV & Get Code" : "Get Pairing Code"}
                 </button>
                 <div className="text-center pt-1">
-                  <Link to="/app/extension" className="text-xs text-[#625181] hover:underline">
+                  <Link to="/app/extension" className="text-xs text-[var(--ui-accent)] hover:underline">
                     Or open dedicated Extension Setup page &rarr;
                   </Link>
                 </div>
               </div>
             ) : (
               <div className="space-y-3 pt-1">
-                <div className="text-center p-4 bg-[#e8e0f3]/40 border border-[#ddd3e9] rounded-xl">
-                  <span className="text-[11px] font-semibold text-[#625181] uppercase tracking-wider block mb-1">
+                <div className="text-center p-4 bg-[var(--ui-accent-soft)]/40 border border-[var(--ui-accent-line)] rounded-xl">
+                  <span className="text-[11px] font-semibold text-[var(--ui-accent)] uppercase tracking-wider block mb-1">
                     One-Time Pairing Code
                   </span>
-                  <div className="text-3xl font-mono font-extrabold text-[#292a27] tracking-widest select-all">
+                  <div className="text-3xl font-mono font-extrabold text-[#191b20] tracking-widest select-all">
                     {pairingCode}
                   </div>
-                  <span className="text-[11px] text-[#73736b] block mt-2">
+                  <span className="text-[11px] text-[#636c7a] block mt-2">
                     Enter this code in the extension popup (valid for 10 minutes)
                   </span>
                 </div>
@@ -759,7 +728,7 @@ export function EditorComponent() {
                 <button
                   type="button"
                   onClick={() => setIsConnectModalOpen(false)}
-                  className="w-full py-2 bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] rounded-lg text-xs font-medium transition cursor-pointer"
+                  className="w-full py-2 bg-[#f1f3f6] hover:bg-[#e3e6eb] text-[#191b20] rounded-lg text-xs font-medium transition cursor-pointer"
                 >
                   Done
                 </button>
@@ -771,16 +740,16 @@ export function EditorComponent() {
 
       {/* Upload CV Modal */}
       {isUploadModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#292a27]/50 backdrop-blur-xs no-print">
-          <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] max-w-md w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-3">
-              <h2 className="text-sm font-bold text-[#292a27] font-heading flex items-center gap-2">
-                <span className="text-[#9782d8]">📄</span> Import Existing CV
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#191b20]/50 backdrop-blur-xs no-print">
+          <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] max-w-md w-full p-6 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#e3e6eb] pb-3">
+              <h2 className="text-sm font-bold text-[#191b20] font-heading flex items-center gap-2">
+                <span className="text-[var(--ui-accent)]">📄</span> Import Existing CV
               </h2>
               <button
                 type="button"
                 onClick={() => setIsUploadModalOpen(false)}
-                className="text-[#73736b] hover:text-[#292a27] text-lg leading-none cursor-pointer"
+                className="text-[#636c7a] hover:text-[#191b20] text-lg leading-none cursor-pointer"
               >
                 ×
               </button>
@@ -798,36 +767,52 @@ export function EditorComponent() {
 
             {overwriteCandidate ? (
               <div className="space-y-3">
-                <p className="text-xs text-[#73736b]">
-                  We extracted structured data from your document. Would you like to overwrite your current CV content?
-                </p>
+                <div className="rounded-xl border border-[var(--ui-accent-soft)] bg-[var(--ui-accent-soft)] p-3">
+                  <p className="text-xs font-semibold text-[var(--ui-accent-hover)]">Step 2 of 2 · Review imported details</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[var(--ui-accent)]">
+                    Here is the structured profile from your document. It will only replace your current editor content when you choose “Apply reviewed details.”
+                  </p>
+                  <p className="mt-2 text-[11px] text-[var(--ui-accent)]">
+                    {overwriteCandidate.contact.name || "Name not found"} · {overwriteCandidate.sections.reduce((count, section) => count + section.items.length, 0)} entries found
+                  </p>
+                  {overwriteCandidate.summary && <p className="mt-2 line-clamp-3 text-[11px] leading-relaxed text-[#555159]">Summary: {overwriteCandidate.summary}</p>}
+                  <ul className="mt-2 space-y-1 text-[11px] text-[#555159]">
+                    {overwriteCandidate.sections.filter((section) => section.items.length > 0).slice(0, 3).map((section) => (
+                      <li key={section.id}><span className="font-medium">{section.title}:</span> {section.items.slice(0, 2).map((item) => item.title || "Untitled entry").join(", ")}</li>
+                    ))}
+                  </ul>
+                </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     type="button"
                     onClick={() => setOverwriteCandidate(null)}
-                    className="px-3 py-1.5 text-xs text-[#73736b] hover:text-[#292a27] rounded-lg border border-[#e4e3dd]"
+                    className="px-3 py-1.5 text-xs text-[#636c7a] hover:text-[#191b20] rounded-lg border border-[#e3e6eb]"
                   >
-                    Keep Current
+                    Keep editing
                   </button>
                   <button
                     type="button"
                     onClick={handleConfirmOverwrite}
-                    className="px-3 py-1.5 text-xs text-white bg-[#30332d] hover:bg-[#4a4e43] rounded-lg shadow-xs"
+                    className="px-3 py-1.5 text-xs text-white bg-[#191b20] hover:bg-[#3f4753] rounded-lg shadow-xs"
                   >
-                    Replace with Extracted
+                    Apply reviewed details
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <div className="flex border-b border-[#e8e7e2] text-xs">
+                <div className="rounded-xl border border-[var(--ui-accent-soft)] bg-[var(--ui-accent-soft)] p-3">
+                  <p className="text-xs font-semibold text-[var(--ui-accent-hover)]">Step 1 of 2 · Choose what to bring in</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--ui-accent)]">We’ll organize the details, then show you a review before anything is applied.</p>
+                </div>
+                <div className="flex border-b border-[#e3e6eb] text-xs">
                   <button
                     type="button"
                     onClick={() => setUploadMode("file")}
                     className={`pb-2 px-3 font-medium transition cursor-pointer ${
                       uploadMode === "file"
-                        ? "border-b-2 border-[#9782d8] text-[#292a27] font-semibold"
-                        : "text-[#73736b] hover:text-[#292a27]"
+                        ? "border-b-2 border-[var(--ui-accent)] text-[#191b20] font-semibold"
+                        : "text-[#636c7a] hover:text-[#191b20]"
                     }`}
                   >
                     Upload File (PDF, DOCX)
@@ -837,8 +822,8 @@ export function EditorComponent() {
                     onClick={() => setUploadMode("text")}
                     className={`pb-2 px-3 font-medium transition cursor-pointer ${
                       uploadMode === "text"
-                        ? "border-b-2 border-[#9782d8] text-[#292a27] font-semibold"
-                        : "text-[#73736b] hover:text-[#292a27]"
+                        ? "border-b-2 border-[var(--ui-accent)] text-[#191b20] font-semibold"
+                        : "text-[#636c7a] hover:text-[#191b20]"
                     }`}
                   >
                     Paste Text
@@ -847,19 +832,19 @@ export function EditorComponent() {
 
                 {uploadMode === "file" ? (
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-[#73736b]">
+                    <label className="block text-xs font-medium text-[#636c7a]">
                       Select PDF or DOCX file (max 5MB)
                     </label>
                     <input
                       type="file"
                       accept=".pdf,.docx,.txt"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="block w-full text-xs text-[#73736b] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#f5f4f0] file:text-[#292a27] hover:file:bg-[#eeede7] file:cursor-pointer"
+                      className="block w-full text-xs text-[#636c7a] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#f1f3f6] file:text-[#191b20] hover:file:bg-[#e3e6eb] file:cursor-pointer"
                     />
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <label className="block text-xs font-medium text-[#73736b]">
+                    <label className="block text-xs font-medium text-[#636c7a]">
                       Paste CV text
                     </label>
                     <textarea
@@ -867,23 +852,24 @@ export function EditorComponent() {
                       value={pastedText}
                       onChange={(e) => setPastedText(e.target.value)}
                       placeholder="Paste your CV text here..."
-                      className="w-full text-xs p-2 rounded-lg border border-[#e4e3dd] bg-[#faf9f6] focus:outline-none focus:ring-1 focus:ring-[#9782d8]"
+                      className="w-full text-xs p-2 rounded-lg border border-[#e3e6eb] bg-[#f7f8fa] focus:outline-none focus:ring-1 focus:ring-[var(--ui-accent)]"
                     />
                   </div>
                 )}
 
-                <div className="p-3 bg-[#faf9f6] rounded-xl border border-[#eeeadd] text-[11px] text-[#73736b] space-y-1.5 leading-relaxed">
+                <div className="p-3 bg-[#f7f8fa] rounded-xl border border-[#f1f3f6] text-[11px] text-[#636c7a] space-y-1.5 leading-relaxed">
                   <div className="flex items-start gap-2">
                     <input
                       type="checkbox"
                       id="consent-checkbox"
                       checked={consentChecked}
                       onChange={(e) => setConsentChecked(e.target.checked)}
-                      className="mt-0.5 rounded border-[#dcdcd1] text-[#9782d8] focus:ring-[#9782d8]"
+                      className="mt-0.5 rounded border-[#e3e6eb] text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]"
                     />
-                    <label htmlFor="consent-checkbox" className="text-[#292a27]">
-                      I consent to sending this document text to my configured AI provider (
-                      {aiStatus?.provider || "OpenAI/Anthropic/GLM"}) for the sole purpose of structuring it into my CV profile.
+                    <label htmlFor="consent-checkbox" className="text-[#191b20]">
+                      I understand that the extracted text from this file or pasted CV will be sent to my configured AI provider
+                      {aiStatus?.provider ? ` (${aiStatus.provider}${aiStatus.model ? ` · ${aiStatus.model}` : ""})` : ""}
+                      {" "}to structure a draft profile. I will review it before applying it.
                     </label>
                   </div>
                 </div>
@@ -898,7 +884,7 @@ export function EditorComponent() {
                   <button
                     type="button"
                     onClick={() => setIsUploadModalOpen(false)}
-                    className="px-3 py-1.5 text-xs text-[#73736b] hover:text-[#292a27] rounded-lg border border-[#e4e3dd]"
+                    className="px-3 py-1.5 text-xs text-[#636c7a] hover:text-[#191b20] rounded-lg border border-[#e3e6eb]"
                   >
                     Cancel
                   </button>
@@ -911,7 +897,7 @@ export function EditorComponent() {
                       (uploadMode === "file" ? !selectedFile : !pastedText.trim()) ||
                       (aiStatus !== null && !aiStatus.configured)
                     }
-                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#30332d] hover:bg-[#4a4e43] disabled:opacity-50 text-white transition cursor-pointer shadow-xs disabled:cursor-not-allowed"
+                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-[#191b20] hover:bg-[#3f4753] disabled:opacity-50 text-white transition cursor-pointer shadow-xs disabled:cursor-not-allowed"
                   >
                     {isExtracting ? extractProgress || "Extracting..." : "Extract & Structure CV"}
                   </button>

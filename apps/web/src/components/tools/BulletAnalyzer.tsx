@@ -95,15 +95,15 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
   }, [bulletInput]);
 
   return (
-    <div className="rounded-3xl border border-[#e2ded5] bg-[#fffefa] p-6 sm:p-8 shadow-sm space-y-6">
+    <div className="rounded-3xl border border-[#e3e6eb] bg-[#ffffff] p-6 sm:p-8 shadow-sm space-y-6">
       {showTitle && (
-        <h3 className="text-lg font-semibold tracking-tight text-[#292a27] font-heading">
+        <h3 className="text-lg font-semibold tracking-tight text-[#191b20] font-heading">
           CV Bullet Impact &amp; Readability Analyzer
         </h3>
       )}
       {/* Preset Buttons */}
       <div>
-        <p className="text-xs font-semibold text-[#73736b] uppercase tracking-wider mb-2.5">
+        <p className="text-xs font-semibold text-[#636c7a] uppercase tracking-wider mb-2.5">
           Try a preset sample bullet:
         </p>
         <div className="flex flex-wrap gap-2">
@@ -114,8 +114,8 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
               onClick={() => setBulletInput(preset.text)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
                 bulletInput === preset.text
-                  ? "bg-[#292a27] text-white"
-                  : "bg-[#f4f3ee] text-[#55564e] hover:bg-[#e8e7e0]"
+                  ? "bg-[#191b20] text-white"
+                  : "bg-[#f1f3f6] text-[#636c7a] hover:bg-[#e3e6eb]"
               }`}
             >
               {preset.label}
@@ -126,7 +126,7 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
 
       {/* Text Input Area */}
       <div className="space-y-2">
-        <label htmlFor="bullet-input" className="block text-xs font-medium text-[#41423c]">
+        <label htmlFor="bullet-input" className="block text-xs font-medium text-[#3f4753]">
           Bullet point text to inspect:
         </label>
         <textarea
@@ -135,26 +135,26 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
           value={bulletInput}
           onChange={(e) => setBulletInput(e.target.value)}
           placeholder="Paste an experience bullet point..."
-          className="w-full rounded-xl border border-[#dcd9ce] bg-[#faf9f6] p-3.5 text-sm text-[#292a27] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8] transition leading-relaxed font-sans"
+          className="w-full rounded-xl border border-[#c5cbd4] bg-[#f7f8fa] p-3.5 text-sm text-[#191b20] focus:border-[var(--ui-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--ui-accent)] transition leading-relaxed font-sans"
         />
       </div>
 
       {/* Analysis Feedback Panel */}
       {bulletAnalysis && (
-        <div className="rounded-2xl border border-[#e8e5dc] bg-[#f8f7f2] p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#e8e5dc] pb-3">
-            <span className="text-xs font-semibold text-[#292a27] uppercase tracking-wider font-heading">
+        <div className="rounded-2xl border border-[#e3e6eb] bg-[#f7f8fa] p-5 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#e3e6eb] pb-3">
+            <span className="text-xs font-semibold text-[#191b20] uppercase tracking-wider font-heading">
               Pre-Flight Analysis Results
             </span>
-            <span className="text-xs text-[#73736b] font-mono">
+            <span className="text-xs text-[#636c7a] font-mono">
               {bulletAnalysis.wordCount} words
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Check 1: Action Verb */}
-            <div className="rounded-xl border border-[#e4e1d7] bg-white p-3.5 space-y-1.5">
-              <div className="text-[11px] font-medium text-[#73736b]">Action Verb</div>
+            <div className="rounded-xl border border-[#e3e6eb] bg-white p-3.5 space-y-1.5">
+              <div className="text-[11px] font-medium text-[#636c7a]">Action Verb</div>
               {bulletAnalysis.hasWeakLeading ? (
                 <div className="text-xs font-semibold text-amber-700 flex items-center gap-1.5">
                   <span>⚠ Passive phrasing:</span>
@@ -166,11 +166,11 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
                   <span className="font-mono">"{bulletAnalysis.leadingWord}"</span>
                 </div>
               ) : (
-                <div className="text-xs font-medium text-[#625181]">
+                <div className="text-xs font-medium text-[var(--ui-accent)]">
                   Starts with: <span className="font-mono">"{bulletAnalysis.leadingWord}"</span>
                 </div>
               )}
-              <p className="text-[10px] text-[#8c8d81]">
+              <p className="text-[10px] text-[#8b939f]">
                 {bulletAnalysis.hasWeakLeading
                   ? "Replace with an active verb (e.g. Orchestrated, Engineered, Directed)."
                   : "Lead with what you specifically performed, built, or delivered."}
@@ -178,8 +178,8 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
             </div>
 
             {/* Check 2: Quantified Metrics */}
-            <div className="rounded-xl border border-[#e4e1d7] bg-white p-3.5 space-y-1.5">
-              <div className="text-[11px] font-medium text-[#73736b]">Quantified Metrics</div>
+            <div className="rounded-xl border border-[#e3e6eb] bg-white p-3.5 space-y-1.5">
+              <div className="text-[11px] font-medium text-[#636c7a]">Quantified Metrics</div>
               {bulletAnalysis.hasMetric ? (
                 <div className="text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
                   <span>✓ Quantifiable impact detected</span>
@@ -189,7 +189,7 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
                   <span>⚠ No numbers or metrics found</span>
                 </div>
               )}
-              <p className="text-[10px] text-[#8c8d81]">
+              <p className="text-[10px] text-[#8b939f]">
                 {bulletAnalysis.hasMetric
                   ? "Verifiable figures (percentages, latency, throughput) prove real contribution."
                   : "Add scale (e.g., team size, latency drop %, dollar savings, volume)."}
@@ -197,8 +197,8 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
             </div>
 
             {/* Check 3: Print Length & Density */}
-            <div className="rounded-xl border border-[#e4e1d7] bg-white p-3.5 space-y-1.5">
-              <div className="text-[11px] font-medium text-[#73736b]">Print Layout Fit</div>
+            <div className="rounded-xl border border-[#e3e6eb] bg-white p-3.5 space-y-1.5">
+              <div className="text-[11px] font-medium text-[#636c7a]">Print Layout Fit</div>
               <div
                 className={`text-xs font-semibold ${
                   bulletAnalysis.lengthAssessment.status === "optimal"
@@ -208,18 +208,18 @@ export function BulletAnalyzer({ showTitle = true }: { showTitle?: boolean }) {
               >
                 {bulletAnalysis.lengthAssessment.status === "optimal" ? "✓ Balanced print density" : "⚠ Check length"}
               </div>
-              <p className="text-[10px] text-[#8c8d81]">
+              <p className="text-[10px] text-[#8b939f]">
                 {bulletAnalysis.lengthAssessment.note}
               </p>
             </div>
           </div>
 
           {/* Polish Recommendation Formula */}
-          <div className="pt-2 text-xs text-[#52534a] bg-white/70 rounded-xl p-3 border border-[#e8e6df]">
-            <span className="font-semibold text-[#292a27]">Proven Formula: </span>
-            <span className="font-mono text-[#625181]">[Strong Action Verb]</span> +{" "}
+          <div className="pt-2 text-xs text-[#3f4753] bg-white/70 rounded-xl p-3 border border-[#e3e6eb]">
+            <span className="font-semibold text-[#191b20]">Proven Formula: </span>
+            <span className="font-mono text-[var(--ui-accent)]">[Strong Action Verb]</span> +{" "}
             <span className="font-mono text-[#446b5a]">[Technical Context / Scope]</span> +{" "}
-            <span className="font-mono text-[#79628f]">[Quantified Business Result]</span>
+            <span className="font-mono text-[var(--ui-accent)]">[Quantified Business Result]</span>
           </div>
         </div>
       )}

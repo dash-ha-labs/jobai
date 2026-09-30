@@ -66,7 +66,7 @@ export function toolkitLinkProps(slug: ToolSlug) {
 
 export function PrivacyBadge() {
   return (
-    <div className="text-xs text-[#8c8d81] flex items-center gap-1.5">
+    <div className="text-xs text-[#8b939f] flex items-center gap-1.5">
       <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
       <span>Runs 100% in your browser</span>
     </div>
@@ -91,7 +91,7 @@ export function ToolPageLayout({
       leading={
         <Link
           to="/toolkit"
-          className="text-sm font-medium text-[#625181] hover:text-[#9782d8] transition-colors"
+          className="text-sm font-medium text-[var(--ui-accent)] hover:text-[var(--ui-accent)] transition-colors"
         >
           ← Back to Toolkit
         </Link>
@@ -100,7 +100,7 @@ export function ToolPageLayout({
       description={
         <>
           <p>{tool.description}</p>
-          <div className="mt-3 text-xs text-[#73736b] flex items-center gap-1.5">
+          <div className="mt-3 text-xs text-[#636c7a] flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
             <span>This tool runs entirely in your browser. No data is sent to any server.</span>
           </div>
@@ -114,7 +114,7 @@ export function ToolPageLayout({
         <section aria-labelledby="how-it-works-heading" className="space-y-4">
           <h2
             id="how-it-works-heading"
-            className="text-xl font-semibold tracking-tight text-[#292a27] font-heading"
+            className="text-xl font-semibold tracking-tight text-[#191b20] font-heading"
           >
             How it works
           </h2>
@@ -122,10 +122,10 @@ export function ToolPageLayout({
             {howItWorks.map((step) => (
               <div
                 key={step.title}
-                className="rounded-2xl border border-[#e4e1d7] bg-[#faf9f6] p-4 space-y-1.5"
+                className="rounded-2xl border border-[#e3e6eb] bg-[#f7f8fa] p-4 space-y-1.5"
               >
-                <div className="text-sm font-semibold text-[#292a27]">{step.title}</div>
-                <p className="text-xs text-[#73736b] leading-relaxed">{step.body}</p>
+                <div className="text-sm font-semibold text-[#191b20]">{step.title}</div>
+                <p className="text-xs text-[#636c7a] leading-relaxed">{step.body}</p>
               </div>
             ))}
           </div>
@@ -136,7 +136,7 @@ export function ToolPageLayout({
       <section aria-labelledby="related-tools-heading" className="space-y-4">
         <h2
           id="related-tools-heading"
-          className="text-xl font-semibold tracking-tight text-[#292a27] font-heading"
+          className="text-xl font-semibold tracking-tight text-[#191b20] font-heading"
         >
           Related tools
         </h2>
@@ -145,14 +145,14 @@ export function ToolPageLayout({
             <Link
               key={t.slug}
               {...toolkitLinkProps(t.slug)}
-              className="block rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-5 shadow-sm hover:border-[#9782d8] transition-colors"
+              className="block rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-5 shadow-sm hover:border-[var(--ui-accent)] transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
-                <h3 className="text-base font-semibold text-[#292a27] font-heading">{t.name}</h3>
-                <span className="text-sm text-[#625181] shrink-0">Try it →</span>
+                <h3 className="text-base font-semibold text-[#191b20] font-heading">{t.name}</h3>
+                <span className="text-sm text-[var(--ui-accent)] shrink-0">Try it →</span>
               </div>
-              <p className="mt-2 text-sm text-[#73736b] leading-relaxed">{t.description}</p>
-              <div className="mt-3 text-xs text-[#8c8d81] flex items-center gap-1.5">
+              <p className="mt-2 text-sm text-[#636c7a] leading-relaxed">{t.description}</p>
+              <div className="mt-3 text-xs text-[#8b939f] flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
                 <span>Runs 100% in your browser</span>
               </div>

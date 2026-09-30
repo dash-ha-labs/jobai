@@ -26,7 +26,7 @@ function PdfTextPreviewPage() {
         },
       ]}
       footnote={
-        <p className="text-xs text-[#8c8d81] leading-relaxed">
+        <p className="text-xs text-[#8b939f] leading-relaxed">
           No OCR — works with text-based PDFs only. Scanned documents won't extract text.
         </p>
       }

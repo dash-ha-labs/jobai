@@ -45,7 +45,7 @@ export function CvPrintPreview({ cv }: CvPrintPreviewProps) {
   const templateId = cv.stylePrefs?.templateId || "modern";
   const fontSize = FONT_SIZE_CLASSES[cv.stylePrefs?.fontSize || "normal"] ?? FONT_SIZE_CLASSES.normal;
   const marginClasses = MARGIN_CLASSES[cv.stylePrefs?.margin || "normal"] ?? MARGIN_CLASSES.normal;
-  const primaryColor = cv.stylePrefs?.primaryColor || "#4f46e5";
+  const primaryColor = cv.stylePrefs?.primaryColor || "#245bd7";
 
   useEffect(() => {
     const frame = frameRef.current;
@@ -66,12 +66,12 @@ export function CvPrintPreview({ cv }: CvPrintPreviewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="no-print text-xs text-[#92928a] mb-2 px-1 flex items-center justify-between">
+      <div className="no-print text-xs text-[#8b939f] mb-2 px-1 flex items-center justify-between">
         <span>Live {paper.label} Printable Preview</span>
         <span className="hidden sm:inline">Export downloads a PDF or use print dialog</span>
       </div>
 
-      <div className="flex-1 min-w-0 overflow-y-auto bg-[#f4f2ed] p-3 sm:p-6 rounded-xl flex justify-center items-start border border-[#e8e6df]">
+      <div className="flex-1 min-w-0 overflow-y-auto bg-[#f1f3f6] p-3 sm:p-6 rounded-xl flex justify-center items-start border border-[#e3e6eb]">
         {/* Scaled frame: reserves exactly the scaled paper size so scroll bounds are correct */}
         <div
           ref={frameRef}
@@ -85,7 +85,7 @@ export function CvPrintPreview({ cv }: CvPrintPreviewProps) {
           <div
             id="cv-paper"
             ref={paperRef}
-            className={`cv-paper cv-print-target bg-white text-[#292a27] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-[#e6e4dc] absolute top-0 left-0 ${marginClasses} ${fontSize}`}
+            className={`cv-paper cv-print-target bg-white text-[#191b20] shadow-[0_4px_24px_rgba(0,0,0,0.06)] border border-[#e3e6eb] absolute top-0 left-0 ${marginClasses} ${fontSize}`}
             style={
               {
                 "--accent-color": primaryColor,

@@ -18,7 +18,7 @@ const {
 } = await import("../apps/web/src/server/ai.ts");
 const { canonicalExtractJob } = await import("../apps/extension/src/job.ts");
 const { generateCVPdf } = await import("../apps/web/src/server/pdf.ts");
-const { loadServerProfile } = await import("../apps/web/src/server/storage.ts");
+const { loadServerProfile, loadPairingState } = await import("../apps/web/src/server/storage.ts");
 import type { CV } from "jobai-shared";
 
 async function runTests() {
@@ -584,6 +584,77 @@ async function runTests() {
     assert.equal(jobPollData.job.status, "completed");
     assert.equal(jobPollData.job.draftId, tailorData.draftId);
     console.log("✓ Durable job record poll confirmed: status completed, result preserved for MV3 recovery");
+
+    // Website tailoring uses an exact same-origin CSRF alias and must not touch pairing.
+    console.log("\n10c. Testing website tailoring alias and extension isolation...");
+    const pairingBeforeWebsiteTailor = await loadPairingState();
+    const websiteOrigin = "http://127.0.0.1:3000";
+    const reqWebsiteTailor = new Request(`${websiteOrigin}/api/cv/tailor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-jobai-csrf": "1",
+        Origin: websiteOrigin,
+        Referer: `${websiteOrigin}/app/applications`,
+      },
+      body: JSON.stringify({ job: jobHandoff, templateId: "modern" }),
+    });
+    const resWebsiteTailor = await handleApiRequest(reqWebsiteTailor);
+    assert.equal(resWebsiteTailor.status, 200, "Same-origin website with CSRF marker must be allowed to tailor");
+    const websiteTailorData = await resWebsiteTailor.json();
+    assert.ok(websiteTailorData.draftId, "Website alias must create a real persisted draft");
+
+    const reqCrossOriginWebsiteTailor = new Request(`${websiteOrigin}/api/cv/tailor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-jobai-csrf": "1",
+        Origin: `${websiteOrigin}.attacker.invalid`,
+        Referer: `${websiteOrigin}.attacker.invalid/app/applications`,
+      },
+      body: JSON.stringify({ job: jobHandoff }),
+    });
+    const resCrossOriginWebsiteTailor = await handleApiRequest(reqCrossOriginWebsiteTailor);
+    assert.equal(resCrossOriginWebsiteTailor.status, 403, "Cross-origin website CSRF request must be denied");
+
+    const reqExtensionCsrfWebsiteTailor = new Request(`${websiteOrigin}/api/cv/tailor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-jobai-csrf": "1",
+        Origin: boundExtensionOrigin,
+      },
+      body: JSON.stringify({ job: jobHandoff }),
+    });
+    const resExtensionCsrfWebsiteTailor = await handleApiRequest(reqExtensionCsrfWebsiteTailor);
+    assert.equal(resExtensionCsrfWebsiteTailor.status, 403, "Extension origin must not use the website CSRF alias");
+
+    const reqBrowserCsrfExtensionTailor = new Request(`${websiteOrigin}/api/tailor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-jobai-csrf": "1",
+        Origin: websiteOrigin,
+        Referer: `${websiteOrigin}/app/applications`,
+      },
+      body: JSON.stringify({ job: jobHandoff }),
+    });
+    const resBrowserCsrfExtensionTailor = await handleApiRequest(reqBrowserCsrfExtensionTailor);
+    assert.equal(resBrowserCsrfExtensionTailor.status, 401, "Original extension endpoint must remain bearer-only");
+
+    const reqExistingExtensionTokenTailor = new Request(`${websiteOrigin}/api/tailor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+        Origin: boundExtensionOrigin,
+      },
+      body: JSON.stringify({ job: jobHandoff }),
+    });
+    const resExistingExtensionTokenTailor = await handleApiRequest(reqExistingExtensionTokenTailor);
+    assert.equal(resExistingExtensionTokenTailor.status, 200, "Existing paired extension token must still tailor successfully");
+    assert.deepEqual(await loadPairingState(), pairingBeforeWebsiteTailor, "Website tailoring must not create or mutate pairing state");
+    console.log("✓ Website alias accepts same-origin CSRF, rejects cross-origin/extension CSRF, and leaves extension pairing unchanged");
 
     // Reset AI engine back to default
     resetAIEngine();

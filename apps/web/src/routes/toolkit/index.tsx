@@ -44,12 +44,12 @@ function ToolkitIndexPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tools…"
-          className="w-full sm:max-w-md rounded-xl border border-[#dcd9ce] bg-[#faf9f6] px-4 py-2.5 text-sm text-[#292a27] placeholder:text-[#a8a89e] focus:border-[#9782d8] focus:outline-none focus:ring-1 focus:ring-[#9782d8] transition"
+          className="w-full sm:max-w-md rounded-xl border border-[#c5cbd4] bg-[#f7f8fa] px-4 py-2.5 text-sm text-[#191b20] placeholder:text-[#8b939f] focus:border-[var(--ui-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--ui-accent)] transition"
         />
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] p-8 text-center text-sm text-[#73736b]">
+        <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-8 text-center text-sm text-[#636c7a]">
           No tools match “{query.trim()}”.
         </div>
       ) : (
@@ -58,14 +58,14 @@ function ToolkitIndexPage() {
             <Link
               key={tool.slug}
               {...toolkitLinkProps(tool.slug)}
-              className="block rounded-2xl border border-[#e2ded5] bg-[#fffefa] p-5 sm:p-6 shadow-sm hover:border-[#9782d8] transition-colors"
+              className="block rounded-2xl border border-[#e3e6eb] bg-[#ffffff] p-5 sm:p-6 shadow-sm hover:border-[var(--ui-accent)] transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-base font-semibold text-[#292a27] font-heading">{tool.name}</h2>
-                <span className="text-sm text-[#625181] shrink-0">Try it →</span>
+                <h2 className="text-base font-semibold text-[#191b20] font-heading">{tool.name}</h2>
+                <span className="text-sm text-[var(--ui-accent)] shrink-0">Try it →</span>
               </div>
-              <p className="mt-2 text-sm text-[#73736b] leading-relaxed">{tool.description}</p>
-              <div className="mt-4 text-xs text-[#8c8d81] flex items-center gap-1.5">
+              <p className="mt-2 text-sm text-[#636c7a] leading-relaxed">{tool.description}</p>
+              <div className="mt-4 text-xs text-[#8b939f] flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
                 <span>Runs 100% in your browser</span>
               </div>

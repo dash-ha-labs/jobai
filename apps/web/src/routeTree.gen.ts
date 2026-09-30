@@ -13,9 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DraftsRouteImport } from './routes/drafts'
 import { Route as ExtensionRouteImport } from './routes/extension'
 import { Route as ImportJobRouteImport } from './routes/import-job'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppApplicationsRouteImport } from './routes/app/applications'
+import { Route as AppCareerRouteImport } from './routes/app/career'
+import { Route as AppDesignLabRouteImport } from './routes/app/design-lab'
 import { Route as AppEditorRouteImport } from './routes/app/editor'
 import { Route as AppExtensionRouteImport } from './routes/app/extension'
 import { Route as AppTemplatesRouteImport } from './routes/app/templates'
@@ -53,6 +56,11 @@ const ImportJobRoute = ImportJobRouteImport.update({
   path: '/import-job',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TemplatesRoute = TemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -66,6 +74,16 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppApplicationsRoute = AppApplicationsRouteImport.update({
   id: '/app/applications',
   path: '/app/applications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCareerRoute = AppCareerRouteImport.update({
+  id: '/app/career',
+  path: '/app/career',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppDesignLabRoute = AppDesignLabRouteImport.update({
+  id: '/app/design-lab',
+  path: '/app/design-lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppEditorRoute = AppEditorRouteImport.update({
@@ -154,8 +172,11 @@ export interface FileRoutesByFullPath {
   '/drafts': typeof DraftsRoute
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
+  '/login': typeof LoginRoute
   '/templates': typeof TemplatesRoute
   '/app/applications': typeof AppApplicationsRoute
+  '/app/career': typeof AppCareerRoute
+  '/app/design-lab': typeof AppDesignLabRoute
   '/app/editor': typeof AppEditorRoute
   '/app/extension': typeof AppExtensionRoute
   '/app/templates': typeof AppTemplatesRoute
@@ -179,8 +200,11 @@ export interface FileRoutesByTo {
   '/drafts': typeof DraftsRoute
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
+  '/login': typeof LoginRoute
   '/templates': typeof TemplatesRoute
   '/app/applications': typeof AppApplicationsRoute
+  '/app/career': typeof AppCareerRoute
+  '/app/design-lab': typeof AppDesignLabRoute
   '/app/editor': typeof AppEditorRoute
   '/app/extension': typeof AppExtensionRoute
   '/app/templates': typeof AppTemplatesRoute
@@ -205,8 +229,11 @@ export interface FileRoutesById {
   '/drafts': typeof DraftsRoute
   '/extension': typeof ExtensionRoute
   '/import-job': typeof ImportJobRoute
+  '/login': typeof LoginRoute
   '/templates': typeof TemplatesRoute
   '/app/applications': typeof AppApplicationsRoute
+  '/app/career': typeof AppCareerRoute
+  '/app/design-lab': typeof AppDesignLabRoute
   '/app/editor': typeof AppEditorRoute
   '/app/extension': typeof AppExtensionRoute
   '/app/templates': typeof AppTemplatesRoute
@@ -232,8 +259,11 @@ export interface FileRouteTypes {
     | '/drafts'
     | '/extension'
     | '/import-job'
+    | '/login'
     | '/templates'
     | '/app/applications'
+    | '/app/career'
+    | '/app/design-lab'
     | '/app/editor'
     | '/app/extension'
     | '/app/templates'
@@ -257,8 +287,11 @@ export interface FileRouteTypes {
     | '/drafts'
     | '/extension'
     | '/import-job'
+    | '/login'
     | '/templates'
     | '/app/applications'
+    | '/app/career'
+    | '/app/design-lab'
     | '/app/editor'
     | '/app/extension'
     | '/app/templates'
@@ -282,8 +315,11 @@ export interface FileRouteTypes {
     | '/drafts'
     | '/extension'
     | '/import-job'
+    | '/login'
     | '/templates'
     | '/app/applications'
+    | '/app/career'
+    | '/app/design-lab'
     | '/app/editor'
     | '/app/extension'
     | '/app/templates'
@@ -308,8 +344,11 @@ export interface RootRouteChildren {
   DraftsRoute: typeof DraftsRoute
   ExtensionRoute: typeof ExtensionRoute
   ImportJobRoute: typeof ImportJobRoute
+  LoginRoute: typeof LoginRoute
   TemplatesRoute: typeof TemplatesRoute
   AppApplicationsRoute: typeof AppApplicationsRoute
+  AppCareerRoute: typeof AppCareerRoute
+  AppDesignLabRoute: typeof AppDesignLabRoute
   AppEditorRoute: typeof AppEditorRoute
   AppExtensionRoute: typeof AppExtensionRoute
   AppTemplatesRoute: typeof AppTemplatesRoute
@@ -359,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportJobRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/templates': {
       id: '/templates'
       path: '/templates'
@@ -378,6 +424,20 @@ declare module '@tanstack/react-router' {
       path: '/app/applications'
       fullPath: '/app/applications'
       preLoaderRoute: typeof AppApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/career': {
+      id: '/app/career'
+      path: '/app/career'
+      fullPath: '/app/career'
+      preLoaderRoute: typeof AppCareerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/design-lab': {
+      id: '/app/design-lab'
+      path: '/app/design-lab'
+      fullPath: '/app/design-lab'
+      preLoaderRoute: typeof AppDesignLabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/editor': {
@@ -500,8 +560,11 @@ const rootRouteChildren: RootRouteChildren = {
   DraftsRoute: DraftsRoute,
   ExtensionRoute: ExtensionRoute,
   ImportJobRoute: ImportJobRoute,
+  LoginRoute: LoginRoute,
   TemplatesRoute: TemplatesRoute,
   AppApplicationsRoute: AppApplicationsRoute,
+  AppCareerRoute: AppCareerRoute,
+  AppDesignLabRoute: AppDesignLabRoute,
   AppEditorRoute: AppEditorRoute,
   AppExtensionRoute: AppExtensionRoute,
   AppTemplatesRoute: AppTemplatesRoute,

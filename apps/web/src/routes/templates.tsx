@@ -79,7 +79,7 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
         variant="fixed"
         title="Print-Ready CV Templates"
         titleAddon={
-          <span className="rounded-full bg-[#e8e0f3] px-2.5 py-0.5 text-xs font-medium text-[#625181] border border-[#ddd3e9]">
+          <span className="rounded-full bg-[var(--ui-accent-soft)] px-2.5 py-0.5 text-xs font-medium text-[var(--ui-accent)] border border-[var(--ui-accent-line)]">
             {templateCount} layouts
           </span>
         }
@@ -101,10 +101,10 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
               animate={{ opacity: 1, y: 0 }}
               transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25, delay: Math.min(idx * 0.03, 0.3) }}
               whileHover={shouldReduceMotion ? undefined : { y: -3 }}
-              className={`rounded-2xl border bg-[#fffefa] p-5 flex flex-col justify-between transition ${
+              className={`rounded-2xl border bg-[#ffffff] p-5 flex flex-col justify-between transition ${
                 isSelected
-                  ? "border-[#9782d8] ring-1 ring-[#9782d8]/40 shadow-xs"
-                  : "border-[#e8e7e2] hover:border-[#c9bcd9]"
+                  ? "border-[var(--ui-accent)] ring-1 ring-[var(--ui-accent)]/40 shadow-xs"
+                  : "border-[#e3e6eb] hover:border-[var(--ui-accent-line)]"
               }`}
             >
               <div>
@@ -115,41 +115,41 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
                   className="w-full text-left cursor-pointer group"
                   aria-label={`Preview full document for ${tmpl.name}`}
                 >
-                  <div className="h-48 bg-[#faf9f6] rounded-xl border border-[#e8e7e2] p-4 mb-4 flex flex-col justify-between overflow-hidden select-none shadow-2xs group-hover:border-[#9782d8]/60 transition">
+                  <div className="h-48 bg-[#f7f8fa] rounded-xl border border-[#e3e6eb] p-4 mb-4 flex flex-col justify-between overflow-hidden select-none shadow-2xs group-hover:border-[var(--ui-accent)]/60 transition">
                     <TemplateThumbnail layout={layout} templateId={tmpl.id} />
-                    <div className="flex items-center justify-between text-[10px] text-[#a2a096] font-mono mt-1 pt-1 border-t border-[#ecebe5]">
+                    <div className="flex items-center justify-between text-[10px] text-[#8b939f] font-mono mt-1 pt-1 border-t border-[#e3e6eb]">
                       <span>{meta?.category ?? "General"}</span>
-                      <span className="text-[#625181] group-hover:underline">Click to preview →</span>
+                      <span className="text-[var(--ui-accent)] group-hover:underline">Click to preview →</span>
                     </div>
                   </div>
                 </button>
 
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-medium text-[#292a27] text-base font-heading">{tmpl.name}</h3>
+                  <h3 className="font-medium text-[#191b20] text-base font-heading">{tmpl.name}</h3>
                   {isSelected && (
-                    <span className="text-xs font-medium text-[#79628f]">
+                    <span className="text-xs font-medium text-[var(--ui-accent)]">
                       Active
                     </span>
                   )}
                 </div>
 
                 {/* Persona Callout line (ensures SSR of persona names) */}
-                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#73736b]">
-                  <span className="font-semibold text-[#292a27] shrink-0">Sample:</span>
-                  <span className="font-medium text-[#625181] truncate">{sample.personName}</span>
-                  <span className="text-[#a8a79f] shrink-0">•</span>
-                  <span className="truncate text-[11px] text-[#8c8c83]">{sample.personRole}</span>
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#636c7a]">
+                  <span className="font-semibold text-[#191b20] shrink-0">Sample:</span>
+                  <span className="font-medium text-[var(--ui-accent)] truncate">{sample.personName}</span>
+                  <span className="text-[#8b939f] shrink-0">•</span>
+                  <span className="truncate text-[11px] text-[#8b939f]">{sample.personRole}</span>
                 </div>
 
-                <p className="text-xs text-[#73736b] mt-2 leading-relaxed">{tmpl.description}</p>
+                <p className="text-xs text-[#636c7a] mt-2 leading-relaxed">{tmpl.description}</p>
               </div>
 
               {/* Action Buttons: Split Preview and Apply */}
-              <div className="mt-5 pt-3.5 border-t border-[#e8e7e2] flex items-center gap-2">
+              <div className="mt-5 pt-3.5 border-t border-[#e3e6eb] flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPreviewModalTemplateId(tmpl.id)}
-                  className="flex-1 py-2 px-3 rounded-lg text-xs font-medium border border-[#e4e3dd] bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] transition cursor-pointer text-center"
+                  className="flex-1 py-2 px-3 rounded-lg text-xs font-medium border border-[#e3e6eb] bg-[#f1f3f6] hover:bg-[#e3e6eb] text-[#191b20] transition cursor-pointer text-center"
                 >
                   Preview
                 </button>
@@ -159,8 +159,8 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
                   onClick={() => handleSelectTemplate(tmpl.id)}
                   className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition cursor-pointer text-center ${
                     isSelected
-                      ? "bg-[#30332d] hover:bg-[#4a4e43] text-white shadow-xs"
-                      : "bg-[#625181] hover:bg-[#52436d] text-white shadow-2xs"
+                      ? "bg-[#191b20] hover:bg-[#3f4753] text-white shadow-xs"
+                      : "bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white shadow-2xs"
                   }`}
                 >
                   {isSelected ? "Open in Editor" : "Apply"}
@@ -177,31 +177,31 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
           role="dialog"
           aria-modal="true"
           aria-labelledby="preview-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#292a27]/60 backdrop-blur-xs no-print"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#191b20]/60 backdrop-blur-xs no-print"
           onClick={() => setPreviewModalTemplateId(null)}
         >
           <div
-            className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+            className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e8e7e2] p-4 sm:p-5 bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e3e6eb] p-4 sm:p-5 bg-white">
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h2 id="preview-modal-title" className="text-base sm:text-lg font-bold text-[#292a27] font-heading">
+                  <h2 id="preview-modal-title" className="text-base sm:text-lg font-bold text-[#191b20] font-heading">
                     {activePreviewSample.templateName}
                   </h2>
-                  <span className="rounded-full bg-[#e8e0f3] px-2 py-0.5 text-[11px] font-medium text-[#625181]">
+                  <span className="rounded-full bg-[var(--ui-accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--ui-accent)]">
                     {activePreviewSample.templateDesc}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-[#73736b] mt-1">
-                  <span className="font-semibold text-[#292a27]">Sample profile:</span>
-                  <span className="text-[#625181] font-medium">{activePreviewSample.personName}</span>
-                  <span className="text-[#a8a79f]">•</span>
+                <div className="flex items-center gap-1.5 text-xs text-[#636c7a] mt-1">
+                  <span className="font-semibold text-[#191b20]">Sample profile:</span>
+                  <span className="text-[var(--ui-accent)] font-medium">{activePreviewSample.personName}</span>
+                  <span className="text-[#8b939f]">•</span>
                   <span>{activePreviewSample.personRole}</span>
-                  <span className="text-[#a8a79f] hidden sm:inline">•</span>
-                  <span className="text-[11px] text-[#93938a] hidden sm:inline">(fictional sample for preview)</span>
+                  <span className="text-[#8b939f] hidden sm:inline">•</span>
+                  <span className="text-[11px] text-[#8b939f] hidden sm:inline">(fictional sample for preview)</span>
                 </div>
               </div>
 
@@ -209,14 +209,14 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
                 <button
                   type="button"
                   onClick={() => handleSelectTemplate(activePreviewSample.templateId)}
-                  className="rounded-lg bg-[#292a27] px-4 py-2 text-xs font-medium text-white shadow-2xs hover:bg-[#41423c] transition cursor-pointer"
+                  className="rounded-lg bg-[#191b20] px-4 py-2 text-xs font-medium text-white shadow-2xs hover:bg-[#3f4753] transition cursor-pointer"
                 >
                   Use this template in editor
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewModalTemplateId(null)}
-                  className="text-[#73736b] hover:text-[#292a27] text-2xl leading-none px-2 py-1 cursor-pointer rounded-lg hover:bg-[#f5f4f0]"
+                  className="text-[#636c7a] hover:text-[#191b20] text-2xl leading-none px-2 py-1 cursor-pointer rounded-lg hover:bg-[#f1f3f6]"
                   aria-label="Close preview modal"
                 >
                   ×
@@ -225,25 +225,25 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
             </div>
 
             {/* Privacy notice callout */}
-            <div className="bg-[#faf9f6] border-b border-[#ecebe5] px-4 sm:px-6 py-2 text-xs text-[#73736b] flex items-center justify-between">
+            <div className="bg-[#f7f8fa] border-b border-[#e3e6eb] px-4 sm:px-6 py-2 text-xs text-[#636c7a] flex items-center justify-between">
               <span>
                 <strong>Sample data only:</strong> Applying this layout transfers only the template preference to your editor. Your saved master CV content remains strictly separate and is never modified.
               </span>
             </div>
 
             {/* Document Render Canvas */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 bg-[#f4f2ed]">
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 bg-[#f1f3f6]">
               <div className="max-w-3xl mx-auto">
                 <CvPrintPreview cv={activePreviewSample.cv} />
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between border-t border-[#e8e7e2] p-4 bg-white">
+            <div className="flex items-center justify-between border-t border-[#e3e6eb] p-4 bg-white">
               <button
                 type="button"
                 onClick={() => setPreviewModalTemplateId(null)}
-                className="rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] hover:bg-[#eeede7] text-[#292a27] px-4 py-2 text-xs font-medium cursor-pointer"
+                className="rounded-lg border border-[#e3e6eb] bg-[#f1f3f6] hover:bg-[#e3e6eb] text-[#191b20] px-4 py-2 text-xs font-medium cursor-pointer"
               >
                 Close preview
               </button>
@@ -251,7 +251,7 @@ export function TemplatesComponent({ config: propConfig }: { config?: AppConfig 
               <button
                 type="button"
                 onClick={() => handleSelectTemplate(activePreviewSample.templateId)}
-                className="rounded-lg bg-[#625181] hover:bg-[#52436d] text-white px-5 py-2 text-xs font-medium shadow-2xs cursor-pointer"
+                className="rounded-lg bg-[var(--ui-accent)] hover:bg-[var(--ui-accent-hover)] text-white px-5 py-2 text-xs font-medium shadow-2xs cursor-pointer"
               >
                 Use {activePreviewSample.templateName}
               </button>

@@ -204,7 +204,7 @@ function AISettingsComponent() {
       variant="fixed"
       title="AI Provider Settings"
       titleAddon={
-        <span className="rounded-md bg-[#eeede7] px-2 py-0.5 text-xs font-medium text-[#73736b]">
+        <span className="rounded-md bg-[#e3e6eb] px-2 py-0.5 text-xs font-medium text-[#636c7a]">
           BYOK
         </span>
       }
@@ -226,21 +226,21 @@ function AISettingsComponent() {
       )}
 
       {loading ? (
-        <div className="p-12 text-center text-[#73736b] text-sm bg-[#fffefa] rounded-2xl border border-[#e8e7e2]">Loading AI settings...</div>
+        <div className="p-12 text-center text-[#636c7a] text-sm bg-[#ffffff] rounded-2xl border border-[#e3e6eb]">Loading AI settings...</div>
       ) : (
         <>
           {/* Active Configuration View */}
           {config?.configured && !isEditing && (
-            <div className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] shadow-xs p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-4">
+            <div className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] shadow-xs p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-[#e3e6eb] pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-bold text-[#292a27] font-heading">Configured Provider</h2>
+                    <h2 className="text-base font-bold text-[#191b20] font-heading">Configured Provider</h2>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                       Active
                     </span>
                   </div>
-                  <p className="text-xs text-[#73736b] mt-0.5">
+                  <p className="text-xs text-[#636c7a] mt-0.5">
                     Ready for CV tailoring and extraction
                   </p>
                 </div>
@@ -249,7 +249,7 @@ function AISettingsComponent() {
                     type="button"
                     onClick={handleTestExisting}
                     disabled={testing}
-                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] text-[#292a27] hover:bg-[#eeede7] transition cursor-pointer disabled:opacity-50"
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[#e3e6eb] bg-[#f1f3f6] text-[#191b20] hover:bg-[#e3e6eb] transition cursor-pointer disabled:opacity-50"
                   >
                     {testing ? "Testing..." : "Test Connection"}
                   </button>
@@ -260,7 +260,7 @@ function AISettingsComponent() {
                       setProvider(config.provider || "openai");
                       setModel(config.model || DEFAULT_MODELS[config.provider || "openai"]);
                     }}
-                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#e8e0f3] text-[#625181] hover:bg-[#ddd3e9] transition cursor-pointer"
+                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[var(--ui-accent-soft)] text-[var(--ui-accent)] hover:bg-[var(--ui-accent-line)] transition cursor-pointer"
                   >
                     Replace Key
                   </button>
@@ -276,36 +276,36 @@ function AISettingsComponent() {
               </div>
 
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
-                  <dt className="text-[#92928a] font-medium">Provider</dt>
-                  <dd className="mt-1 font-bold text-[#292a27] text-sm">
+                <div className="p-3.5 bg-[#f7f8fa] border border-[#e3e6eb] rounded-xl">
+                  <dt className="text-[#8b939f] font-medium">Provider</dt>
+                  <dd className="mt-1 font-bold text-[#191b20] text-sm">
                     {PROVIDER_NAMES[config.provider || "openai"]}
                   </dd>
                 </div>
-                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
-                  <dt className="text-[#92928a] font-medium">Model</dt>
-                  <dd className="mt-1 font-mono text-xs font-semibold text-[#292a27]">
+                <div className="p-3.5 bg-[#f7f8fa] border border-[#e3e6eb] rounded-xl">
+                  <dt className="text-[#8b939f] font-medium">Model</dt>
+                  <dd className="mt-1 font-mono text-xs font-semibold text-[#191b20]">
                     {config.model}
                   </dd>
                 </div>
-                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
-                  <dt className="text-[#92928a] font-medium">API Key</dt>
-                  <dd className="mt-1 font-mono text-xs text-[#73736b]">
+                <div className="p-3.5 bg-[#f7f8fa] border border-[#e3e6eb] rounded-xl">
+                  <dt className="text-[#8b939f] font-medium">API Key</dt>
+                  <dd className="mt-1 font-mono text-xs text-[#636c7a]">
                     {config.maskedKey || "••••••••"}
                   </dd>
                 </div>
-                <div className="p-3.5 bg-[#faf9f6] border border-[#e8e7e2] rounded-xl">
-                  <dt className="text-[#92928a] font-medium">Endpoint</dt>
-                  <dd className="mt-1 text-xs text-[#73736b] font-mono truncate">
+                <div className="p-3.5 bg-[#f7f8fa] border border-[#e3e6eb] rounded-xl">
+                  <dt className="text-[#8b939f] font-medium">Endpoint</dt>
+                  <dd className="mt-1 text-xs text-[#636c7a] font-mono truncate">
                     {PROVIDER_ENDPOINTS[config.provider || "openai"]}
                   </dd>
                 </div>
               </dl>
 
-              <div className="rounded-xl bg-[#faf9f6] p-4 border border-[#eeeadd] text-xs text-[#73736b] space-y-1">
-                <div className="font-semibold text-[#292a27]">Storage & Privacy Details</div>
+              <div className="rounded-xl bg-[#f7f8fa] p-4 border border-[#f1f3f6] text-xs text-[#636c7a] space-y-1">
+                <div className="font-semibold text-[#191b20]">Storage & Privacy Details</div>
                 <p>{config.disclosure}</p>
-                <p className="text-[#92928a]">
+                <p className="text-[#8b939f]">
                   Raw keys are never logged, never returned to the browser, and never exposed to the Chrome extension.
                 </p>
               </div>
@@ -314,13 +314,13 @@ function AISettingsComponent() {
 
           {/* Configuration / Replace Form */}
           {isEditing && (
-            <form onSubmit={handleSaveAndTest} className="rounded-2xl border border-[#e8e7e2] bg-[#fffefa] shadow-xs p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-[#e8e7e2] pb-4">
+            <form onSubmit={handleSaveAndTest} className="rounded-2xl border border-[#e3e6eb] bg-[#ffffff] shadow-xs p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-[#e3e6eb] pb-4">
                 <div>
-                  <h2 className="text-base font-bold text-[#292a27] font-heading">
+                  <h2 className="text-base font-bold text-[#191b20] font-heading">
                     {config?.configured ? "Replace AI Provider Key" : "Configure AI Provider"}
                   </h2>
-                  <p className="text-xs text-[#73736b] mt-0.5">
+                  <p className="text-xs text-[#636c7a] mt-0.5">
                     Select your provider and enter your API credentials
                   </p>
                 </div>
@@ -328,7 +328,7 @@ function AISettingsComponent() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="text-xs text-[#73736b] hover:text-[#292a27] cursor-pointer"
+                    className="text-xs text-[#636c7a] hover:text-[#191b20] cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -337,7 +337,7 @@ function AISettingsComponent() {
 
               {/* Provider Selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#636c7a]">
                   Select Provider
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -348,12 +348,12 @@ function AISettingsComponent() {
                       onClick={() => handleProviderChange(p)}
                       className={`p-3.5 rounded-xl border text-left cursor-pointer transition ${
                         provider === p
-                          ? "border-[#9782d8] bg-[#e8e0f3]/30 ring-2 ring-[#9782d8]/20"
-                          : "border-[#e8e7e2] hover:border-[#c9bcd9] bg-white"
+                          ? "border-[var(--ui-accent)] bg-[var(--ui-accent-soft)]/30 ring-2 ring-[var(--ui-accent)]/20"
+                          : "border-[#e3e6eb] hover:border-[var(--ui-accent-line)] bg-white"
                       }`}
                     >
-                      <div className="font-bold text-xs text-[#292a27]">{PROVIDER_NAMES[p]}</div>
-                      <div className="text-[11px] text-[#73736b] mt-1 font-mono">Default: {DEFAULT_MODELS[p]}</div>
+                      <div className="font-bold text-xs text-[#191b20]">{PROVIDER_NAMES[p]}</div>
+                      <div className="text-[11px] text-[#636c7a] mt-1 font-mono">Default: {DEFAULT_MODELS[p]}</div>
                     </button>
                   ))}
                 </div>
@@ -362,13 +362,13 @@ function AISettingsComponent() {
               {/* API Key Input */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="apiKey" className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
+                  <label htmlFor="apiKey" className="block text-xs font-bold uppercase tracking-wider text-[#636c7a]">
                     API Key
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowKey(!showKey)}
-                    className="text-xs text-[#625181] hover:underline cursor-pointer font-medium"
+                    className="text-xs text-[var(--ui-accent)] hover:underline cursor-pointer font-medium"
                   >
                     {showKey ? "Hide key" : "Show key"}
                   </button>
@@ -389,16 +389,16 @@ function AISettingsComponent() {
                   autoComplete="off"
                   spellCheck="false"
                   required
-                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e8e7e2] rounded-xl focus:outline-hidden focus:border-[#9782d8] bg-white text-[#292a27]"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e3e6eb] rounded-xl focus:outline-hidden focus:border-[var(--ui-accent)] bg-white text-[#191b20]"
                 />
-                <p className="text-[11px] text-[#92928a]">
+                <p className="text-[11px] text-[#8b939f]">
                   Key is sent directly to the local JobAI server and saved with file mode 0600. It is never logged or exposed.
                 </p>
               </div>
 
               {/* Model Input */}
               <div className="space-y-2">
-                <label htmlFor="model" className="block text-xs font-bold uppercase tracking-wider text-[#73736b]">
+                <label htmlFor="model" className="block text-xs font-bold uppercase tracking-wider text-[#636c7a]">
                   Model ID
                 </label>
                 <input
@@ -408,19 +408,19 @@ function AISettingsComponent() {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                   placeholder={DEFAULT_MODELS[provider]}
-                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e8e7e2] rounded-xl focus:outline-hidden focus:border-[#9782d8] bg-white text-[#292a27]"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono border border-[#e3e6eb] rounded-xl focus:outline-hidden focus:border-[var(--ui-accent)] bg-white text-[#191b20]"
                 />
-                <p className="text-[11px] text-[#92928a]">
+                <p className="text-[11px] text-[#8b939f]">
                   Default: <span className="font-mono">{DEFAULT_MODELS[provider]}</span>. You may enter any model supported by your provider account.
                 </p>
               </div>
 
               {/* Security & Data Transfer Disclosure */}
-              <div className="rounded-xl bg-[#faf9f6] border border-[#eeeadd] p-4 space-y-2 text-xs text-[#4a4e43]">
-                <div className="font-bold flex items-center gap-1.5 text-[#292a27]">
+              <div className="rounded-xl bg-[#f7f8fa] border border-[#f1f3f6] p-4 space-y-2 text-xs text-[#3f4753]">
+                <div className="font-bold flex items-center gap-1.5 text-[#191b20]">
                   <span>Data Transfer &amp; Storage Disclosure</span>
                 </div>
-                <ul className="list-disc list-inside space-y-1 text-[11px] text-[#73736b] leading-relaxed">
+                <ul className="list-disc list-inside space-y-1 text-[11px] text-[#636c7a] leading-relaxed">
                   <li>
                     <strong>Network:</strong> AI requests send your CV text and target job posting directly to {PROVIDER_ENDPOINTS[provider]}.
                   </li>
@@ -440,9 +440,9 @@ function AISettingsComponent() {
                     type="checkbox"
                     checked={consentGiven}
                     onChange={(e) => setConsentGiven(e.target.checked)}
-                    className="mt-0.5 rounded text-[#625181] focus:ring-[#9782d8]"
+                    className="mt-0.5 rounded text-[var(--ui-accent)] focus:ring-[var(--ui-accent)]"
                   />
-                  <span className="text-xs font-medium text-[#292a27] select-none">
+                  <span className="text-xs font-medium text-[#191b20] select-none">
                     I understand that requests send CV/job text to {PROVIDER_NAMES[provider]} and consent to the minimal verification test call.
                   </span>
                 </label>
@@ -454,7 +454,7 @@ function AISettingsComponent() {
                   <button
                     type="button"
                     onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 text-xs font-medium rounded-lg border border-[#e4e3dd] bg-[#f5f4f0] text-[#292a27] hover:bg-[#eeede7] transition cursor-pointer"
+                    className="px-4 py-2 text-xs font-medium rounded-lg border border-[#e3e6eb] bg-[#f1f3f6] text-[#191b20] hover:bg-[#e3e6eb] transition cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -462,7 +462,7 @@ function AISettingsComponent() {
                 <button
                   type="submit"
                   disabled={saving || !consentGiven || !apiKey.trim()}
-                  className="px-5 py-2.5 text-xs font-semibold rounded-lg bg-[#30332d] text-white hover:bg-[#4a4e43] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
+                  className="px-5 py-2.5 text-xs font-semibold rounded-lg bg-[#191b20] text-white hover:bg-[#3f4753] transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
                 >
                   {saving ? "Verifying & Saving..." : "Save & Test Connection"}
                 </button>

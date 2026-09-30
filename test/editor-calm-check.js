@@ -29,9 +29,12 @@ assert(indexContent.includes("more-actions-button"), "Header must include More a
 assert(indexContent.includes("Import document..."), "More actions must include Import document");
 assert(indexContent.includes("Reset CV..."), "More actions must include Reset CV");
 assert(indexContent.includes("Clear entire CV?"), "Reset must have confirmation dialog");
-assert(indexContent.includes("lg:w-[340px]"), "Inspector width must be within 320-360px contract (w-[340px])");
-assert(indexContent.includes("lg:flex-1 min-w-0"), "Paper canvas must have min-width zero and flexible width");
-assert(indexContent.includes('role="tab"'), "View switcher must use accessible tabs");
+assert(indexContent.includes("editor-studio-layout"), "Editor must use the full-width studio layout");
+assert(indexContent.includes("Show preview"), "Preview must be an optional secondary action");
+assert(!indexContent.includes("{showPreview &&"), "PDF paper must remain mounted when preview is closed");
+assert(indexContent.includes("data-visible={showPreview}"), "Hidden preview must use the offscreen export container");
+assert(!indexContent.includes("work-editor-steps"), "Editor must not duplicate the workflow wizard");
+assert(indexContent.includes("Save CV"), "Profile save action must remain available");
 assert(!indexContent.includes("Overview / Document Studio"), "Repeated Document Studio breadcrumb stack must be removed");
 console.log("✓ index.tsx composition satisfies UX01 contract");
 
@@ -42,8 +45,8 @@ const editorContent = fs.readFileSync(editorPath, "utf-8");
 console.log("2. Checking Editor.tsx inspector tabs, groups, and controls...");
 assert(editorContent.includes('id="tab-content"'), "Inspector must have Content tab");
 assert(editorContent.includes('id="tab-styles"'), "Inspector must have Design & Spacing tab");
-assert(editorContent.includes("bg-[#9782d8]"), "Inspector tabs must use subdued underline lavender treatment");
-assert(!editorContent.includes("bg-[#30332d] text-white shadow-2xs font-semibold py-1.5 px-4 rounded-lg"), "Inspector tabs must not use heavy dark pill");
+assert(editorContent.includes("studio-tab"), "Editor tabs must use the readable studio treatment");
+assert(editorContent.includes("studio-section-nav"), "Content editor must offer direct section navigation");
 assert(editorContent.includes("Contact Details"), "Content tab must have Contact Details");
 assert(editorContent.includes("Professional Summary"), "Content tab must have Professional Summary");
 assert(editorContent.includes("Document Sections"), "Content tab must have Document Sections");
@@ -83,13 +86,20 @@ assert(editorContent.includes("210 × 297 mm"), "Paper size must show A4 dimensi
 assert(editorContent.includes("8.5 × 11 in"), "Paper size must show Letter dimensions");
 
 // Check named swatches
-for (const name of ["Indigo", "Slate", "Navy", "Emerald", "Burgundy"]) {
+for (const name of ["Blue", "Slate", "Navy", "Charcoal"]) {
   assert(editorContent.includes(name), `Accent colors must include named swatch: ${name}`);
 }
 
 // Check selection visible beyond color alone
 assert(editorContent.includes("✓"), "Selection must show checkmark indicator beyond color alone");
 console.log("✓ Editor.tsx controls and design groups satisfy UX01 contract");
+
+const editorStylesPath = path.join(rootDir, "apps/web/src/components/editor-studio.css");
+const editorStyles = fs.readFileSync(editorStylesPath, "utf-8");
+assert(editorStyles.includes("minmax(580px, 1.3fr)"), "Form must keep a usable minimum width beside optional preview");
+assert(editorStyles.includes("font-size: 16px"), "Main editor text and controls must be readable");
+assert(editorStyles.includes("min-height: 46px"), "Editor controls must have usable touch height");
+assert(editorStyles.includes("@media print"), "Editor controls must stay outside the printed document");
 
 // 3. Verify CvPrintPreview.tsx neutral canvas and print-proportioned paper
 const previewPath = path.join(rootDir, "apps/web/src/components/CvPrintPreview.tsx");
@@ -101,7 +111,7 @@ assert(previewContent.includes('h: "297mm"'), "A4 paper height must be fixed at 
 assert(previewContent.includes('w: "8.5in"'), "Letter paper width must be fixed at 8.5in");
 assert(previewContent.includes("transform: `scale("), "Paper must scale via CSS transform, not reflow");
 assert(previewContent.includes("ResizeObserver"), "Scale must track container width");
-assert(previewContent.includes("bg-[#f4f2ed]"), "Canvas must be calm neutral background");
+assert(previewContent.includes("bg-[#f1f3f6]"), "Canvas must be calm neutral background");
 assert(!previewContent.includes("shadow-inner border border-[#e1dccd]"), "Canvas must not have heavy inner shadow or nested card shell");
 assert(previewContent.includes("cv-print-target"), "Paper must retain print target class");
 assert(previewContent.includes('id="cv-paper"'), "Paper must keep #cv-paper export hook");

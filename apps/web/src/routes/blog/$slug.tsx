@@ -48,10 +48,10 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
         {isApp ? (
           <Link
             to="/app/blog"
-            className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
+            className="inline-flex items-center gap-2 text-sm text-[#636c7a] hover:text-[#191b20] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] rounded-sm"
           >
             <svg
-              className="w-4 h-4 text-[#9b9a92]"
+              className="w-4 h-4 text-[#8b939f]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -69,10 +69,10 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
         ) : (
           <Link
             to="/blog"
-            className="inline-flex items-center gap-2 text-sm text-[#73736b] hover:text-[#292a27] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8] rounded-sm"
+            className="inline-flex items-center gap-2 text-sm text-[#636c7a] hover:text-[#191b20] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] rounded-sm"
           >
             <svg
-              className="w-4 h-4 text-[#9b9a92]"
+              className="w-4 h-4 text-[#8b939f]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -94,8 +94,8 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
       <article className="mx-auto max-w-[65ch]" aria-labelledby="article-header-title">
         {/* Article Header */}
         <header className="mb-8">
-          <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#8c8d81] mb-3">
-            <span className="font-medium text-[#625181] bg-[#e8e3f1] px-2.5 py-0.5 rounded-full">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs text-[#8b939f] mb-3">
+            <span className="font-medium text-[var(--ui-accent)] bg-[var(--ui-accent-soft)] px-2.5 py-0.5 rounded-full">
               {article.category}
             </span>
             <span aria-hidden="true">•</span>
@@ -105,11 +105,11 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
           </div>
           <h1
             id="article-header-title"
-            className="text-3xl sm:text-4xl font-medium tracking-tight text-[#292a27] leading-[1.2] mb-4"
+            className="text-3xl sm:text-4xl font-semibold tracking-[-0.03em] text-[#191b20] leading-[1.15] mb-4 font-heading"
           >
             {article.title}
           </h1>
-          <p className="text-lg text-[#5a5b54] leading-relaxed">
+          <p className="text-lg text-[#636c7a] leading-relaxed">
             {article.lead}
           </p>
         </header>
@@ -117,9 +117,9 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
         {/* Subtle Practical Tip Callout */}
         <aside
           aria-label={article.tip.title}
-          className="my-8 rounded-xl border border-[#e6e5da] bg-[#f2f2e9] p-5 sm:p-6 flex items-start gap-4"
+          className="my-8 rounded-2xl border border-[#e3e6eb] bg-[#f1f3f6] p-5 sm:p-6 flex items-start gap-4"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e5e7d4] text-[#728564]">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e3e7ed] text-[#636c7a]">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -136,10 +136,10 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#728564]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#636c7a]">
               {article.tip.title}
             </h2>
-            <p className="mt-1 text-sm text-[#5a5b54] leading-relaxed">
+            <p className="mt-1 text-sm text-[#636c7a] leading-relaxed">
               {article.tip.content}
             </p>
           </div>
@@ -151,7 +151,7 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
             <section key={idx} aria-labelledby={`section-heading-${idx}`}>
               <h2
                 id={`section-heading-${idx}`}
-                className="text-xl sm:text-2xl font-medium text-[#292a27] tracking-tight mt-8 mb-4"
+                className="text-xl sm:text-2xl font-medium text-[#191b20] tracking-tight mt-8 mb-4"
               >
                 {section.heading}
               </h2>
@@ -159,7 +159,7 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
               {section.paragraphs?.map((p, pIdx) => (
                 <p
                   key={pIdx}
-                  className="text-[15px] sm:text-base text-[#41423c] leading-relaxed mb-4"
+                  className="text-[15px] sm:text-base text-[#3f4753] leading-relaxed mb-4"
                 >
                   {p}
                 </p>
@@ -168,13 +168,13 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
               {section.orderedItems && (
                 <ol className="my-4 space-y-3 pl-1">
                   {section.orderedItems.map((item, oIdx) => (
-                    <li key={oIdx} className="flex items-start gap-3 text-sm sm:text-[15px] text-[#41423c] leading-relaxed">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#e8e3f1] text-xs font-semibold text-[#625181]">
+                    <li key={oIdx} className="flex items-start gap-3 text-sm sm:text-[15px] text-[#3f4753] leading-relaxed">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--ui-accent-soft)] text-xs font-semibold text-[var(--ui-accent)]">
                         {oIdx + 1}
                       </span>
                       <div>
-                        <strong className="font-medium text-[#292a27]">{item.label}</strong>
-                        <span className="text-[#73736b]"> — </span>
+                        <strong className="font-medium text-[#191b20]">{item.label}</strong>
+                        <span className="text-[#636c7a]"> — </span>
                         <span>{item.text}</span>
                       </div>
                     </li>
@@ -185,8 +185,8 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
               {section.unorderedItems && (
                 <ul className="my-4 space-y-2.5 pl-2">
                   {section.unorderedItems.map((item, uIdx) => (
-                    <li key={uIdx} className="flex items-start gap-2.5 text-sm sm:text-[15px] text-[#41423c] leading-relaxed">
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#9782d8]" aria-hidden="true" />
+                    <li key={uIdx} className="flex items-start gap-2.5 text-sm sm:text-[15px] text-[#3f4753] leading-relaxed">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ui-accent)]" aria-hidden="true" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -195,41 +195,41 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
 
               {/* Labeled Fictional Example */}
               {section.fictionalExample && (
-                <div className="my-6 rounded-xl border border-[#e8e6dd] bg-white p-5 sm:p-6 shadow-2xs">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f0efe7] pb-3 mb-4">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8c8d81]">
+                <div className="my-6 rounded-xl border border-[#e3e6eb] bg-white p-5 sm:p-6 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f1f3f6] pb-3 mb-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#8b939f]">
                       Fictional Example
                     </span>
-                    <span className="text-xs text-[#73736b] bg-[#f5f4f0] px-2.5 py-0.5 rounded-md">
+                    <span className="text-xs text-[#636c7a] bg-[#f1f3f6] px-2.5 py-0.5 rounded-md">
                       {section.fictionalExample.targetRole}
                     </span>
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="rounded-lg border border-[#ecebe6] bg-[#faf9f6] p-4">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-[#8c8d81] mb-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#c7c5bc]" />
+                    <div className="rounded-lg border border-[#e3e6eb] bg-[#f7f8fa] p-4">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-[#8b939f] mb-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#c5cbd4]" />
                         <span>{section.fictionalExample.before.label}</span>
                       </div>
-                      <ul className="space-y-2 text-xs sm:text-[13px] text-[#73736b]">
+                      <ul className="space-y-2 text-xs sm:text-[13px] text-[#636c7a]">
                         {section.fictionalExample.before.items.map((bItem, bIdx) => (
                           <li key={bIdx} className="flex items-start gap-2">
-                            <span className="text-[#c7c5bc]">•</span>
+                            <span className="text-[#c5cbd4]">•</span>
                             <span>{bItem}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="rounded-lg border border-[#ddd3e9] bg-[#f8f6fb] p-4">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-[#625181] mb-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#9782d8]" />
+                    <div className="rounded-lg border border-[var(--ui-accent-line)] bg-[var(--ui-accent-soft)] p-4">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--ui-accent)] mb-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--ui-accent)]" />
                         <span>{section.fictionalExample.after.label}</span>
                       </div>
-                      <ul className="space-y-2 text-xs sm:text-[13px] text-[#41394d]">
+                      <ul className="space-y-2 text-xs sm:text-[13px] text-[var(--ui-accent-hover)]">
                         {section.fictionalExample.after.items.map((aItem, aIdx) => (
                           <li key={aIdx} className="flex items-start gap-2">
-                            <span className="text-[#9782d8]">•</span>
+                            <span className="text-[var(--ui-accent)]">•</span>
                             <span>{aItem}</span>
                           </li>
                         ))}
@@ -238,7 +238,7 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
                   </div>
 
                   {section.fictionalExample.note && (
-                    <p className="mt-4 text-xs text-[#8c8d81] italic">
+                    <p className="mt-4 text-xs text-[#8b939f] italic">
                       {section.fictionalExample.note}
                     </p>
                   )}
@@ -247,10 +247,10 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
 
               {/* Inspection Checklist Table */}
               {section.table && (
-                <div className="my-6 overflow-x-auto rounded-xl border border-[#e8e6dd] bg-white shadow-2xs">
+                <div className="my-6 overflow-x-auto rounded-xl border border-[#e3e6eb] bg-white shadow-2xs">
                   <table className="w-full text-left text-xs sm:text-sm">
                     <thead>
-                      <tr className="border-b border-[#e8e6dd] bg-[#f5f4f0] text-[#73736b]">
+                      <tr className="border-b border-[#e3e6eb] bg-[#f1f3f6] text-[#636c7a]">
                         {section.table.headers.map((th, thIdx) => (
                           <th key={thIdx} className="px-4 py-3 font-medium">
                             {th}
@@ -258,14 +258,14 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#f0ede6]">
+                    <tbody className="divide-y divide-[#f1f3f6]">
                       {section.table.rows.map((row, rIdx) => (
-                        <tr key={rIdx} className="hover:bg-[#faf9f6]/50">
+                        <tr key={rIdx} className="hover:bg-[#f7f8fa]/50">
                           {row.map((cell, cIdx) => (
                             <td
                               key={cIdx}
-                              className={`px-4 py-3 text-[#41423c] ${
-                                cIdx === 0 ? "font-medium text-[#292a27]" : ""
+                              className={`px-4 py-3 text-[#3f4753] ${
+                                cIdx === 0 ? "font-medium text-[#191b20]" : ""
                               }`}
                             >
                               {cell}
@@ -282,19 +282,19 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
         </div>
 
         {/* Quiet Ending Link to Existing CV Editor */}
-        <footer className="mt-12 pt-8 border-t border-[#e8e7e2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <footer className="mt-12 pt-8 border-t border-[#e3e6eb] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-medium text-[#292a27]">
+            <h2 className="text-sm font-medium text-[#191b20]">
               Ready to apply these principles?
             </h2>
-            <p className="text-xs text-[#8c8d81] mt-0.5">
+            <p className="text-xs text-[#8b939f] mt-0.5">
               Return to your local CV editor to refine your active draft.
             </p>
           </div>
           {isApp ? (
             <Link
               to="/app/editor"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#191b20] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#3f4753] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
             >
               <span>Open CV Editor</span>
               <svg
@@ -316,7 +316,7 @@ export function BlogSlugPageComponent({ slug, isApp = false }: { slug: string; i
             <Link
               to="/"
               search={{ view: "editor" }}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#191b20] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#3f4753] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
             >
               <span>Open CV Editor</span>
               <svg
@@ -350,9 +350,9 @@ function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
       className="text-center"
     >
       <div className="mx-auto max-w-md">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f2f0ea] text-[#73736b] mb-4">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f1f3f6] text-[#636c7a] mb-4">
           <svg
-            className="w-6 h-6 text-[#9b9a92]"
+            className="w-6 h-6 text-[#8b939f]"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -369,7 +369,7 @@ function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
         {isApp ? (
           <Link
             to="/app/blog"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#191b20] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#3f4753] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
           >
             <svg
               className="w-4 h-4"
@@ -390,7 +390,7 @@ function BlogNotFound({ isApp = false }: { isApp?: boolean }) {
         ) : (
           <Link
             to="/blog"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#30332d] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#4a4e43] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#9782d8]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#191b20] px-4 py-2.5 text-xs font-medium text-white hover:bg-[#3f4753] transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)]"
           >
             <svg
               className="w-4 h-4"

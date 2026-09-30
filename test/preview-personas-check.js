@@ -180,8 +180,8 @@ const homeRes = await fetchUrl(`${baseUrl}/`);
 assert.strictEqual(homeRes.status, 200, "Homepage must return 200 OK");
 const homeHtml = homeRes.body;
 assert.ok(homeHtml.includes("Print-Ready CV Templates"), "Homepage gallery section present");
-assert.ok(homeHtml.includes("Sample profile:"), "Sample profile callout present on homepage");
-assert.ok(homeHtml.includes("Grace Hopper"), "Modern Clean persona Grace Hopper present on homepage");
+assert.ok(homeHtml.includes("20 Professional Layouts"), "20 layouts badge present on homepage");
+assert.ok(homeHtml.includes("/templates"), "Link to /templates gallery present on homepage");
 console.log("✓ Homepage template gallery synced with new persona data");
 
 console.log("==================================================");
