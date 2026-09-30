@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import { newRecord, recordEvent, isComplete, completionMs, validateRecord, mergeRecords, summarize } from '../apps/web/public/design-options/experiment.mjs';
+const base = 1800000000000;
+const record = newRecord('test-participant-01', 0.2, base, 'logistics');
+assert.equal(record.variant, 'neutral');
+assert.equal(newRecord('tester-02', .5, base, 'tech').variant, 'blueprint');
+assert.equal(newRecord('tester-03', .9, base, 'service').variant, 'signal');
+let attempt = recordEvent(record, 'started', base + 500);
+attempt = recordEvent(attempt, 'review', base + 4000);
+attempt = recordEvent(attempt, 'layout', base + 8000);
+attempt = recordEvent(attempt, 'layout_confirmed', base + 12000);
+assert.equal(isComplete(attempt), false, 'Skipping a wording choice must not count as completion');
+attempt = recordEvent(attempt, 'decision', base + 15000);
+assert.equal(isComplete(attempt), true);
+assert.equal(completionMs(attempt), 14500);
+assert.equal(recordEvent(attempt, 'decision', base + 22000), attempt, 'Repeated visits must not inflate or overwrite milestones');
+assert.equal(recordEvent(attempt, 'cv-text', base + 23000), attempt, 'Unknown event is ignored');
+assert.deepEqual(validateRecord({ ...attempt, cvText: 'Never retain me', events: { ...attempt.events, fileName: 'private.pdf' } }), attempt);
+assert.equal(mergeRecords([record], [attempt, attempt]).length, 1, 'Repeated exports count once');
+assert.equal(mergeRecords([attempt], [record])[0].events.decision, 15000, 'Old exports cannot replace recent results');
+assert.throws(() => mergeRecords([attempt], [{ ...attempt, variant: 'signal' }]), /Conflicting/);
+assert.throws(() => validateRecord({ ...attempt, events: { started: 500, review: -1 } }));
+assert.throws(() => validateRecord({ ...attempt, events: { started: 500, review: 100 } }));
+assert.throws(() => validateRecord({ ...attempt, events: { started: 500, review: 20000 } }));
+assert.throws(() => validateRecord({ ...attempt, study: 'different-round' }));
+const rated = { ...attempt, updatedAt: base + 30000, feedback: { clarity: 4, useAgain: 'yes', comment: '<img onerror="bad">' } };
+const rows = summarize([rated, recordEvent(newRecord('second-tester', .2, base, 'tech'), 'started', base + 1000)]);
+assert.equal(rows[0].started, 2);
+assert.equal(rows[0].completed, 1);
+assert.equal(rows[0].feedbackCount, 1);
+assert.equal(rows[0].clarity, 4);
+assert.equal(rows[1].medianMs, null, 'Empty groups have no fake zero-time result');
+// Check each prototype still parses and emits all shared stages; no runtime dependency in ordinary previews.
+for (const variant of ['neutral', 'blueprint', 'signal']) {
+  const source = readFileSync(new URL(`../apps/web/public/design-options/${variant}.html`, import.meta.url), 'utf8');
+  const script = source.match(/<script>([\s\S]*?)<\/script>/)[1];
+  new vm.Script(script);
+  for (const stage of ['processing', 'review', 'decision', 'layout', 'layout_confirmed']) assert.ok(script.includes(`'${stage}'`), `${variant} misses ${stage}`);
+}
+console.log('Design study: assignment, completion, timing, privacy allowlist, deduplication, validation, empty groups and prototype syntax passed.');

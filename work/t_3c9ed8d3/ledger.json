@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://www.manpowergroup.com.sg/apac-talent-shortage-2025",
+      "title": "ManpowerGroup APAC Talent Shortage 2025",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 2,
+      "url": "https://www.ilo.org/media/325571/download",
+      "title": "ILO Discrimination at Work in Asia fact sheet",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 3,
+      "url": "https://www.hcamag.com/asia/specialisation/recruitment/most-asia-pacific-employers-report-hiring-challenges-study-finds/568440",
+      "title": "HCAMag APME hiring challenges 2026",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 4,
+      "url": "https://www.staffingindustry.com/news/global-daily-news/malaysia-discrimination-making-job-hunting-more-difficult",
+      "title": "SIA Malaysia discrimination job hunting",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 5,
+      "url": "https://www.straitstimes.com/life/when-opentowork-isnt-working-as-job-hunting-gets-harder-experts-say-do-this-instead",
+      "title": "Straits Times Singapore job hunting 2025",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 6,
+      "url": "https://www.bakermckenzie.com/-/media/files/insight/publications/2025/10/key-employment-trends-in-asia-pacific-oct-2025.pdf",
+      "title": "Baker McKenzie APAC employment trends Oct 2025",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 7,
+      "url": "https://www.povertyactionlab.org/blog/1-17-25/how-can-we-support-workers-their-search-quality-jobs?lang=en",
+      "title": "J-PAL supporting workers search quality jobs LatAm",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 8,
+      "url": "https://www.ilo.org/resource/news/employment-holds-steady-latin-america-and-caribbean-informality-and",
+      "title": "ILO 2025 Labour Overview LAC informality",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 9,
+      "url": "https://www.iadb.org/en/blog/labor-markets/why-formal-hiring-costs-so-much-latin-america-and-what-can-be-done-about-it",
+      "title": "IDB formal hiring costs LatAm",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 10,
+      "url": "https://blogs.worldbank.org/en/opendata/beyond-the-numbers--key-trends-reshaping-latin-american-jobs",
+      "title": "World Bank LAC jobs trends May 2025",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 11,
+      "url": "https://www.oecd.org/en/publications/expanding-social-protection-and-addressing-informality-in-latin-america_86c1fd38-en/full-report.html",
+      "title": "OECD informality LatAm",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 12,
+      "url": "https://doi.org/10.18235/0013185",
+      "title": "IDB ALMPs and PES lessons LAC",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 13,
+      "url": "https://mastercardfdn.org/en/our-research/africa-youth-employment-outlook-2026",
+      "title": "Mastercard Foundation Africa Youth Employment Outlook 2026",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 14,
+      "url": "https://gsdrc.org/publications/barriers-to-youth-work-opportunities",
+      "title": "GSDRC barriers to youth work opportunities",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 15,
+      "url": "https://www.researchgate.net/publication/393882402_No_Connections_No_Employment_Social_Capital_and_Youth_Graduate_Unemployment_in_South_Africa",
+      "title": "No Connections No Employment South Africa social capital",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 16,
+      "url": "https://theconversation.com/training-young-people-for-jobs-insights-from-9-african-countries-on-whats-missing-287075",
+      "title": "Conversation training young people 9 African countries",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 17,
+      "url": "https://careeraheadonline.com/visa-tightening-remote-decoupling-and-the-new-geopolitics-of-skills",
+      "title": "Visa tightening remote decoupling geopolitics of skills",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 18,
+      "url": "https://primanews.org/how-103000-visa-fees-could-force-us-tech-to-build-in-africa",
+      "title": "PrimaNews H-1B 00k fee Africa impact",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 19,
+      "url": "https://jobsrmine.com/blog/developer-job-abroad-2026",
+      "title": "Developer jobs abroad 2026 visas salaries",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 20,
+      "url": "https://entrepreneursnews.co.uk/remote-first-hiring-uk-startups-global-talent-2026",
+      "title": "UK startups remote-first global talent 2026",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 21,
+      "url": "https://www.reuters.com/business/world-at-work/young-south-koreans-look-jobs-japan-they-struggle-find-work-home-2026-08-03",
+      "title": "Reuters young South Koreans seek jobs in Japan 2026",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 22,
+      "url": "https://www.jasso.go.jp/en/ryugaku/after_study_j/job/__icsFiles/afieldfile/2026/01/27/guide_2027_all_e.pdf",
+      "title": "JASSO Job Hunting Guide for International Students 2027",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 23,
+      "url": "https://mainichi.jp/english/articles/20250221/p2a/00m/0na/002000c",
+      "title": "Mainichi foreign students Japan job hunting barriers",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 24,
+      "url": "https://www.japanesestudies.org.uk/ejcjs/vol20/iss3/kawanishi.html",
+      "title": "EJCJS shukatsu utsu psychological toll",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 25,
+      "url": "https://m.koreaherald.com/article/10646860",
+      "title": "Korea Herald foreign graduates visa and language barriers",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 26,
+      "url": "https://publications.iom.int/system/files/pdf/transnational_culture.pdf",
+      "title": "IOM transnational culture of corruption migrant recruitment",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 27,
+      "url": "https://www.unodc.org/roseap/en/TrappedInScamCrime/article1.html",
+      "title": "UNODC Trapped in Scam Crime fake job offers",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 28,
+      "url": "https://factcheck.afp.com/doc.afp.com.32DJ7CB",
+      "title": "AFP job seekers Africa online scammers",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 29,
+      "url": "https://www.amnesty.org/en/latest/press-release/2011/12/nepal-protect-nepalese-migrants-false-promises-work-abroad",
+      "title": "Amnesty Nepal migrant recruitment deception",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 30,
+      "url": "https://www.theguardian.com/global-development/2025/sep/09/cyberslavery-kenya-uganda-ethiopia-southeast-asia-myanmar-scam-centres",
+      "title": "Guardian cyberslavery African jobseekers scam compounds",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 31,
+      "url": "https://paymentscmi.com/insights/latin-america-gig-economy-informal-economy",
+      "title": "PCMI gig economy informality LatAm",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 32,
+      "url": "https://www.cgdev.org/publication/lets-be-real-informal-sector-and-gig-economy-are-future-and-present-work-africa",
+      "title": "CGD informal sector gig economy Africa",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 33,
+      "url": "https://restofworld.org/2021/the-global-gig-workers",
+      "title": "Rest of World global gig worker surveys",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 34,
+      "url": "https://hiredremoteli.com/blog/you-have-the-skills-but-the-english-interview-freezes-you-heres-what-you-need",
+      "title": "HiredRemote LATAM English interview barrier",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 35,
+      "url": "https://www.thedocs.worldbank.org/en/doc/75ec866c182238e087167ce03244c8da-0460012023/original/Reading-Deck-Working-without-borders-updated.pdf",
+      "title": "World Bank Working Without Borders gig",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 36,
+      "url": "https://manpowergroup.com.sg/hubfs/MPG-APAC-Talent-Shortage-2025.pdf",
+      "title": "ManpowerGroup 2025 Talent Shortage APAC findings PDF",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 37,
+      "url": "https://tokyo.how/guides/japan-employment-system",
+      "title": "tokyo.how Japan employment system guide",
+      "accessed": "2026-09-20"
+    },
+    {
+      "id": 38,
+      "url": "https://www.businessatoecd.org/hubfs/Breaking%20the%20Informality%20Trap%20in%20Latin%20America%20and%20the%20Caribbean.pdf",
+      "title": "Business at OECD Breaking the Informality Trap LAC",
+      "accessed": "2026-09-20"
+    }
+  ]
+}
